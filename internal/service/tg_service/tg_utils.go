@@ -439,8 +439,10 @@ func (srv *TgService) sendChPostAsVamp_Photo_MediaGroup(vampBot entity.Bot, m mo
 	srv.LMG.Mu.Lock()
 	srv.LMG.MuExecuted = true
 	defer func() {
-		srv.LMG.Mu.Unlock()
-		srv.LMG.MuExecuted = false
+		if srv.LMG.MuExecuted {
+			srv.LMG.Mu.Unlock()
+			srv.LMG.MuExecuted = false
+		}
 	}()
 	newmedia := Media{
 		Media_group_id: m.ChannelPost.MediaGroupId,
@@ -449,10 +451,11 @@ func (srv *TgService) sendChPostAsVamp_Photo_MediaGroup(vampBot entity.Bot, m mo
 		Donor_message_id: donor_ch_mes_id,
 	}
 	if m.ChannelPost.Caption != "" {
+		fmt.Println("Photo_MediaGroup_Caption !!!!")
 		newmedia.Caption = m.ChannelPost.Caption
 	}
 	if m.ChannelPost.ReplyToMessage.MessageId != 0 {
-		fmt.Println("ReplyToMessage !!!!")
+		fmt.Println("Photo_MediaGroup_ReplyToMessage !!!!")
 		replToDonorChPostId := m.ChannelPost.ReplyToMessage.MessageId
 		currPost, err := srv.As.GetPostByDonorIdAndChId(replToDonorChPostId, vampBot.ChId)
 		if err != nil {
@@ -461,7 +464,7 @@ func (srv *TgService) sendChPostAsVamp_Photo_MediaGroup(vampBot entity.Bot, m mo
 		newmedia.Reply_to_message_id = currPost.PostId
 	}
 	if len(m.ChannelPost.CaptionEntities) > 0 {
-		fmt.Println("CaptionEntities !!!!")
+		fmt.Println("Photo_MediaGroup_CaptionEntities !!!!")
 		entities := make([]models.MessageEntity, len(m.ChannelPost.CaptionEntities))
 		mycopy.DeepCopy(m.ChannelPost.CaptionEntities, &entities)
 		for i, v := range entities {
@@ -492,13 +495,17 @@ func (srv *TgService) sendChPostAsVamp_Photo_MediaGroup(vampBot entity.Bot, m mo
 		}
 		newmedia.Caption_entities = entities
 	}
-	srv.LMG.MediaGroups[fmt.Sprintf("%s:%s", m.ChannelPost.MediaGroupId, strconv.Itoa(vampBot.ChId))] = append(srv.LMG.MediaGroups[fmt.Sprintf("%s:%s", m.ChannelPost.MediaGroupId, strconv.Itoa(vampBot.ChId))], newmedia)
+	hashForMapGroupIdAndChId := fmt.Sprintf("%s:%s", m.ChannelPost.MediaGroupId, strconv.Itoa(vampBot.ChId))
+	srv.LMG.MediaGroups[hashForMapGroupIdAndChId] = append(srv.LMG.MediaGroups[hashForMapGroupIdAndChId], newmedia)
+	fmt.Println(77777777777777777)
+	fmt.Println(srv.LMG.MediaGroups)
+	fmt.Println(77777777777777777)
 	srv.LMG.Mu.Unlock()
 	srv.LMG.MuExecuted = false
 	time.Sleep(time.Second*5)
 	srv.LMG.Mu.Lock()
 	srv.LMG.MuExecuted = true
-	medias, ok := srv.LMG.MediaGroups[fmt.Sprintf("%s:%s", m.ChannelPost.MediaGroupId, strconv.Itoa(vampBot.ChId))]
+	medias, ok := srv.LMG.MediaGroups[hashForMapGroupIdAndChId]
 	if !ok {
 		return nil 
 	}
@@ -508,7 +515,10 @@ func (srv *TgService) sendChPostAsVamp_Photo_MediaGroup(vampBot entity.Bot, m mo
 		time.Sleep(time.Second*5)
 	}
 	fmt.Println("len(medias):::", len(medias))
-	srv.LMG.Mu.TryLock()
+	if !srv.LMG.MuExecuted {
+		srv.LMG.Mu.Lock()
+		srv.LMG.MuExecuted = true
+	}
 	srv.LMG.MuExecuted = true
 	medias2, ok := srv.LMG.MediaGroups[fmt.Sprintf("%s:%s", m.ChannelPost.MediaGroupId, strconv.Itoa(vampBot.ChId))]
 	if !ok {
@@ -558,32 +568,23 @@ func (srv *TgService) sendChPostAsVamp_Photo_MediaGroup(vampBot entity.Bot, m mo
 			Photo []models.PhotoSize `json:"photo"`
 		} `json:"result,omitempty"`
 	}
-	if err := json.NewDecoder(rrresfyhfy.Body).Decode(&cAny2); err != nil && err != io.EOF {
+	if err := json.NewDecoder(rrresfyhfy.Body).Decode(&cAny223); err != nil && err != io.EOF {
 		return err
 	}
 	for _, v := range cAny223.Result {
 		if v.MessageId != 0 {
-			err = srv.As.AddNewPost(vampBot.ChId, v.MessageId, donor_ch_mes_id)
-			if err != nil {
-				return err
+			for _, med := range s2 {
+				fmt.Println(888888)
+				fmt.Println(med.Donor_message_id)
+				fmt.Println(888888)
+				err = srv.As.AddNewPost(vampBot.ChId, v.MessageId, med.Donor_message_id)
+				if err != nil {
+					return err
+				}
 			}
 		}
 	}
 
-
-
-
-
-
-
-
-
-	// if m.ChannelPost.ReplyToMessage.MessageId != 0 {
-	// 	fmt.Println("ReplyToMessage !!!!")
-	// }
-	// if len(m.ChannelPost.CaptionEntities) > 0 {
-	// 	fmt.Println("CaptionEntities !!!!")
-	// }
 	return nil
 }
 
