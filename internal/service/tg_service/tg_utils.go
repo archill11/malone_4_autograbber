@@ -497,9 +497,6 @@ func (srv *TgService) sendChPostAsVamp_Photo_MediaGroup(vampBot entity.Bot, m mo
 	}
 	hashForMapGroupIdAndChId := fmt.Sprintf("%s:%s", m.ChannelPost.MediaGroupId, strconv.Itoa(vampBot.ChId))
 	srv.LMG.MediaGroups[hashForMapGroupIdAndChId] = append(srv.LMG.MediaGroups[hashForMapGroupIdAndChId], newmedia)
-	fmt.Println(77777777777777777)
-	fmt.Println(srv.LMG.MediaGroups)
-	fmt.Println(77777777777777777)
 	srv.LMG.Mu.Unlock()
 	srv.LMG.MuExecuted = false
 	time.Sleep(time.Second*5)
@@ -574,9 +571,6 @@ func (srv *TgService) sendChPostAsVamp_Photo_MediaGroup(vampBot entity.Bot, m mo
 	for _, v := range cAny223.Result {
 		if v.MessageId != 0 {
 			for _, med := range s2 {
-				fmt.Println(888888)
-				fmt.Println(med.Donor_message_id)
-				fmt.Println(888888)
 				err = srv.As.AddNewPost(vampBot.ChId, v.MessageId, med.Donor_message_id)
 				if err != nil {
 					return err
@@ -584,7 +578,6 @@ func (srv *TgService) sendChPostAsVamp_Photo_MediaGroup(vampBot entity.Bot, m mo
 			}
 		}
 	}
-
 	return nil
 }
 
