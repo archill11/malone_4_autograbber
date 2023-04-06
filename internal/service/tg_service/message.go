@@ -1,0 +1,41 @@
+package tg_service
+
+import (
+	"fmt"
+	"myapp/internal/models"
+)
+
+func (srv *TgService) M_start(m models.Update) error {
+	chatId := m.Message.Chat.Id
+	msgText := m.Message.Text
+	userFirstName := m.Message.From.FirstName
+	userUserName := m.Message.From.UserName
+	srv.l.Info("tg_service::Mess::", userUserName, msgText)
+
+	err := srv.ShowMessClient(chatId, fmt.Sprintf("Привет %s", userFirstName))
+	if err != nil {
+		return err
+	}
+	err = srv.As.AddNewUser(chatId, userUserName, userFirstName)
+
+	return err
+}
+
+func (srv *TgService) M_admin(m models.Update) error {
+	chatId := m.Message.Chat.Id
+	msgText := m.Message.Text
+	userUserName := m.Message.From.UserName
+	srv.l.Info("tg_service::Mess::", userUserName, msgText)
+
+	u, err := srv.As.GetUserById(chatId)
+	if err != nil {
+		srv.ShowMessClient(chatId, "Нажмите сначала /start")
+		return err
+	}
+	if u.IsAdmin != 1 {
+		return nil
+	}
+	err = srv.showAdminPanel(chatId)
+
+	return err
+}

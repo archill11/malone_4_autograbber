@@ -1,0 +1,26 @@
+package tg
+
+import (
+	"myapp/internal/models"
+)
+
+func (srv *TgClient) HandleMessage(m models.Update) error {
+	// chatId := m.Message.Chat.Id
+	// userFirstName := m.Message.From.FirstName
+	userUserName := m.Message.From.UserName
+	msgText := m.Message.Text
+
+	srv.l.Info("client::tg::Mess::", userUserName, msgText)
+
+	if msgText == "/admin" {
+		err := srv.Ts.M_admin(m)
+		return err
+	}
+
+	if msgText == "/start" {
+		err := srv.Ts.M_start(m)
+		return err
+	}
+
+	return nil
+}
