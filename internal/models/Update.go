@@ -103,19 +103,13 @@ type PhotoSize struct {
 	FileSize     int    `json:"file_size"`
 }
 
-type InputMediaPhoto struct {
+type InputMedia struct {
 	Type       string `json:"type"`
 	Media string `json:"media"`
 	Caption        string    `json:"caption"`
 	CaptionEntities       []MessageEntity    `json:"caption_entities"`
 }
 
-type InputMediaVideo struct {
-	Type       string `json:"type"`
-	Media string `json:"media"`
-	Caption        string    `json:"caption"`
-	CaptionEntities       []MessageEntity    `json:"caption_entities"`
-}
 
 type Animation struct {
 	FileId       string    `json:"file_id"`

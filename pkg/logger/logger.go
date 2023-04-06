@@ -13,7 +13,7 @@ type Logger struct {
 
 func New() *Logger {
 	flags := log.LstdFlags | log.Lshortfile
-	file, _ := os.OpenFile("../../logs/info.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
+	file, _ := os.OpenFile("logs/info.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
 	logInfo := log.New(file, "INFO:  ", flags)
 	logWarn := log.New(file, "WARN:  ", flags)
 	logErr := log.New(file, "ERR:  ", flags)
