@@ -20,6 +20,7 @@ import (
 func (srv *TgService) sendChPostAsVamp(vampBot entity.Bot, m models.Update) error {
 	donor_ch_mes_id := m.ChannelPost.MessageId
 
+	fmt.Println(111)
 	if m.ChannelPost.VideoNote.FileId != "" {
 		//////////////// если кружочек видео
 		err := srv.sendChPostAsVamp_VideoNote(vampBot, m)
@@ -579,6 +580,9 @@ func (srv *TgService) sendChPostAsVamp_Video(vampBot entity.Bot, m models.Update
 		for i, v := range entities {
 			urlArr := strings.Split(v.Url, "/")
 			for ii, vv := range urlArr {
+				if len(urlArr) < 4 {
+					break
+				}
 				if vv == "t.me" && urlArr[ii+1] == "c" {
 					fmt.Printf("\nэто ссылка на канал %s и пост %s\n", urlArr[ii+2], urlArr[ii+3])
 					refToDonorChPostId, err := strconv.Atoi(urlArr[ii+3])
@@ -623,6 +627,10 @@ func (srv *TgService) sendChPostAsVamp_Video(vampBot entity.Bot, m models.Update
 	}
 	if err := json.NewDecoder(getFilePAthResp.Body).Decode(&cAny); err != nil {
 		return err
+	}
+	if !cAny.Ok {
+		fmt.Println("NOT OK GET VIDEO FILE PATH!")
+		return fmt.Errorf("NOT OK GET VIDEO FILE PATH! 4")
 	}
 	fileNameDir := strings.Split(cAny.Result.File_path, ".")
 	fileNameInServer := fmt.Sprintf("./files/%s.%s", cAny.Result.File_unique_id, fileNameDir[1])
