@@ -16,16 +16,16 @@ func (srv *TgClient) Donor_HandleChannelPost(m models.Update) error {
 	return nil
 }
 
-func (srv *TgClient) Vampire_HandleChannelPost(m models.Update) error {
-	// chatId := m.Message.Chat.Id
-	// msgText := m.Message.Text
-	// userFirstName := m.Message.From.FirstName
-	// userUserName := m.Message.From.UserName
-	srv.l.Info("client::tg::HandleChannelPost::")
+// func (srv *TgClient) Vampire_HandleChannelPost(m models.Update) error {
+// 	// chatId := m.Message.Chat.Id
+// 	// msgText := m.Message.Text
+// 	// userFirstName := m.Message.From.FirstName
+// 	// userUserName := m.Message.From.UserName
+// 	srv.l.Info("client::tg::HandleChannelPost::")
 
-	// err := srv.Ts.AddChannelPost(m)
-	// if err != nil {
-	// 	return err
-	// }
-	return nil
-}
+// 	// err := srv.Ts.AddChannelPost(m)
+// 	// if err != nil {
+// 	// 	return err
+// 	// }
+// 	return nil
+// }

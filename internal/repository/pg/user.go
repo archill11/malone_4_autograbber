@@ -20,6 +20,19 @@ func (s *Database) GetUserById(id int) (entity.User, error) {
 	return u, nil
 }
 
+func (s *Database) GetUserByUsername(username string) (entity.User, error) {
+	var u entity.User
+	q := `SELECT id, username, firstname, is_admin FROM users WHERE username = $1`
+	err := s.db.QueryRow(q, username).Scan(&u.Id, &u.Username, &u.Firstname, &u.IsAdmin)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return entity.User{}, repository.ErrNotFound
+		}
+		return entity.User{}, err
+	}
+	return u, nil
+}
+
 func (s *Database) EditAdmin(username string, is_admin int) error {
 	q := `UPDATE users SET is_admin = $1 WHERE username = $2`
 	_, err := s.db.Exec(q, is_admin, username)

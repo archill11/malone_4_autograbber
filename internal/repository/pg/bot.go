@@ -65,6 +65,32 @@ func (s *Database) GetBotByChannelId(channelId int) (entity.Bot, error) {
 	return b, nil
 }
 
+func (s *Database) GetAllBots() ([]entity.Bot, error) {
+	bots := make([]entity.Bot, 0)
+	q := `SELECT 
+			id,
+			token,
+			username,
+			first_name,
+			is_donor,
+			ch_id,
+			ch_link
+		FROM bots`
+	rows, err := s.db.Query(q)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var b entity.Bot
+		if err := rows.Scan(&b.Id, &b.Token, &b.Username, &b.Firstname, &b.IsDonor, &b.ChId, &b.ChLink); err != nil {
+			return nil, err
+		}
+		bots = append(bots, b)
+	}
+	return bots, nil
+}
+
 func (s *Database) GetAllVampBots() ([]entity.Bot, error) {
 	bots := make([]entity.Bot, 0)
 	q := `SELECT 

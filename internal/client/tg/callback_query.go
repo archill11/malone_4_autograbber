@@ -26,5 +26,29 @@ func (srv *TgClient) HandleCallbackQuery(m models.Update) error {
 		return err
 	}
 
+	if cq.Data == "add_admin_btn" {
+		err := srv.Ts.CQ_add_admin(m)
+		if err != nil {
+			srv.Ts.ShowMessClient(chatId, u.ERR_MSG)
+		}
+		return err
+	}
+
+	if cq.Data == "show_bots_and_channels" {
+		err := srv.Ts.CQ_show_bots_and_channels(m)
+		if err != nil {
+			srv.Ts.ShowMessClient(chatId, u.ERR_MSG)
+		}
+		return err
+	}
+
+	if cq.Data == "show_admin_panel" {
+		err := srv.Ts.CQ_show_admin_panel(m)
+		if err != nil {
+			srv.Ts.ShowMessClient(chatId, u.ERR_MSG)
+		}
+		return err
+	}
+
 	return nil
 }

@@ -14,16 +14,17 @@ func (srv *TgClient) HandleReplyToMessage(m models.Update) error {
 
 	if rm.Text == u.NEW_BOT_MSG {
 		err := srv.Ts.RM_obtain_vampire_bot_token(m)
-		if err != nil {
-			return err
-		}
+		return err
 	}
 
 	if rm.Text == u.DELETE_BOT_MSG {
 		err := srv.Ts.RM_delete_bot(m)
-		if err != nil {
-			return err
-		}
+		return err
+	}
+
+	if rm.Text == u.NEW_ADMIN_MSG {
+		err := srv.Ts.RM_add_admin(m)
+		return err
 	}
 
 	return nil

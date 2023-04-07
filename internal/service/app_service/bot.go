@@ -14,6 +14,11 @@ func (s *AppService) DeleteBot(botId int) error {
 	return err
 }
 
+func (s *AppService) GetAllBots() ([]entity.Bot, error) {
+	bots, err := s.db.GetAllBots()
+	return bots, err
+}
+
 func (s *AppService) GetAllVampBots() ([]entity.Bot, error) {
 	bots, err := s.db.GetAllVampBots()
 	return bots, err

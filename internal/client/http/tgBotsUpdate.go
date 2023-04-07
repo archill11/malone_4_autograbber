@@ -72,30 +72,30 @@ func (srv *APIServer) donor_Update(c *fiber.Ctx) error {
 
 func (srv *APIServer) vampire_Update(c *fiber.Ctx) error {
 	m := models.Update{}
-	var many any
+	// var many any
 	if err := c.BodyParser(&m); err != nil {
 		srv.l.Err(err)
 		return nil
 	}
-	if err := c.BodyParser(&many); err != nil {
-		srv.l.Err(err)
-		return nil
-	}
-	b, err := json.Marshal(many)
-	if err != nil {
-		fmt.Println(err)
-	}
+	// if err := c.BodyParser(&many); err != nil {
+	// 	srv.l.Err(err)
+	// 	return nil
+	// }
+	// b, err := json.Marshal(many)
+	// if err != nil {
+	// 	fmt.Println(err)
+	// }
 
-	fmt.Println("vampire::message::any::", string(b))
+	// fmt.Println("vampire::message::any::", string(b))
 	// fmt.Println("message::::", m)
 
-	if m.ChannelPost.Chat.Id != 0 { // on Channel_Post
-		err := srv.tgc.Vampire_HandleChannelPost(m)
-		if err != nil {
-			srv.l.Err(err)
-		}
-		return nil
-	}
+	// if m.ChannelPost.Chat.Id != 0 { // on Channel_Post
+	// 	err := srv.tgc.Vampire_HandleChannelPost(m)
+	// 	if err != nil {
+	// 		srv.l.Err(err)
+	// 	}
+	// 	return nil
+	// }
 
 	if m.MyChatMember.NewChatMember.Status != "" { // on New_Chat_Member
 		err := srv.tgc.HandleNewChatMember(m)

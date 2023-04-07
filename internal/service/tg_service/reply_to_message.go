@@ -91,3 +91,27 @@ func (srv *TgService) RM_delete_bot(m models.Update) error {
 
 	return err
 }
+
+func (srv *TgService) RM_add_admin(m models.Update) error {
+	rm := m.Message.ReplyToMessage
+	replyMes := m.Message.Text
+	chatId := m.Message.From.Id
+	srv.l.Info("tg_service::tg::rm::", rm.Text, replyMes)
+
+	usr, err := srv.As.GetUserByUsername(strings.TrimSpace(replyMes))
+	if err != nil {
+		if errors.Is(err, repository.ErrNotFound) {
+			srv.ShowMessClient(chatId, "я не знаю такого юзера , пусть напишет мне /start")
+			return err
+		}
+		srv.ShowMessClient(chatId, u.ERR_MSG)
+		return err
+	}
+	err = srv.As.EditAdmin(usr.Username, 1)
+	if err != nil {
+		srv.ShowMessClient(chatId, u.ERR_MSG)
+		return err
+	}
+	err = srv.ShowMessClient(chatId, "Админ добавлен")
+	return err
+}

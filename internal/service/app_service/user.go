@@ -10,6 +10,14 @@ func (s *AppService) GetUserById(id int) (entity.User, error) {
 	return u, nil
 }
 
+func (s *AppService) GetUserByUsername(username string) (entity.User, error) {
+	u, err := s.db.GetUserByUsername(username)
+	if err != nil {
+		return u, err
+	}
+	return u, nil
+}
+
 func (s *AppService) AddNewUser(id int, username, firstname string) error {
 	err := s.db.AddNewUser(id, username, firstname)
 	if err != nil {
