@@ -19,7 +19,7 @@ func (srv *TgClient) HandleCallbackQuery(m models.Update) error {
 	}
 
 	if cq.Data == "delete_vampere_bot" {
-		err := srv.Ts.CQ_vampire_register(m)
+		err := srv.Ts.CQ_vampire_delete(m)
 		if err != nil {
 			srv.Ts.ShowMessClient(chatId, u.ERR_MSG)
 		}

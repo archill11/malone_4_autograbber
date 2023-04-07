@@ -5,3 +5,5 @@
 .env
 volumes/
 *.log
+*.mp4
+*.jpg
