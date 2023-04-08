@@ -16,14 +16,13 @@ type TgService struct {
 	Token   string
 	As      *as.AppService
 	l       *logger.Logger
-	LMG LockMediaGroups
-
+	LMG     LockMediaGroups
 }
 
 type LockMediaGroups struct {
 	MediaGroups map[string][]Media
-	Mu sync.Mutex
-	MuExecuted bool
+	Mu          sync.Mutex
+	MuExecuted  bool
 }
 
 type Media struct {

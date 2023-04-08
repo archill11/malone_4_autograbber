@@ -104,12 +104,11 @@ type PhotoSize struct {
 }
 
 type InputMedia struct {
-	Type       string `json:"type"`
-	Media string `json:"media"`
-	Caption        string    `json:"caption"`
-	CaptionEntities       []MessageEntity    `json:"caption_entities"`
+	Type            string          `json:"type"`
+	Media           string          `json:"media"`
+	Caption         string          `json:"caption"`
+	CaptionEntities []MessageEntity `json:"caption_entities"`
 }
-
 
 type Animation struct {
 	FileId       string    `json:"file_id"`
@@ -124,7 +123,7 @@ type Animation struct {
 type VideoNote struct {
 	FileId       string    `json:"file_id"`
 	FileUniqueId string    `json:"file_unique_id"`
-	Thumbnail PhotoSize `json:"thumbnail"`
+	Thumbnail    PhotoSize `json:"thumbnail"`
 }
 
 type ChatMemberUpdated struct {

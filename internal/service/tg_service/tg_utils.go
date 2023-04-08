@@ -56,7 +56,7 @@ func (srv *TgService) showBotsAndChannels(chatId int) error {
 	for i, b := range bots {
 		if b.IsDonor == 1 {
 			isDonor = true
-		}else{
+		} else {
 			isDonor = false
 		}
 		mess.WriteString(fmt.Sprintf("%d) id: %d\n", i+1, b.Id))
@@ -68,8 +68,8 @@ func (srv *TgService) showBotsAndChannels(chatId int) error {
 	}
 
 	json_data, err := json.Marshal(map[string]any{
-		"chat_id":      strconv.Itoa(chatId),
-		"text":         mess.String(),
+		"chat_id": strconv.Itoa(chatId),
+		"text":    mess.String(),
 		"reply_markup": `{"inline_keyboard" : [ 
 			[{ "text": "Назад", "callback_data": "show_admin_panel" }]
 		]}`,
@@ -83,7 +83,6 @@ func (srv *TgService) showBotsAndChannels(chatId int) error {
 	}
 	return nil
 }
-
 
 func (srv *TgService) getChatByCurrBot(chatId int, token string) (models.GetChatResult, error) {
 	json_data, err := json.Marshal(map[string]any{
@@ -150,4 +149,3 @@ func (srv *TgService) sendData(json_data []byte) error {
 	}
 	return nil
 }
-
