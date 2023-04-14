@@ -54,6 +54,14 @@ func (srv *TgService) sendChPostAsVamp(vampBot entity.Bot, m models.Update) erro
 			entities := make([]models.MessageEntity, len(m.ChannelPost.Entities))
 			mycopy.DeepCopy(m.ChannelPost.Entities, &entities)
 			for i, v := range entities {
+				if strings.HasPrefix(v.Url, "http://fake-link") || strings.HasPrefix(v.Url, "fake-link") || strings.HasPrefix(v.Url, "https://fake-link") {
+					groupLink, err := srv.As.GetGroupLinkById(vampBot.GroupLinkId)
+					if err != nil {
+						return err
+					}
+					entities[i].Url = groupLink.Link
+					continue
+				}
 				urlArr := strings.Split(v.Url, "/")
 				for ii, vv := range urlArr {
 					if vv == "t.me" && urlArr[ii+1] == "c" {
@@ -223,6 +231,14 @@ func (srv *TgService) sendChPostAsVamp_Video_or_Photo(vampBot entity.Bot, m mode
 		entities := make([]models.MessageEntity, len(m.ChannelPost.CaptionEntities))
 		mycopy.DeepCopy(m.ChannelPost.CaptionEntities, &entities)
 		for i, v := range entities {
+			if strings.HasPrefix(v.Url, "http://fake-link") || strings.HasPrefix(v.Url, "fake-link") || strings.HasPrefix(v.Url, "https://fake-link") {
+				groupLink, err := srv.As.GetGroupLinkById(vampBot.GroupLinkId)
+				if err != nil {
+					return err
+				}
+				entities[i].Url = groupLink.Link
+				continue
+			}
 			urlArr := strings.Split(v.Url, "/")
 			for ii, vv := range urlArr {
 				if len(urlArr) < 4 {
@@ -466,6 +482,14 @@ func (srv *TgService) sendChPostAsVamp_Video_or_Photo_MediaGroup(vampBot entity.
 		entities := make([]models.MessageEntity, len(m.ChannelPost.CaptionEntities))
 		mycopy.DeepCopy(m.ChannelPost.CaptionEntities, &entities)
 		for i, v := range entities {
+			if strings.HasPrefix(v.Url, "http://fake-link") || strings.HasPrefix(v.Url, "fake-link") || strings.HasPrefix(v.Url, "https://fake-link") {
+				groupLink, err := srv.As.GetGroupLinkById(vampBot.GroupLinkId)
+				if err != nil {
+					return err
+				}
+				entities[i].Url = groupLink.Link
+				continue
+			}
 			urlArr := strings.Split(v.Url, "/")
 			for ii, vv := range urlArr {
 				if len(urlArr) < 4 {

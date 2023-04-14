@@ -14,9 +14,12 @@ func (srv *TgService) showAdminPanel(chatId int) error {
 		"chat_id": strconv.Itoa(chatId),
 		"text":    "Привет, я бот Донор",
 		"reply_markup": `{"inline_keyboard" : [
-			[{ "text": "Привязанные боты и  каналы", "callback_data": "show_bots_and_channels" }],
+			[{ "text": "Привязанные боты и каналы", "callback_data": "show_bots_and_channels" }],
 			[{ "text": "Добавить бота", "callback_data": "create_vampere_bot" }],
 			[{ "text": "Удалить бота", "callback_data": "delete_vampere_bot" }],
+			[{ "text": "Добавить группу-ссылку", "callback_data": "create_group_link" }],
+			[{ "text": "Удалить группу-ссылку", "callback_data": "delete_group_link" }],
+			[{ "text": "Все группы-ссылкы", "callback_data": "show_all_group_links" }],
 			[{ "text": "Добавить Админа", "callback_data": "add_admin_btn" }]
 		]}`,
 	})
@@ -67,6 +70,44 @@ func (srv *TgService) showBotsAndChannels(chatId int) error {
 		mess.WriteString(fmt.Sprintf("link: %s\n\n", b.ChLink))
 	}
 
+	json_data, err := json.Marshal(map[string]any{
+		"chat_id": strconv.Itoa(chatId),
+		"text":    mess.String(),
+		"reply_markup": `{"inline_keyboard" : [ 
+			[{ "text": "Назад", "callback_data": "show_admin_panel" }]
+		]}`,
+	})
+	if err != nil {
+		return err
+	}
+	err = srv.sendData(json_data)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (srv *TgService) showAllGroupLinks(chatId int) error {
+	grs, err := srv.As.GetAllGroupLinks()
+	if err != nil {
+		return err
+	}
+	var mess bytes.Buffer
+	for i, b := range grs {
+		mess.WriteString(fmt.Sprintf("%d) id: %d\n", i+1, b.Id))
+		mess.WriteString(fmt.Sprintf("Название: %s\n", b.Title))
+		mess.WriteString(fmt.Sprintf("Ссылка: %s\n", b.Link))
+		mess.WriteString("Привязанный боты:\n")
+		bots, err := srv.As.GetAllBots()
+		if err != nil {
+			return err
+		}
+		for i, b := range bots {
+			mess.WriteString(fmt.Sprintf("%d) id: %d\n", i+1, b.Id))
+			mess.WriteString(fmt.Sprintf("@%s\n\n", b.Username))
+		}
+		mess.WriteString("\n\n\n")
+	}
 	json_data, err := json.Marshal(map[string]any{
 		"chat_id": strconv.Itoa(chatId),
 		"text":    mess.String(),

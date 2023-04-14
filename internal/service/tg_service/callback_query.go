@@ -41,11 +41,38 @@ func (srv *TgService) CQ_show_bots_and_channels(m models.Update) error {
 	return err
 }
 
+func (srv *TgService) CQ_show_all_group_links(m models.Update) error {
+	cq := m.CallbackQuery
+	chatId := cq.From.Id
+	srv.l.Info("tg_service::tg::cq::", cq.Data, chatId)
+
+	err := srv.showAllGroupLinks(chatId)
+	return err
+}
+
 func (srv *TgService) CQ_show_admin_panel(m models.Update) error {
 	cq := m.CallbackQuery
 	chatId := cq.From.Id
 	srv.l.Info("tg_service::tg::cq::", cq.Data, chatId)
 
 	err := srv.showAdminPanel(chatId)
+	return err
+}
+
+func (srv *TgService) CQ_create_group_link(m models.Update) error {
+	cq := m.CallbackQuery
+	chatId := cq.From.Id
+	srv.l.Info("tg_service::tg::cq::", cq.Data, chatId)
+
+	err := srv.sendForceReply(chatId, u.NEW_GROUP_LINK_MSG)
+	return err
+}
+
+func (srv *TgService) CQ_delete_group_link(m models.Update) error {
+	cq := m.CallbackQuery
+	chatId := cq.From.Id
+	srv.l.Info("tg_service::tg::cq::", cq.Data, chatId)
+
+	err := srv.sendForceReply(chatId, u.DELETE_GROUP_LINK_MSG)
 	return err
 }

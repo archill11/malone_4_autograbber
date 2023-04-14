@@ -115,3 +115,61 @@ func (srv *TgService) RM_add_admin(m models.Update) error {
 	err = srv.ShowMessClient(chatId, "Админ добавлен")
 	return err
 }
+
+func (srv *TgService) RM_add_group_link(m models.Update) error {
+	rm := m.Message.ReplyToMessage
+	replyMes := m.Message.Text
+	chatId := m.Message.From.Id
+	srv.l.Info("tg_service::tg::rm::", rm.Text, replyMes)
+
+	replyMes = strings.TrimSpace(replyMes)
+	runeStr := []rune(replyMes)
+	var groupLinkTitle string
+	var groupLinkLink string
+	for i := 0; i < len(runeStr); i++ {
+		if i < 1 {
+			continue
+		}
+		if string(runeStr[i-1]) == ":" && string(runeStr[i]) == ":" && string(runeStr[i+1]) == ":" {
+			groupLinkTitle = string(runeStr[:i-1])
+			groupLinkLink = string(runeStr[i+2:])
+		}
+	}
+
+	// link := entity.NewGroupLink(groupLinkTitle, groupLinkLink)
+
+	err := srv.As.AddNewGroupLink(groupLinkTitle, groupLinkLink)
+	if err != nil {
+		srv.ShowMessClient(chatId, u.ERR_MSG)
+		return err
+	}
+	err = srv.ShowMessClient(chatId, "группа-ссылка добавлен")
+	return err
+}
+
+func (srv *TgService) RM_delete_group_link(m models.Update) error {
+	rm := m.Message.ReplyToMessage
+	replyMes := m.Message.Text
+	chatId := m.Message.From.Id
+	srv.l.Info("tg_service::tg::rm::", rm.Text, replyMes)
+
+	replyMes = strings.TrimSpace(replyMes)
+	grId, err := strconv.Atoi(replyMes)
+	if err != nil {
+		srv.ShowMessClient(chatId, u.ERR_MSG)
+		return err
+	}
+	err = srv.As.DeleteGroupLink(grId)
+	if err != nil {
+		srv.ShowMessClient(chatId, u.ERR_MSG)
+		return err
+	}
+	err = srv.As.EditBotGroupLinkId(grId)
+	if err != nil {
+		srv.ShowMessClient(chatId, u.ERR_MSG)
+		return err
+	}
+	err = srv.ShowMessClient(chatId, "группа-ссылка удалена")
+	return err
+}
+

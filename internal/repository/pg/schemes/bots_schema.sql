@@ -6,5 +6,6 @@ CREATE TABLE IF NOT EXISTS bots (
     is_donor INT,
     ch_id BIGINT DEFAULT 0,
     ch_link VARCHAR(255) DEFAULT '',
+    group_link_id INT DEFAULT 0,
     PRIMARY KEY (id, token)
 );

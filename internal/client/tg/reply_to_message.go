@@ -27,5 +27,15 @@ func (srv *TgClient) HandleReplyToMessage(m models.Update) error {
 		return err
 	}
 
+	if rm.Text == u.NEW_GROUP_LINK_MSG {
+		err := srv.Ts.RM_add_group_link(m)
+		return err
+	}
+
+	if rm.Text == u.DELETE_GROUP_LINK_MSG {
+		err := srv.Ts.RM_delete_group_link(m)
+		return err
+	}
+
 	return nil
 }

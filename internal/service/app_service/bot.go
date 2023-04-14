@@ -45,3 +45,8 @@ func (s *AppService) EditBotChField(bot entity.Bot) error {
 	}
 	return nil
 }
+
+func (s *AppService) EditBotGroupLinkId(groupLinkId int) error {
+	err := s.db.EditBotGroupLinkId(groupLinkId)
+	return err
+}

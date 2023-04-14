@@ -8,6 +8,7 @@ type Bot struct {
 	IsDonor   int
 	ChId      int
 	ChLink    string
+	GroupLinkId    int
 }
 
 func NewBot(id int, username, firstname, token string, isDonor int) Bot {

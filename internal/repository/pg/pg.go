@@ -19,6 +19,9 @@ var posts_schema string
 //go:embed schemes/users_schema.sql
 var users_schema string
 
+//go:embed schemes/group_link_schema.sql
+var group_link_schema string
+
 // Database - хранилище заказов.
 type Database struct {
 	db *sql.DB
@@ -42,6 +45,7 @@ func New(config config.Config, l *logger.Logger) (*Database, error) {
 		posts_schema,
 		bots_schema,
 		users_schema,
+		group_link_schema,
 	}
 	for _, v := range queries {
 		if _, err := db.Exec(v); err != nil { //создаем таблицы в БД

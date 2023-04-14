@@ -10,8 +10,8 @@ import (
 
 func (s *Database) AddNewBot(id int, username, firstname, token string, idDonor int) error {
 	e := entity.NewBot(id, username, firstname, token, idDonor)
-	q := `INSERT INTO bots (id, username, first_name, token, is_donor) 
-		VALUES ($1, $2, $3, $4, $5) 
+	q := `INSERT INTO bots (id, username, first_name, token, is_donor, group_link_id) 
+		VALUES ($1, $2, $3, $4, $5, $6) 
 		ON CONFLICT DO NOTHING`
 	_, err := s.db.Exec(q, e.Id, e.Username, e.Firstname, e.Token, e.IsDonor)
 	if err != nil {
@@ -100,7 +100,8 @@ func (s *Database) GetAllVampBots() ([]entity.Bot, error) {
 			first_name,
 			is_donor,
 			ch_id,
-			ch_link
+			ch_link,
+			group_link_id
 		FROM bots
 		WHERE is_donor = 0`
 	rows, err := s.db.Query(q)
@@ -110,7 +111,16 @@ func (s *Database) GetAllVampBots() ([]entity.Bot, error) {
 	defer rows.Close()
 	for rows.Next() {
 		var b entity.Bot
-		if err := rows.Scan(&b.Id, &b.Token, &b.Username, &b.Firstname, &b.IsDonor, &b.ChId, &b.ChLink); err != nil {
+		if err := rows.Scan(
+			&b.Id,
+			&b.Token,
+			&b.Username,
+			&b.Firstname,
+			&b.IsDonor,
+			&b.ChId,
+			&b.ChLink,
+			&b.GroupLinkId,
+		); err != nil {
 			return nil, err
 		}
 		bots = append(bots, b)
@@ -140,6 +150,17 @@ func (s *Database) EditBotField(botId int, field string, content any) error {
 		s.l.Err("Postgres: could not change bot field ", field, content)
 	} else {
 		s.l.Info("Postgres: change bot field ", field, content)
+	}
+	return err
+}
+
+func (s *Database) EditBotGroupLinkId(groupLinkId int) error {
+	q := `UPDATE bots SET group_link_id = 0 WHERE group_link_id = $1`
+	_, err := s.db.Exec(q, groupLinkId)
+	if err != nil {
+		s.l.Err("Postgres: could not change bot field ", groupLinkId)
+	} else {
+		s.l.Info("Postgres: change bot field ", groupLinkId)
 	}
 	return err
 }

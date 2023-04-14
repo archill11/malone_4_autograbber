@@ -26,6 +26,22 @@ func (srv *TgClient) HandleCallbackQuery(m models.Update) error {
 		return err
 	}
 
+	if cq.Data == "create_group_link" {
+		err := srv.Ts.CQ_create_group_link(m)
+		if err != nil {
+			srv.Ts.ShowMessClient(chatId, u.ERR_MSG)
+		}
+		return err
+	}
+
+	if cq.Data == "delete_group_link" {
+		err := srv.Ts.CQ_delete_group_link(m)
+		if err != nil {
+			srv.Ts.ShowMessClient(chatId, u.ERR_MSG)
+		}
+		return err
+	}
+
 	if cq.Data == "add_admin_btn" {
 		err := srv.Ts.CQ_add_admin(m)
 		if err != nil {
@@ -36,6 +52,14 @@ func (srv *TgClient) HandleCallbackQuery(m models.Update) error {
 
 	if cq.Data == "show_bots_and_channels" {
 		err := srv.Ts.CQ_show_bots_and_channels(m)
+		if err != nil {
+			srv.Ts.ShowMessClient(chatId, u.ERR_MSG)
+		}
+		return err
+	}
+
+	if cq.Data == "show_all_group_links" {
+		err := srv.Ts.CQ_show_all_group_links(m)
 		if err != nil {
 			srv.Ts.ShowMessClient(chatId, u.ERR_MSG)
 		}
