@@ -87,6 +87,10 @@ func (srv *TgService) RM_delete_bot(m models.Update) error {
 		srv.ShowMessClient(chatId, u.ERR_MSG)
 		return err
 	}
+	if bot.IsDonor == 1 {
+		srv.ShowMessClient(chatId, "главного бота нельзя удалить")
+		return nil
+	}
 	_, err = http.Get(fmt.Sprintf(srv.TgEndp, bot.Token, "setWebhook?url=")) // delete Webhook
 	if err != nil {
 		srv.l.Err("Error delete Webhook::", err)

@@ -1,17 +1,17 @@
 version: '3.8'
 
 services:
-  my-app:
-    container_name: my-app
-    build: ./
-    restart: unless-stopped
-    ports:
-      - 4000:4000
-    volumes:
-      - ./volumes/logs:/app/logs
-      - ./volumes/files:/app/files
-    networks:
-      - mynet
+  # my-app:
+  #   container_name: my-app
+  #   build: ./
+  #   restart: unless-stopped
+  #   ports:
+  #     - 4000:4000
+  #   volumes:
+  #     - ./volumes/logs:/app/logs
+  #     - ./volumes/files:/app/files
+  #   networks:
+  #     - mynet
 
   db:
     container_name: grab_db
