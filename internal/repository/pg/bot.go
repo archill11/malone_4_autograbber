@@ -10,8 +10,8 @@ import (
 
 func (s *Database) AddNewBot(id int, username, firstname, token string, idDonor int) error {
 	e := entity.NewBot(id, username, firstname, token, idDonor)
-	q := `INSERT INTO bots (id, username, first_name, token, is_donor, group_link_id) 
-		VALUES ($1, $2, $3, $4, $5, $6) 
+	q := `INSERT INTO bots (id, username, first_name, token, is_donor) 
+		VALUES ($1, $2, $3, $4, $5) 
 		ON CONFLICT DO NOTHING`
 	_, err := s.db.Exec(q, e.Id, e.Username, e.Firstname, e.Token, e.IsDonor)
 	if err != nil {
@@ -44,7 +44,8 @@ func (s *Database) GetBotByChannelId(channelId int) (entity.Bot, error) {
 			token,
 			is_donor,
 			ch_id,
-			ch_link
+			ch_link,
+			group_link_id
 		FROM bots
 		WHERE ch_id = $1`
 	err := s.db.QueryRow(q, channelId).Scan(
@@ -55,6 +56,7 @@ func (s *Database) GetBotByChannelId(channelId int) (entity.Bot, error) {
 		&b.IsDonor,
 		&b.ChId,
 		&b.ChLink,
+		&b.GroupLinkId,
 	)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -63,6 +65,43 @@ func (s *Database) GetBotByChannelId(channelId int) (entity.Bot, error) {
 		return b, err
 	}
 	return b, nil
+}
+
+func (s *Database) GetBotsByGrouLinkId(groupLinkId int) ([]entity.Bot, error) {
+	bots := make([]entity.Bot, 0)
+	q := `SELECT 
+			id,
+			username,
+			first_name,
+			token,
+			is_donor,
+			ch_id,
+			ch_link,
+			group_link_id
+		FROM bots
+		WHERE group_link_id = $1`
+	rows, err := s.db.Query(q, groupLinkId)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var b entity.Bot
+		if err := rows.Scan(
+			&b.Id,
+			&b.Username,
+			&b.Firstname,
+			&b.Token,
+			&b.IsDonor,
+			&b.ChId,
+			&b.ChLink,
+			&b.GroupLinkId,
+		); err != nil {
+			return nil, err
+		}
+		bots = append(bots, b)
+	}
+	return bots, nil
 }
 
 func (s *Database) GetAllBots() ([]entity.Bot, error) {
@@ -74,7 +113,8 @@ func (s *Database) GetAllBots() ([]entity.Bot, error) {
 			first_name,
 			is_donor,
 			ch_id,
-			ch_link
+			ch_link,
+			group_link_id
 		FROM bots`
 	rows, err := s.db.Query(q)
 	if err != nil {
@@ -83,7 +123,16 @@ func (s *Database) GetAllBots() ([]entity.Bot, error) {
 	defer rows.Close()
 	for rows.Next() {
 		var b entity.Bot
-		if err := rows.Scan(&b.Id, &b.Token, &b.Username, &b.Firstname, &b.IsDonor, &b.ChId, &b.ChLink); err != nil {
+		if err := rows.Scan(
+		&b.Id,
+		&b.Token,
+		&b.Username,
+		&b.Firstname,
+		&b.IsDonor,
+		&b.ChId,
+		&b.ChLink,
+		&b.GroupLinkId,
+		); err != nil {
 			return nil, err
 		}
 		bots = append(bots, b)
@@ -130,10 +179,27 @@ func (s *Database) GetAllVampBots() ([]entity.Bot, error) {
 
 func (s *Database) GetBotInfoById(botId int) (entity.Bot, error) {
 	var b entity.Bot
-	q := `SELECT id, username, first_name, token, is_donor
+	q := `SELECT
+			id,
+			token,
+			username,
+			first_name,
+			is_donor,
+			ch_id,
+			ch_link,
+			group_link_id
 		FROM bots
 		WHERE id = $1`
-	err := s.db.QueryRow(q, botId).Scan(&b.Id, &b.Username, &b.Firstname, &b.Token, &b.IsDonor)
+	err := s.db.QueryRow(q, botId).Scan(
+		&b.Id,
+		&b.Token,
+		&b.Username,
+		&b.Firstname,
+		&b.IsDonor,
+		&b.ChId,
+		&b.ChLink,
+		&b.GroupLinkId,
+	)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return b, repository.ErrNotFound
@@ -154,13 +220,24 @@ func (s *Database) EditBotField(botId int, field string, content any) error {
 	return err
 }
 
-func (s *Database) EditBotGroupLinkId(groupLinkId int) error {
+func (s *Database) EditBotGroupLinkIdToNull(groupLinkId int) error {
 	q := `UPDATE bots SET group_link_id = 0 WHERE group_link_id = $1`
 	_, err := s.db.Exec(q, groupLinkId)
 	if err != nil {
-		s.l.Err("Postgres: could not change bot field ", groupLinkId)
+		s.l.Err("Postgres: could not change bot field group_link_id", groupLinkId)
 	} else {
-		s.l.Info("Postgres: change bot field ", groupLinkId)
+		s.l.Info("Postgres: change bot field group_link_id", groupLinkId)
+	}
+	return err
+}
+
+func (s *Database) EditBotGroupLinkId(groupLinkId, botId int) error {
+	q := `UPDATE bots SET group_link_id = $1 WHERE id = $2`
+	_, err := s.db.Exec(q, groupLinkId, botId)
+	if err != nil {
+		s.l.Err("Postgres: could not change bot field group_link_id", groupLinkId)
+	} else {
+		s.l.Info("Postgres: change bot field group_link_id", groupLinkId)
 	}
 	return err
 }

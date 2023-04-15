@@ -8,6 +8,7 @@ import (
 	"io"
 	"myapp/internal/entity"
 	"myapp/internal/models"
+	"myapp/internal/repository"
 	"myapp/pkg/files"
 	"myapp/pkg/mycopy"
 	"net/http"
@@ -20,7 +21,6 @@ import (
 func (srv *TgService) sendChPostAsVamp(vampBot entity.Bot, m models.Update) error {
 	donor_ch_mes_id := m.ChannelPost.MessageId
 
-	fmt.Println(111)
 	if m.ChannelPost.VideoNote.FileId != "" {
 		//////////////// если кружочек видео
 		err := srv.sendChPostAsVamp_VideoNote(vampBot, m)
@@ -54,10 +54,17 @@ func (srv *TgService) sendChPostAsVamp(vampBot entity.Bot, m models.Update) erro
 			entities := make([]models.MessageEntity, len(m.ChannelPost.Entities))
 			mycopy.DeepCopy(m.ChannelPost.Entities, &entities)
 			for i, v := range entities {
+				fmt.Println("entities:", entities)
+				fmt.Println("v:", v)
 				if strings.HasPrefix(v.Url, "http://fake-link") || strings.HasPrefix(v.Url, "fake-link") || strings.HasPrefix(v.Url, "https://fake-link") {
 					groupLink, err := srv.As.GetGroupLinkById(vampBot.GroupLinkId)
-					if err != nil {
+					if err != nil && !errors.Is(err, repository.ErrNotFound) {
+						fmt.Println(555)
 						return err
+					}
+					fmt.Println(666)
+					if groupLink.Link == "" {
+						continue
 					}
 					entities[i].Url = groupLink.Link
 					continue

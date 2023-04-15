@@ -3,6 +3,8 @@ package tg
 import (
 	"myapp/internal/models"
 	u "myapp/internal/utils"
+	"strconv"
+	"strings"
 )
 
 func (srv *TgClient) HandleReplyToMessage(m models.Update) error {
@@ -34,6 +36,14 @@ func (srv *TgClient) HandleReplyToMessage(m models.Update) error {
 
 	if rm.Text == u.DELETE_GROUP_LINK_MSG {
 		err := srv.Ts.RM_delete_group_link(m)
+		return err
+	}
+
+	if strings.HasPrefix(rm.Text, "укажите номер группы-ссылки для нового бота[") {
+		runes := []rune(rm.Text)
+		runesStr := string(runes[len([]rune("укажите номер группы-ссылки для нового бота[")):])
+		botId, _ := strconv.Atoi(runesStr)
+		err := srv.Ts.RM_update_bot_group_link(m, botId)
 		return err
 	}
 

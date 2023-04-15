@@ -29,6 +29,11 @@ func (s *AppService) GetBotByChannelId(chatId int) (entity.Bot, error) {
 	return bot, err
 }
 
+func (s *AppService) GetBotsByGrouLinkId(groupLinkId int) ([]entity.Bot, error) {
+	bot, err := s.db.GetBotsByGrouLinkId(groupLinkId)
+	return bot, err
+}
+
 func (s *AppService) GetBotInfoById(botId int) (entity.Bot, error) {
 	bot, err := s.db.GetBotInfoById(botId)
 	return bot, err
@@ -46,7 +51,12 @@ func (s *AppService) EditBotChField(bot entity.Bot) error {
 	return nil
 }
 
-func (s *AppService) EditBotGroupLinkId(groupLinkId int) error {
-	err := s.db.EditBotGroupLinkId(groupLinkId)
+func (s *AppService) EditBotGroupLinkIdToNull(groupLinkId int) error {
+	err := s.db.EditBotGroupLinkIdToNull(groupLinkId)
+	return err
+}
+
+func (s *AppService) EditBotGroupLinkId(groupLinkId, botId int) error {
+	err := s.db.EditBotGroupLinkId(groupLinkId, botId)
 	return err
 }

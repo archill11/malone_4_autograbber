@@ -34,7 +34,9 @@ func (srv *TgService) RM_obtain_vampire_bot_token(m models.Update) error {
 		Ok          bool   `json:"ok"`
 		Description string `json:"description"`
 	}{}
-	resp, err := http.Get(fmt.Sprintf(srv.TgEndp, bot.Token, fmt.Sprintf("setWebhook?url=%s/api/v1/vampire/update", srv.HostUrl))) // set Webhook
+	resp, err := http.Get(fmt.Sprintf(
+		srv.TgEndp, bot.Token, fmt.Sprintf("setWebhook?url=%s/api/v1/vampire/update", srv.HostUrl)), // set Webhook
+	)
 	if err != nil {
 		srv.l.Err("Error set Webhook::", err)
 	}
@@ -53,8 +55,14 @@ func (srv *TgService) RM_obtain_vampire_bot_token(m models.Update) error {
 		srv.l.Err(err, tgResp.Description)
 		srv.ShowMessClient(chatId, u.ERR_MSG)
 	}
-	srv.l.Info("set Webhook")
-	err = srv.ShowMessClient(chatId, u.SUCCESS_ADDED_BOT)
+	srv.l.Info("set Webhook::", fmt.Sprintf(srv.TgEndp, bot.Token, fmt.Sprintf("setWebhook?url=%s/api/v1/vampire/update", srv.HostUrl)))
+	srv.ShowMessClient(chatId, u.SUCCESS_ADDED_BOT)
+
+	grl, _ := srv.As.GetAllGroupLinks()
+	if len(grl) == 0 {
+		return nil
+	}
+	err = srv.sendForceReply(chatId, fmt.Sprintf(u.GROUP_LINK_FOR_BOT_MSG, bot.Id))
 
 	return err
 }
@@ -164,12 +172,33 @@ func (srv *TgService) RM_delete_group_link(m models.Update) error {
 		srv.ShowMessClient(chatId, u.ERR_MSG)
 		return err
 	}
-	err = srv.As.EditBotGroupLinkId(grId)
+	err = srv.As.EditBotGroupLinkIdToNull(grId)
 	if err != nil {
 		srv.ShowMessClient(chatId, u.ERR_MSG)
 		return err
 	}
 	err = srv.ShowMessClient(chatId, "группа-ссылка удалена")
+	return err
+}
+
+func (srv *TgService) RM_update_bot_group_link(m models.Update, botId int) error {
+	rm := m.Message.ReplyToMessage
+	replyMes := m.Message.Text
+	chatId := m.Message.From.Id
+	srv.l.Info("tg_service::tg::rm::", rm.Text, replyMes)
+	replyMes = strings.TrimSpace(replyMes)
+
+	grId, err := strconv.Atoi(replyMes)
+	if err != nil {
+		srv.ShowMessClient(chatId, u.ERR_MSG)
+		return err
+	}
+	err = srv.As.EditBotGroupLinkId(grId, botId)
+	if err != nil {
+		srv.ShowMessClient(chatId, u.ERR_MSG)
+		return err
+	}
+	err = srv.ShowMessClient(chatId, fmt.Sprintf("группа-ссылка %d привязанна к боту %d", grId, botId))
 	return err
 }
 

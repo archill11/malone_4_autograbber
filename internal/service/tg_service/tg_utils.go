@@ -19,7 +19,7 @@ func (srv *TgService) showAdminPanel(chatId int) error {
 			[{ "text": "Удалить бота", "callback_data": "delete_vampere_bot" }],
 			[{ "text": "Добавить группу-ссылку", "callback_data": "create_group_link" }],
 			[{ "text": "Удалить группу-ссылку", "callback_data": "delete_group_link" }],
-			[{ "text": "Все группы-ссылкы", "callback_data": "show_all_group_links" }],
+			[{ "text": "Все группы-ссылки", "callback_data": "show_all_group_links" }],
 			[{ "text": "Добавить Админа", "callback_data": "add_admin_btn" }]
 		]}`,
 	})
@@ -34,9 +34,9 @@ func (srv *TgService) showAdminPanel(chatId int) error {
 }
 
 func (srv *TgService) getBotByToken(token string) (models.APIRBotresp, error) {
-	resp, err := http.Get(
-		fmt.Sprintf(srv.TgEndp, token, "getMe"),
-	)
+	resp, err := http.Get(fmt.Sprintf(
+		srv.TgEndp, token, "getMe",
+	))
 	if err != nil {
 		return models.APIRBotresp{}, err
 	}
@@ -98,7 +98,7 @@ func (srv *TgService) showAllGroupLinks(chatId int) error {
 		mess.WriteString(fmt.Sprintf("Название: %s\n", b.Title))
 		mess.WriteString(fmt.Sprintf("Ссылка: %s\n", b.Link))
 		mess.WriteString("Привязанный боты:\n")
-		bots, err := srv.As.GetAllBots()
+		bots, err := srv.As.GetBotsByGrouLinkId(b.Id)
 		if err != nil {
 			return err
 		}
