@@ -16,13 +16,6 @@ import (
 )
 
 func main() {
-	// out, err := os.Create("./files/AQADa8MxG2RF6El9.jpg")
-	// if err != nil {
-	// 	fmt.Println(err)
-	// }
-	// defer out.Close()
-
-
 	l := logger.New()      // Логгер
 	config := config.Get() // Конфиг
 
