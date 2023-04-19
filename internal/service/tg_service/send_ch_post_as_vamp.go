@@ -16,6 +16,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	// "sync"
 )
 
 func (srv *TgService) sendChPostAsVamp(vampBot entity.Bot, m models.Update) error {
@@ -212,8 +213,12 @@ func (srv *TgService) sendChPostAsVamp_VideoNote(vampBot entity.Bot, m models.Up
 
 
 func (srv *TgService) sendChPostAsVamp_Video_or_Photo(vampBot entity.Bot, m models.Update, postType string) error {
+
+	// var wg sync.WaitGroup
 	if m.ChannelPost.MediaGroupId != "" {
+		// wg.Add(1)
 		go srv.sendChPostAsVamp_Video_or_Photo_MediaGroup(vampBot, m, postType)
+		// wg.Wait()
 		return nil
 	}
 	fmt.Println(postType, " !!!!")
@@ -279,7 +284,7 @@ func (srv *TgService) sendChPostAsVamp_Video_or_Photo(vampBot entity.Bot, m mode
 	}
 
 	fileId := m.ChannelPost.Video.FileId
-	if postType == "photo" {
+	if postType == "photo" && len(m.ChannelPost.Photo) > 0 {
 		fileId = m.ChannelPost.Photo[len(m.ChannelPost.Photo)-1].FileId
 	}
 
@@ -364,6 +369,7 @@ func (srv *TgService) sendChPostAsVamp_Video_or_Photo(vampBot entity.Bot, m mode
 }
 
 func (srv *TgService) sendChPostAsVamp_Video_or_Photo_MediaGroup(vampBot entity.Bot, m models.Update, postType string) error {
+	// defer wg.Done()
 	fmt.Println(postType, "_MediaGroup !!!!")
 	srv.l.Info(postType, "_MediaGroup !!!!")
 
@@ -372,7 +378,7 @@ func (srv *TgService) sendChPostAsVamp_Video_or_Photo_MediaGroup(vampBot entity.
 		"chat_id": strconv.Itoa(vampBot.ChId),
 	}
 	fileId := m.ChannelPost.Video.FileId
-	if postType == "photo" {
+	if postType == "photo" && len(m.ChannelPost.Photo) > 0 {
 		fileId = m.ChannelPost.Photo[len(m.ChannelPost.Photo)-1].FileId
 	}
 	getFilePAthResp, err := http.Get(
@@ -480,10 +486,13 @@ func (srv *TgService) sendChPostAsVamp_Video_or_Photo_MediaGroup(vampBot entity.
 		Type_media:       postType,
 		Donor_message_id: donor_ch_mes_id,
 	}
-	if postType == "photo" {
+	if postType == "photo" && len(cAny2.Result.Photo) > 0 {
 		newmedia.File_id = cAny2.Result.Photo[len(cAny2.Result.Photo)-1].FileId
-	}else if postType == "video" {
+	}else if postType == "video" && cAny2.Result.Video.FileId != "" {
 		newmedia.File_id = cAny2.Result.Video.FileId
+	}else{
+		srv.l.Err("no photo no video :(")
+		return nil
 	}
 	if m.ChannelPost.Caption != "" {
 		fmt.Println(postType, "_MediaGroup_Caption !!!!")
@@ -559,6 +568,7 @@ func (srv *TgService) sendChPostAsVamp_Video_or_Photo_MediaGroup(vampBot entity.
 		fmt.Println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
 		fmt.Println("!!!!!!!!!!       len(medias) < 2      !!!!!!!!!!!!!!!!")
 		fmt.Println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+		return nil
 		// srv.LMG.Mu.Unlock()
 		// srv.LMG.MuExecuted = false
 		// time.Sleep(time.Second * 5)

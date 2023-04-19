@@ -8,10 +8,11 @@ func (srv *TgClient) Donor_HandleChannelPost(m models.Update) error {
 	// userFirstName := m.Message.From.FirstName
 	// userUserName := m.Message.From.UserName
 	srv.l.Info("client::tg::HandleChannelPost::")
+	srv.l.Warn("new event ")
 
 	err := srv.Ts.Donor_addChannelPost(m)
 	if err != nil {
-		return err
+		srv.l.Err(err)
 	}
 	return nil
 }
