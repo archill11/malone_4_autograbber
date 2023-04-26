@@ -28,10 +28,10 @@ func (srv *APIServer) donor_Update(c *fiber.Ctx) error {
 	// fmt.Printf("%#v\n", m)
 
 	if m.ChannelPost.Chat.Id != 0 { // on Channel_Post
-		go srv.tgc.Donor_HandleChannelPost(m)
-		// if err != nil {
-		// 	srv.l.Err(err)
-		// }
+		err := srv.tgc.Donor_HandleChannelPost(m)
+		if err != nil {
+			srv.l.Err(err)
+		}
 		return nil
 	}
 

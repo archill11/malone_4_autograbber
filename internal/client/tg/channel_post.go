@@ -12,7 +12,7 @@ func (srv *TgClient) Donor_HandleChannelPost(m models.Update) error {
 
 	err := srv.Ts.Donor_addChannelPost(m)
 	if err != nil {
-		srv.l.Err(err)
+		return err
 	}
 	return nil
 }
