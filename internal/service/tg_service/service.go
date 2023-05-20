@@ -78,8 +78,11 @@ func New(conf config.Config, as *as.AppService, l *logger.Logger) (*TgService, e
 			select {
 			case x, ok := <-s.MediaCh:
 				if ok {
-					fmt.Printf("Value %v was read.\n", x)
-					mediaArr = append(mediaArr, x)
+					ok := MediaInSlice2(mediaArr, x)
+					if !ok {
+						fmt.Printf("Value %v was read.\n", x)
+						mediaArr = append(mediaArr, x)
+					}
 				} else {
 					fmt.Println("Channel closed!")
 					return
@@ -175,8 +178,11 @@ func New(conf config.Config, as *as.AppService, l *logger.Logger) (*TgService, e
 							Caption:         med.Caption,
 							CaptionEntities: med.Caption_entities,
 						}
-						fmt.Println("medial element: ", nwmd)
-						arrsik = append(arrsik, nwmd)
+						ok := MediaInSlice(arrsik, nwmd)
+						if !ok {
+							fmt.Println("medial element: ", nwmd)
+							arrsik = append(arrsik, nwmd)
+						}
 					}
 
 					ttttt := map[string]any{
@@ -205,9 +211,9 @@ func New(conf config.Config, as *as.AppService, l *logger.Logger) (*TgService, e
 					}
 					defer rrresfyhfy.Body.Close()
 					var cAny223 struct {
-						Ok     bool `json:"ok"`
-						Description     string `json:"description"`
-						Result []struct {
+						Ok          bool `json:"ok"`
+						Description string `json:"description"`
+						Result      []struct {
 							MessageId int `json:"message_id,omitempty"`
 							Chat      struct {
 								Id int `json:"id,omitempty"`
@@ -224,6 +230,7 @@ func New(conf config.Config, as *as.AppService, l *logger.Logger) (*TgService, e
 					for _, v := range cAny223.Result {
 						if v.MessageId != 0 {
 							for _, med := range mediaArr {
+								time.Sleep(time.Millisecond*500)
 								err = s.As.AddNewPost(vampBot.ChId, v.MessageId, med.Donor_message_id)
 								if err != nil {
 									s.l.Err(err)
@@ -234,15 +241,29 @@ func New(conf config.Config, as *as.AppService, l *logger.Logger) (*TgService, e
 				}
 
 
-
-
-
-
-				
 				mediaArr = mediaArr[0:0]
 			}
 		}
 	}()
 
 	return s, nil
+}
+
+
+func MediaInSlice(s []models.InputMedia, m models.InputMedia) bool {
+	for _, v := range s {
+		if v.Media == m.Media {
+			return true
+		}
+	}
+	return false
+}
+
+func MediaInSlice2(s []Media, m Media) bool {
+	for _, v := range s {
+		if v.fileNameInServer == m.fileNameInServer {
+			return true
+		}
+	}
+	return false
 }

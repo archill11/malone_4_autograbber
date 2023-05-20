@@ -2,6 +2,7 @@ package utils
 
 const (
 	ERR_MSG            = "что то пошло не так, попробуйте позже"
+	ERR_MSG_2            = "что то пошло не так, попробуйте еще"
 	SUCCESS_DELETE_BOT = "бот успешно удален"
 	SUCCESS_ADDED_BOT  = "бот успешно создан"
 )
