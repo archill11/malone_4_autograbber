@@ -56,11 +56,11 @@ func (srv *TgService) showBotsAndChannels(chatId int) error {
 	}
 	var mess bytes.Buffer
 	for i, b := range bots {
-		mess.WriteString(fmt.Sprintf("%d) id: %d - @%s\n", i+1, b.Id, b.Username))
+		mess.WriteString(fmt.Sprintf("%d) id: %d - @%s ", i+1, b.Id, b.Username))
 		if b.IsDonor == 1 {
-			mess.WriteString(fmt.Sprintf("Донор: %t\n", true))
+			mess.WriteString(fmt.Sprintf("Донор: %t", true))
 		}
-		mess.WriteString(fmt.Sprintf("ch_link: %s\n", b.ChLink))
+		mess.WriteString(fmt.Sprintf("\nch_link: %s\n", b.ChLink))
 	}
 	txt := mess.String()
 	if len(txt) > 4000 {
