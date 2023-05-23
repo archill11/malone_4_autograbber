@@ -5,38 +5,31 @@ import (
 )
 
 func (s *AppService) AddNewBot(id int, username, firstname, token string, idDonor int) error {
-	err := s.db.AddNewBot(id, username, firstname, token, idDonor)
-	return err
+	return s.db.AddNewBot(id, username, firstname, token, idDonor)
 }
 
 func (s *AppService) DeleteBot(botId int) error {
-	err := s.db.DeleteBot(botId)
-	return err
+	return s.db.DeleteBot(botId)
 }
 
 func (s *AppService) GetAllBots() ([]entity.Bot, error) {
-	bots, err := s.db.GetAllBots()
-	return bots, err
+	return s.db.GetAllBots()
 }
 
 func (s *AppService) GetAllVampBots() ([]entity.Bot, error) {
-	bots, err := s.db.GetAllVampBots()
-	return bots, err
+	return s.db.GetAllVampBots()
 }
 
 func (s *AppService) GetBotByChannelId(chatId int) (entity.Bot, error) {
-	bot, err := s.db.GetBotByChannelId(chatId)
-	return bot, err
+	return s.db.GetBotByChannelId(chatId)
 }
 
 func (s *AppService) GetBotsByGrouLinkId(groupLinkId int) ([]entity.Bot, error) {
-	bot, err := s.db.GetBotsByGrouLinkId(groupLinkId)
-	return bot, err
+	return s.db.GetBotsByGrouLinkId(groupLinkId)
 }
 
 func (s *AppService) GetBotInfoById(botId int) (entity.Bot, error) {
-	bot, err := s.db.GetBotInfoById(botId)
-	return bot, err
+	return s.db.GetBotInfoById(botId)
 }
 
 func (s *AppService) EditBotChField(bot entity.Bot) error {
@@ -52,11 +45,9 @@ func (s *AppService) EditBotChField(bot entity.Bot) error {
 }
 
 func (s *AppService) EditBotGroupLinkIdToNull(groupLinkId int) error {
-	err := s.db.EditBotGroupLinkIdToNull(groupLinkId)
-	return err
+	return s.db.EditBotGroupLinkIdToNull(groupLinkId)
 }
 
 func (s *AppService) EditBotGroupLinkId(groupLinkId, botId int) error {
-	err := s.db.EditBotGroupLinkId(groupLinkId, botId)
-	return err
+	return s.db.EditBotGroupLinkId(groupLinkId, botId)
 }

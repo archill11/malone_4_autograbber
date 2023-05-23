@@ -4,27 +4,15 @@ import "myapp/internal/entity"
 
 func (s *AppService) AddNewPost(channelId, postId, donorChPostId int) error {
 	u := entity.NewPost(channelId, postId, donorChPostId)
-	err := s.db.AddNewPost(u)
-	if err != nil {
-		return err
-	}
-	return nil
+	return s.db.AddNewPost(u)
 }
 
 func (s *AppService) GetPostByDonorIdAndChId(donorChPostId, channelId int) (entity.Post, error) {
-	uf, err := s.db.GetPostByDonorIdAndChId(donorChPostId, channelId)
-	if err != nil {
-		return uf, err
-	}
-	return uf, nil
+	return s.db.GetPostByDonorIdAndChId(donorChPostId, channelId)
 }
 
 func (s *AppService) GetPostByChIdAndBotToken(channelId int, botToken string) (entity.Post, error) {
-	uf, err := s.db.GetPostByChIdAndBotToken(channelId, botToken)
-	if err != nil {
-		return uf, err
-	}
-	return uf, nil
+	return s.db.GetPostByChIdAndBotToken(channelId, botToken)
 }
 
 // func (s *AppService) GetChIdByBotToken(botToken string) (entity.Post, error) {

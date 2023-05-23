@@ -3,6 +3,7 @@ package pg
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 	"myapp/internal/entity"
 	"myapp/internal/repository"
 )
@@ -14,6 +15,7 @@ func (s *Database) AddNewGroupLink(title, link string) error {
 	_, err := s.db.Exec(q, title, link)
 	if err != nil {
 		s.l.Err("Postgres: could not save the group link")
+		err = fmt.Errorf("AddNewGroupLink: %w", err)
 		return err
 	} else {
 		s.l.Info("Postgres: save group link")
@@ -26,6 +28,7 @@ func (s *Database) DeleteGroupLink(id int) error {
 	_, err := s.db.Exec(q, id)
 	if err != nil {
 		s.l.Err("Postgres: ERR: could not delete the group link")
+		err = fmt.Errorf("DeleteGroupLink: %w", err)
 		return err
 	} else {
 		s.l.Info("Postgres: delete group link")
@@ -42,13 +45,13 @@ func (s *Database) GetAllGroupLinks() ([]entity.GroupLink, error) {
 		FROM group_link`
 	rows, err := s.db.Query(q)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("GetAllGroupLinks: %w", err)
 	}
 	defer rows.Close()
 	for rows.Next() {
 		var b entity.GroupLink
 		if err := rows.Scan(&b.Id, &b.Title, &b.Link); err != nil {
-			return nil, err
+			return nil, fmt.Errorf("GetAllGroupLinks (2): %w", err)
 		}
 		bots = append(bots, b)
 	}
@@ -72,7 +75,7 @@ func (s *Database) GetGroupLinkById(id int) (entity.GroupLink, error) {
 		if errors.Is(err, sql.ErrNoRows) {
 			return b, repository.ErrNotFound
 		}
-		return b, err
+		return b, fmt.Errorf("GetGroupLinkById: %w", err)
 	}
 	return b, nil
 }

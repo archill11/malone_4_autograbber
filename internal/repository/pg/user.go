@@ -3,6 +3,7 @@ package pg
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 	"myapp/internal/entity"
 	"myapp/internal/repository"
 )
@@ -15,7 +16,7 @@ func (s *Database) GetUserById(id int) (entity.User, error) {
 		if errors.Is(err, sql.ErrNoRows) {
 			return entity.User{}, repository.ErrNotFound
 		}
-		return entity.User{}, err
+		return entity.User{}, fmt.Errorf("GetUserById: %w", err)
 	}
 	return u, nil
 }
@@ -28,7 +29,7 @@ func (s *Database) GetUserByUsername(username string) (entity.User, error) {
 		if errors.Is(err, sql.ErrNoRows) {
 			return entity.User{}, repository.ErrNotFound
 		}
-		return entity.User{}, err
+		return entity.User{}, fmt.Errorf("GetUserByUsername: %w", err)
 	}
 	return u, nil
 }

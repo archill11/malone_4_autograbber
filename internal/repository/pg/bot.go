@@ -62,7 +62,7 @@ func (s *Database) GetBotByChannelId(channelId int) (entity.Bot, error) {
 		if errors.Is(err, sql.ErrNoRows) {
 			return b, repository.ErrNotFound
 		}
-		return b, err
+		return b, fmt.Errorf("GetBotByChannelId: %w", err)
 	}
 	return b, nil
 }
@@ -82,7 +82,7 @@ func (s *Database) GetBotsByGrouLinkId(groupLinkId int) ([]entity.Bot, error) {
 		WHERE group_link_id = $1`
 	rows, err := s.db.Query(q, groupLinkId)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("GetBotsByGrouLinkId: %w", err)
 	}
 	defer rows.Close()
 	for rows.Next() {
@@ -97,7 +97,7 @@ func (s *Database) GetBotsByGrouLinkId(groupLinkId int) ([]entity.Bot, error) {
 			&b.ChLink,
 			&b.GroupLinkId,
 		); err != nil {
-			return nil, err
+			return nil, fmt.Errorf("GetBotsByGrouLinkId (2): %w", err)
 		}
 		bots = append(bots, b)
 	}
@@ -118,7 +118,7 @@ func (s *Database) GetAllBots() ([]entity.Bot, error) {
 		FROM bots`
 	rows, err := s.db.Query(q)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("GetAllBots: %w", err)
 	}
 	defer rows.Close()
 	for rows.Next() {
@@ -133,7 +133,7 @@ func (s *Database) GetAllBots() ([]entity.Bot, error) {
 			&b.ChLink,
 			&b.GroupLinkId,
 		); err != nil {
-			return nil, err
+			return nil, fmt.Errorf("GetAllBots (2): %w", err)
 		}
 		bots = append(bots, b)
 	}
@@ -155,7 +155,7 @@ func (s *Database) GetAllVampBots() ([]entity.Bot, error) {
 		WHERE is_donor = 0`
 	rows, err := s.db.Query(q)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("GetAllVampBots: %w", err)
 	}
 	defer rows.Close()
 	for rows.Next() {
@@ -170,7 +170,7 @@ func (s *Database) GetAllVampBots() ([]entity.Bot, error) {
 			&b.ChLink,
 			&b.GroupLinkId,
 		); err != nil {
-			return nil, err
+			return nil, fmt.Errorf("GetAllVampBots (2): %w", err)
 		}
 		bots = append(bots, b)
 	}
@@ -204,7 +204,7 @@ func (s *Database) GetBotInfoById(botId int) (entity.Bot, error) {
 		if errors.Is(err, sql.ErrNoRows) {
 			return b, repository.ErrNotFound
 		}
-		return b, err
+		return b, fmt.Errorf("GetBotInfoById: %w", err)
 	}
 	return b, nil
 }

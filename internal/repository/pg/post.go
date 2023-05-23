@@ -3,6 +3,7 @@ package pg
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 	"myapp/internal/entity"
 	"myapp/internal/repository"
 )
@@ -14,6 +15,7 @@ func (s *Database) AddNewPost(u entity.Post) error {
 		ON CONFLICT DO NOTHING`
 	_, err := s.db.Exec(q, u.ChId, u.PostId, u.DonorChPostId)
 	if err != nil {
+		err = fmt.Errorf("AddNewPost: %w, %+v", err, u)
 		s.l.Err("Postgres: could not save the post %d: %s", u.PostId, err)
 		return err
 	} else {
@@ -41,7 +43,7 @@ func (s *Database) GetPostByDonorIdAndChId(donorChPostId, channelId int) (entity
 		if errors.Is(err, sql.ErrNoRows) {
 			return p, repository.ErrNotFound
 		}
-		return p, err
+		return p, fmt.Errorf("GetPostByDonorIdAndChId: %w", err)
 	}
 	return p, nil
 }
@@ -67,7 +69,7 @@ func (s *Database) GetPostByChIdAndBotToken(channelId int, botToken string) (ent
 		if errors.Is(err, sql.ErrNoRows) {
 			return p, repository.ErrNotFound
 		}
-		return p, err
+		return p, fmt.Errorf("GetPostByChIdAndBotToken: %w", err)
 	}
 	return p, nil
 }
