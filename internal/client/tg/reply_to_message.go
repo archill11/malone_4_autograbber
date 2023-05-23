@@ -1,6 +1,7 @@
 package tg
 
 import (
+	"fmt"
 	"myapp/internal/models"
 	u "myapp/internal/utils"
 	"strconv"
@@ -41,7 +42,15 @@ func (srv *TgClient) HandleReplyToMessage(m models.Update) error {
 
 	if rm.Text == u.UPDATE_GROUP_LINK_MSG {
 		chatId := m.Message.From.Id
-		err := srv.Ts.SendForceReply(chatId, u.GROUP_LINK_UPDATE_MSG)
+		replyMes := m.Message.Text
+		replyMes = strings.TrimSpace(replyMes)
+	
+		grId, err := strconv.Atoi(replyMes)
+		if err != nil {
+			srv.Ts.ShowMessClient(chatId, u.ERR_MSG)
+			return err
+		}
+		err = srv.Ts.SendForceReply(chatId, fmt.Sprintf(u.GROUP_LINK_UPDATE_MSG, grId))
 		return err
 	}
 
