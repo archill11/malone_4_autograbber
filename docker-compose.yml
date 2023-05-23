@@ -1,17 +1,17 @@
 version: '3.3'
 
 services:
-  # grabber-app:
-  #   container_name: grabber-app
-  #   build: ./
-  #   restart: unless-stopped
-  #   ports:
-  #     - 4000:4000
-  #   volumes:
-  #     - ./volumes/logs:/app/logs
-  #     - ./volumes/files:/app/files
-  #   networks:
-  #     - mynet
+  grabber-app:
+    container_name: grabber-app
+    build: ./
+    restart: unless-stopped
+    ports:
+      - 4000:4000
+    volumes:
+      - ./volumes/logs:/app/logs
+      - ./volumes/files:/app/files
+    networks:
+      - mynet
 
   grab_db:
     container_name: grab_db
