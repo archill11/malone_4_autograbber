@@ -11,7 +11,7 @@ func (s *AppService) DeleteGroupLink(id int) error {
 }
 
 func (s *AppService) UpdateGroupLink(id int, link string) error {
-	return s.db.DeleteGroupLink(id)
+	return s.db.UpdateGroupLink(id, link)
 }
 
 func (s *AppService) GetAllGroupLinks() ([]entity.GroupLink, error) {
