@@ -1,6 +1,7 @@
 package tg
 
 import (
+	"fmt"
 	"myapp/internal/models"
 	u "myapp/internal/utils"
 )
@@ -8,6 +9,7 @@ import (
 func (srv *TgClient) HandleCallbackQuery(m models.Update) error {
 	cq := m.CallbackQuery
 	chatId := cq.From.Id
+	fmt.Printf("%+v\n", m)
 	srv.l.Info("client::tg::HandleCallbackQuery::", cq, chatId)
 
 	if cq.Data == "create_vampere_bot" {

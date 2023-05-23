@@ -1,8 +1,8 @@
-version: '3.8'
+version: '3.3'
 
 services:
-  # my-app:
-  #   container_name: my-app
+  # grabber-app:
+  #   container_name: grabber-app
   #   build: ./
   #   restart: unless-stopped
   #   ports:
@@ -13,7 +13,7 @@ services:
   #   networks:
   #     - mynet
 
-  db:
+  grab_db:
     container_name: grab_db
     image: postgres:12-alpine
     ports:

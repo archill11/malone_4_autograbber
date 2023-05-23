@@ -55,25 +55,23 @@ func (srv *TgService) showBotsAndChannels(chatId int) error {
 		return err
 	}
 	var mess bytes.Buffer
-	var isDonor bool
 	for i, b := range bots {
-		if b.IsDonor == 1 {
-			isDonor = true
-		} else {
-			isDonor = false
-		}
 		mess.WriteString(fmt.Sprintf("%d) id: %d\n", i+1, b.Id))
 		mess.WriteString(fmt.Sprintf("@%s\n", b.Username))
-		mess.WriteString(fmt.Sprintf("Донор: %t\n", isDonor))
-		mess.WriteString("Привязанный канал:\n")
-		mess.WriteString(fmt.Sprintf("id: %d\n", b.ChId))
-		mess.WriteString(fmt.Sprintf("link: %s\n\n", b.ChLink))
+		if b.IsDonor == 1 {
+			mess.WriteString(fmt.Sprintf("Донор: %t\n", true))
+		}
+		mess.WriteString(fmt.Sprintf("ch_id: %d\n", b.ChId))
+		mess.WriteString(fmt.Sprintf("link: %s\n", b.ChLink))
 	}
-
+	txt := mess.String()
+	if len(txt) > 4000 {
+		txt = txt[:4000]
+	}
 	json_data, err := json.Marshal(map[string]any{
 		"chat_id": strconv.Itoa(chatId),
-		"text":    mess.String(),
-		"reply_markup": `{"inline_keyboard" : [ 
+		"text":    txt,
+		"reply_markup": `{"inline_keyboard" : [
 			[{ "text": "Назад", "callback_data": "show_admin_panel" }]
 		]}`,
 	})
@@ -108,9 +106,13 @@ func (srv *TgService) showAllGroupLinks(chatId int) error {
 		}
 		mess.WriteString("\n\n\n")
 	}
+	txt := mess.String()
+	if len(txt) > 4000 {
+		txt = txt[:4000]
+	}
 	json_data, err := json.Marshal(map[string]any{
 		"chat_id": strconv.Itoa(chatId),
-		"text":    mess.String(),
+		"text":    txt,
 		"reply_markup": `{"inline_keyboard" : [ 
 			[{ "text": "Назад", "callback_data": "show_admin_panel" }]
 		]}`,

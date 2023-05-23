@@ -29,8 +29,9 @@ type Database struct {
 }
 
 func New(config config.Config, l *logger.Logger) (*Database, error) {
+	// databaseURI += "sslmode=disable&default_query_exec_mode=cache_describe&pool_max_conns=10&pool_max_conn_lifetime=1m&pool_max_conn_idle_time=1m"
 	databaseURI := fmt.Sprintf(
-		"postgresql://%s:%s@%s:%s/%s",
+		"postgres://%s:%s@%s:%s/%s",
 		config.PG_USER, config.PG_PASSWORD, config.PG_HOST, "5432", config.PG_DATABASE,
 	)
 	db, err := sql.Open("pgx", databaseURI)
