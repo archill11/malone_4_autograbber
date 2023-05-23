@@ -34,14 +34,14 @@ func Get() Config {
 	c.PG_DATABASE = os.Getenv("PG_DATABASE")
 	c.PG_HOST     = os.Getenv("PG_HOST")
 
-	// c.MY_URL      = "https://2d0a-93-123-167-198.ngrok-free.app"
+	// c.MY_URL      = ""
 	// c.TG_ENDPOINT = "https://api.telegram.org/bot%s/%s"
-	// c.TOKEN       = "5699508994:AAEvXNfUIdA23MNLJpzO4EOORJzKj2gvBkM"
-	// c.PORT        = "4000"
-	// c.PG_USER     = "postgres"
-	// c.PG_PASSWORD = "secret"
-	// c.PG_DATABASE = "grabber"
-	// c.PG_HOST     = "localhost"
+	// c.TOKEN       = ""
+	// c.PORT        = ""
+	// c.PG_USER     = ""
+	// c.PG_PASSWORD = ""
+	// c.PG_DATABASE = ""
+	// c.PG_HOST     = ""
 
 	return c
 }
