@@ -36,6 +36,14 @@ func (srv *TgClient) HandleCallbackQuery(m models.Update) error {
 		return err
 	}
 
+	if cq.Data == "update_group_link" {
+		err := srv.Ts.CQ_update_group_link(m)
+		if err != nil {
+			srv.Ts.ShowMessClient(chatId, u.ERR_MSG)
+		}
+		return err
+	}
+
 	if cq.Data == "delete_group_link" {
 		err := srv.Ts.CQ_delete_group_link(m)
 		if err != nil {

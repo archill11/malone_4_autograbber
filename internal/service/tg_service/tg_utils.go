@@ -19,6 +19,7 @@ func (srv *TgService) showAdminPanel(chatId int) error {
 			[{ "text": "Удалить бота", "callback_data": "delete_vampere_bot" }],
 			[{ "text": "Добавить группу-ссылку", "callback_data": "create_group_link" }],
 			[{ "text": "Удалить группу-ссылку", "callback_data": "delete_group_link" }],
+			[{ "text": "Редактировать группу-ссылку", "callback_data": "update_group_link" }],
 			[{ "text": "Все группы-ссылки", "callback_data": "show_all_group_links" }],
 			[{ "text": "Добавить Админа", "callback_data": "add_admin_btn" }]
 		]}`,
@@ -144,7 +145,7 @@ func (srv *TgService) getChatByCurrBot(chatId int, token string) (models.GetChat
 	return cAny, nil
 }
 
-func (srv *TgService) sendForceReply(chat int, mess string) error {
+func (srv *TgService) SendForceReply(chat int, mess string) error {
 	json_data, err := json.Marshal(map[string]any{
 		"chat_id":      strconv.Itoa(chat),
 		"text":         mess,

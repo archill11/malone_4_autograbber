@@ -39,11 +39,25 @@ func (srv *TgClient) HandleReplyToMessage(m models.Update) error {
 		return err
 	}
 
+	if rm.Text == u.UPDATE_GROUP_LINK_MSG {
+		chatId := m.Message.From.Id
+		err := srv.Ts.SendForceReply(chatId, u.GROUP_LINK_UPDATE_MSG)
+		return err
+	}
+
 	if strings.HasPrefix(rm.Text, "укажите номер группы-ссылки для нового бота[") {
 		runes := []rune(rm.Text)
 		runesStr := string(runes[len([]rune("укажите номер группы-ссылки для нового бота[")):])
 		botId, _ := strconv.Atoi(runesStr)
 		err := srv.Ts.RM_update_bot_group_link(m, botId)
+		return err
+	}
+
+	if strings.HasPrefix(rm.Text, "укажите новую ссылку для ref [") {
+		runes := []rune(rm.Text)
+		runesStr := string(runes[len([]rune("укажите новую ссылку для ref [")):])
+		refId, _ := strconv.Atoi(runesStr)
+		err := srv.Ts.RM_update_group_link(m, refId)
 		return err
 	}
 

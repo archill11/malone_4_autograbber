@@ -62,7 +62,7 @@ func (srv *TgService) RM_obtain_vampire_bot_token(m models.Update) error {
 	if len(grl) == 0 {
 		return nil
 	}
-	err = srv.sendForceReply(chatId, fmt.Sprintf(u.GROUP_LINK_FOR_BOT_MSG, bot.Id))
+	err = srv.SendForceReply(chatId, fmt.Sprintf(u.GROUP_LINK_FOR_BOT_MSG, bot.Id))
 
 	return err
 }
@@ -203,5 +203,21 @@ func (srv *TgService) RM_update_bot_group_link(m models.Update, botId int) error
 		return err
 	}
 	err = srv.ShowMessClient(chatId, fmt.Sprintf("группа-ссылка %d привязанна к боту %d", grId, botId))
+	return err
+}
+
+func (srv *TgService) RM_update_group_link(m models.Update, refId int) error {
+	rm := m.Message.ReplyToMessage
+	replyMes := m.Message.Text
+	chatId := m.Message.From.Id
+	srv.l.Info("tg_service::tg::rm::", rm.Text, replyMes)
+	replyMes = strings.TrimSpace(replyMes)
+
+	err := srv.As.UpdateGroupLink(refId, replyMes)
+	if err != nil {
+		srv.ShowMessClient(chatId, u.ERR_MSG)
+		return err
+	}
+	err = srv.ShowMessClient(chatId, "группа-ссылка обновлена")
 	return err
 }
