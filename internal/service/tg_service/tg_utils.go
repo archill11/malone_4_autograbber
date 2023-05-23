@@ -60,7 +60,7 @@ func (srv *TgService) showBotsAndChannels(chatId int) error {
 		if b.IsDonor == 1 {
 			mess.WriteString(fmt.Sprintf("Донор: %t", true))
 		}
-		mess.WriteString(fmt.Sprintf("\nch_link: %s\n", b.ChLink))
+		mess.WriteString(fmt.Sprintf("\n	ch_link: %s\n", b.ChLink))
 	}
 	txt := mess.String()
 	if len(txt) > 4000 {
