@@ -205,4 +205,3 @@ func (srv *TgService) RM_update_bot_group_link(m models.Update, botId int) error
 	err = srv.ShowMessClient(chatId, fmt.Sprintf("группа-ссылка %d привязанна к боту %d", grId, botId))
 	return err
 }
-

@@ -1,13 +1,11 @@
 package tg_service
 
 import (
-	"fmt"
 	"myapp/internal/models"
 )
 
 func (srv *TgService) NCM_administrator(m models.Update) error {
 	srv.l.Info("tg_service::tg::newChatMem::administrator::", m)
-	fmt.Println("tg_service::tg::newChatMem::administrator::", m)
 	// status := m.MyChatMember.NewChatMember.Status
 	chat := m.MyChatMember.Chat
 	newMemberId := m.MyChatMember.NewChatMember.User.Id

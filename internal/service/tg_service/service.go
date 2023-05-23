@@ -74,20 +74,20 @@ func New(conf config.Config, as *as.AppService, l *logger.Logger) (*TgService, e
 
 	go func() {
 		mediaArr := make([]Media, 0)
-		for{
+		for {
 			select {
 			case x, ok := <-s.MediaCh:
 				if ok {
 					ok := MediaInSlice2(mediaArr, x)
 					if !ok {
-						fmt.Printf("Value %v was read.\n", x)
+						s.l.Info("Value %v was read.\n", x)
 						mediaArr = append(mediaArr, x)
 					}
 				} else {
-					fmt.Println("Channel closed!")
+					s.l.Err("Channel closed!")
 					return
 				}
-			case <-time.After(time.Second*15):
+			case <-time.After(time.Second * 15):
 				if len(mediaArr) == 0 {
 					continue
 				}
@@ -110,13 +110,11 @@ func New(conf config.Config, as *as.AppService, l *logger.Logger) (*TgService, e
 						if err != nil {
 							s.l.Err(err)
 						}
-						fmt.Println("---fileId:", fileId)
+						s.l.Info("---fileId:", fileId)
 						mediaArr[i].File_id = fileId
 
 						// fn replaceReplyMessId
 						if media.Reply_to_donor_message_id != 0 {
-							fmt.Println(media.Type_media, "_MediaGroup_ReplyToMessage !!!!")
-							s.l.Info(media.Type_media, "_MediaGroup_ReplyToMessage !!!!")
 							replToDonorChPostId := media.Reply_to_donor_message_id
 							currPost, err := s.As.GetPostByDonorIdAndChId(replToDonorChPostId, vampBot.ChId)
 							if err != nil {
@@ -126,7 +124,6 @@ func New(conf config.Config, as *as.AppService, l *logger.Logger) (*TgService, e
 						}
 						// fn replaceCaptionEntities
 						if len(media.Caption_entities) > 0 {
-							fmt.Println(media.Type_media, "_MediaGroup_CaptionEntities !!!!")
 							entities := make([]models.MessageEntity, len(media.Caption_entities))
 							mycopy.DeepCopy(media.Caption_entities, &entities)
 							for i, v := range entities {
@@ -180,7 +177,7 @@ func New(conf config.Config, as *as.AppService, l *logger.Logger) (*TgService, e
 						}
 						ok := MediaInSlice(arrsik, nwmd)
 						if !ok {
-							fmt.Println("medial element: ", nwmd)
+							s.l.Info("medial element: ", nwmd)
 							arrsik = append(arrsik, nwmd)
 						}
 					}
@@ -192,33 +189,31 @@ func New(conf config.Config, as *as.AppService, l *logger.Logger) (*TgService, e
 					if mediaArr[0].Reply_to_message_id != 0 {
 						ttttt["reply_to_message_id"] = mediaArr[0].Reply_to_message_id
 					}
-					
+
 					MediaJson, err := json.Marshal(ttttt)
 					if err != nil {
 						s.l.Err(err)
 					}
-					fmt.Println("")
-					fmt.Println("MediaJson::::", string(MediaJson))
-					fmt.Println("")
+					fmt.Println("\nMediaJson::::", string(MediaJson))
 					rrresfyhfy, err := http.Post(
 						fmt.Sprintf(s.TgEndp, vampBot.Token, "sendMediaGroup"),
 						"application/json",
 						bytes.NewBuffer(MediaJson),
 					)
-					s.l.Info("sending media-group:" , ttttt)
+					s.l.Info("sending media-group:", ttttt)
 					if err != nil {
 						s.l.Err(err)
 					}
 					defer rrresfyhfy.Body.Close()
 					var cAny223 struct {
-						Ok          bool `json:"ok"`
+						Ok          bool   `json:"ok"`
 						Description string `json:"description"`
 						Result      []struct {
 							MessageId int `json:"message_id,omitempty"`
 							Chat      struct {
 								Id int `json:"id,omitempty"`
 							} `json:"chat,omitempty"`
-							Video models.Video `json:"video,omitempty"`
+							Video models.Video       `json:"video,omitempty"`
 							Photo []models.PhotoSize `json:"photo,omitempty"`
 						} `json:"result,omitempty"`
 					}
@@ -226,11 +221,10 @@ func New(conf config.Config, as *as.AppService, l *logger.Logger) (*TgService, e
 						s.l.Err(err)
 					}
 					s.l.Info("sending media-group response: ", cAny223)
-					fmt.Printf("cAny223:::::::::::; %#v\n", cAny223)
 					for _, v := range cAny223.Result {
 						if v.MessageId != 0 {
 							for _, med := range mediaArr {
-								time.Sleep(time.Millisecond*500)
+								time.Sleep(time.Millisecond * 500)
 								err = s.As.AddNewPost(vampBot.ChId, v.MessageId, med.Donor_message_id)
 								if err != nil {
 									s.l.Err(err)
@@ -240,7 +234,6 @@ func New(conf config.Config, as *as.AppService, l *logger.Logger) (*TgService, e
 					}
 				}
 
-
 				mediaArr = mediaArr[0:0]
 			}
 		}
@@ -248,7 +241,6 @@ func New(conf config.Config, as *as.AppService, l *logger.Logger) (*TgService, e
 
 	return s, nil
 }
-
 
 func MediaInSlice(s []models.InputMedia, m models.InputMedia) bool {
 	for _, v := range s {

@@ -56,13 +56,11 @@ func (srv *TgService) showBotsAndChannels(chatId int) error {
 	}
 	var mess bytes.Buffer
 	for i, b := range bots {
-		mess.WriteString(fmt.Sprintf("%d) id: %d\n", i+1, b.Id))
-		mess.WriteString(fmt.Sprintf("@%s\n", b.Username))
+		mess.WriteString(fmt.Sprintf("%d) id: %d - @%s\n", i+1, b.Id, b.Username))
 		if b.IsDonor == 1 {
 			mess.WriteString(fmt.Sprintf("Донор: %t\n", true))
 		}
-		mess.WriteString(fmt.Sprintf("ch_id: %d\n", b.ChId))
-		mess.WriteString(fmt.Sprintf("link: %s\n", b.ChLink))
+		mess.WriteString(fmt.Sprintf("ch_link: %s\n", b.ChLink))
 	}
 	txt := mess.String()
 	if len(txt) > 4000 {
@@ -95,16 +93,12 @@ func (srv *TgService) showAllGroupLinks(chatId int) error {
 		mess.WriteString(fmt.Sprintf("%d) id: %d\n", i+1, b.Id))
 		mess.WriteString(fmt.Sprintf("Название: %s\n", b.Title))
 		mess.WriteString(fmt.Sprintf("Ссылка: %s\n", b.Link))
-		mess.WriteString("Привязанный боты:\n")
 		bots, err := srv.As.GetBotsByGrouLinkId(b.Id)
 		if err != nil {
 			return err
 		}
-		for i, b := range bots {
-			mess.WriteString(fmt.Sprintf("%d) id: %d\n", i+1, b.Id))
-			mess.WriteString(fmt.Sprintf("@%s\n\n", b.Username))
-		}
-		mess.WriteString("\n\n\n")
+		mess.WriteString(fmt.Sprintf("Количество Привязаных ботов: %d\n", len(bots)))
+		mess.WriteString("\n")
 	}
 	txt := mess.String()
 	if len(txt) > 4000 {

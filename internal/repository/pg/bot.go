@@ -124,14 +124,14 @@ func (s *Database) GetAllBots() ([]entity.Bot, error) {
 	for rows.Next() {
 		var b entity.Bot
 		if err := rows.Scan(
-		&b.Id,
-		&b.Token,
-		&b.Username,
-		&b.Firstname,
-		&b.IsDonor,
-		&b.ChId,
-		&b.ChLink,
-		&b.GroupLinkId,
+			&b.Id,
+			&b.Token,
+			&b.Username,
+			&b.Firstname,
+			&b.IsDonor,
+			&b.ChId,
+			&b.ChLink,
+			&b.GroupLinkId,
 		); err != nil {
 			return nil, err
 		}

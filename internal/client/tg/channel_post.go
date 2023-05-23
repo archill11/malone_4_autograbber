@@ -16,7 +16,7 @@ func (srv *TgClient) Donor_HandleChannelPost(m models.Update) error {
 	err := srv.Ts.Donor_addChannelPost(m)
 	if err != nil {
 		if err != nil {
-			srv.Ts.ShowMessClient(chatId, u.ERR_MSG_2 + err.Error())
+			srv.Ts.ShowMessClient(chatId, u.ERR_MSG_2+err.Error())
 		}
 		return err
 	}

@@ -27,8 +27,6 @@ func (srv *TgService) Donor_addChannelPost(m models.Update) error {
 		return nil
 	}
 
-	fmt.Println("|_|")
-
 	// добавили пост в БД
 	err = srv.As.AddNewPost(channel_id, message_id, message_id)
 	if err != nil {
@@ -60,7 +58,7 @@ func (srv *TgService) Donor_addChannelPost(m models.Update) error {
 			// File_id + добавляем позже
 			// Reply_to_message_id + добавляем позже
 		}
-		srv.MediaCh <-newmedia
+		srv.MediaCh <- newmedia
 		return nil
 	}
 
@@ -69,7 +67,7 @@ func (srv *TgService) Donor_addChannelPost(m models.Update) error {
 	if err != nil {
 		return err
 	}
- 	for i, vampBot := range allVampBots {
+	for i, vampBot := range allVampBots {
 		if vampBot.ChId == 0 {
 			continue
 		}
@@ -77,8 +75,8 @@ func (srv *TgService) Donor_addChannelPost(m models.Update) error {
 		if err != nil {
 			srv.l.Err("sendChPostAsVamp ERR: ", err)
 		}
-		srv.l.Warn("bot idx:", i)
-		time.Sleep(time.Second*3)
+		srv.l.Info("bot idx:", i)
+		time.Sleep(time.Second * 3)
 	}
 
 	return nil

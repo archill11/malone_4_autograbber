@@ -34,12 +34,10 @@ func (srv *TgService) sendChPostAsVamp(vampBot entity.Bot, m models.Update) erro
 		return err
 	} else {
 		//////////////// если просто текст
-		fmt.Println("Just Message !!!!")
 		futureMesJson := map[string]any{
 			"chat_id": strconv.Itoa(vampBot.ChId),
 		}
 		if m.ChannelPost.ReplyToMessage.MessageId != 0 {
-			fmt.Println("ReplyToMessage !!!!")
 			// ReplToDonorChId := m.ChannelPost.ReplyToMessage.Chat.Id
 			replToDonorChPostId := m.ChannelPost.ReplyToMessage.MessageId
 			currPost, err := srv.As.GetPostByDonorIdAndChId(replToDonorChPostId, vampBot.ChId)
@@ -49,19 +47,14 @@ func (srv *TgService) sendChPostAsVamp(vampBot entity.Bot, m models.Update) erro
 			futureMesJson["reply_to_message_id"] = currPost.PostId
 		}
 		if len(m.ChannelPost.Entities) > 0 {
-			fmt.Println("Entities !!!!")
 			entities := make([]models.MessageEntity, len(m.ChannelPost.Entities))
 			mycopy.DeepCopy(m.ChannelPost.Entities, &entities)
 			for i, v := range entities {
-				fmt.Println("entities:", entities)
-				fmt.Println("v:", v)
 				if strings.HasPrefix(v.Url, "http://fake-link") || strings.HasPrefix(v.Url, "fake-link") || strings.HasPrefix(v.Url, "https://fake-link") {
 					groupLink, err := srv.As.GetGroupLinkById(vampBot.GroupLinkId)
 					if err != nil && !errors.Is(err, repository.ErrNotFound) {
-						fmt.Println(555)
 						return err
 					}
-					fmt.Println(666)
 					if groupLink.Link == "" {
 						continue
 					}
@@ -71,7 +64,7 @@ func (srv *TgService) sendChPostAsVamp(vampBot entity.Bot, m models.Update) erro
 				urlArr := strings.Split(v.Url, "/")
 				for ii, vv := range urlArr {
 					if vv == "t.me" && urlArr[ii+1] == "c" {
-						fmt.Printf("\nэто ссылка на канал %s и пост %s\n", urlArr[ii+2], urlArr[ii+3])
+						srv.l.Info("\nэто ссылка на канал %s и пост %s\n", urlArr[ii+2], urlArr[ii+3])
 						refToDonorChPostId, err := strconv.Atoi(urlArr[ii+3])
 						if err != nil {
 							return err
@@ -131,13 +124,11 @@ func (srv *TgService) sendChPostAsVamp(vampBot entity.Bot, m models.Update) erro
 }
 
 func (srv *TgService) sendChPostAsVamp_VideoNote(vampBot entity.Bot, m models.Update) error {
-	fmt.Println("VideoNote !!!!")
 	donor_ch_mes_id := m.ChannelPost.MessageId
 	futureVideoNoteJson := map[string]string{
 		"chat_id": strconv.Itoa(vampBot.ChId),
 	}
 	if m.ChannelPost.ReplyToMessage.MessageId != 0 {
-		fmt.Println("ReplyToMessage !!!!")
 		replToDonorChPostId := m.ChannelPost.ReplyToMessage.MessageId
 		currPost, err := srv.As.GetPostByDonorIdAndChId(replToDonorChPostId, vampBot.ChId)
 		if err != nil {
@@ -165,7 +156,7 @@ func (srv *TgService) sendChPostAsVamp_VideoNote(vampBot entity.Bot, m models.Up
 	}
 	fileNameDir := strings.Split(cAny.Result.File_path, ".")
 	fileNameInServer := fmt.Sprintf("./files/%s.%s", cAny.Result.File_unique_id, fileNameDir[1])
-	fmt.Println("fileNameInServer:", fileNameInServer)
+	srv.l.Info("fileNameInServer:", fileNameInServer)
 	_, err = os.Stat(fileNameInServer)
 	if errors.Is(err, os.ErrNotExist) {
 		err = files.DownloadFile(
@@ -209,7 +200,6 @@ func (srv *TgService) sendChPostAsVamp_VideoNote(vampBot entity.Bot, m models.Up
 	return nil
 }
 
-
 func (srv *TgService) sendChPostAsVamp_Video_or_Photo(vampBot entity.Bot, m models.Update, postType string) error {
 	fmt.Println(postType, " !!!!")
 	donor_ch_mes_id := m.ChannelPost.MessageId
@@ -217,7 +207,6 @@ func (srv *TgService) sendChPostAsVamp_Video_or_Photo(vampBot entity.Bot, m mode
 		"chat_id": strconv.Itoa(vampBot.ChId),
 	}
 	if m.ChannelPost.ReplyToMessage.MessageId != 0 {
-		fmt.Println("ReplyToMessage !!!!")
 		replToDonorChPostId := m.ChannelPost.ReplyToMessage.MessageId
 		currPost, err := srv.As.GetPostByDonorIdAndChId(replToDonorChPostId, vampBot.ChId)
 		if err != nil {
@@ -229,7 +218,6 @@ func (srv *TgService) sendChPostAsVamp_Video_or_Photo(vampBot entity.Bot, m mode
 		futureVideoJson["caption"] = m.ChannelPost.Caption
 	}
 	if len(m.ChannelPost.CaptionEntities) > 0 {
-		fmt.Println("CaptionEntities !!!!")
 		entities := make([]models.MessageEntity, len(m.ChannelPost.CaptionEntities))
 		mycopy.DeepCopy(m.ChannelPost.CaptionEntities, &entities)
 		for i, v := range entities {
@@ -247,7 +235,7 @@ func (srv *TgService) sendChPostAsVamp_Video_or_Photo(vampBot entity.Bot, m mode
 					break
 				}
 				if vv == "t.me" && urlArr[ii+1] == "c" {
-					fmt.Printf("\nэто ссылка на канал %s и пост %s\n", urlArr[ii+2], urlArr[ii+3])
+					srv.l.Info("\nэто ссылка на канал %s и пост %s\n", urlArr[ii+2], urlArr[ii+3])
 					refToDonorChPostId, err := strconv.Atoi(urlArr[ii+3])
 					if err != nil {
 						return err
@@ -297,12 +285,11 @@ func (srv *TgService) sendChPostAsVamp_Video_or_Photo(vampBot entity.Bot, m mode
 		return err
 	}
 	if !cAny.Ok {
-		fmt.Println("NOT OK GET " + postType +" FILE PATH!")
-		return fmt.Errorf("NOT OK GET " + postType +" FILE PATH! _")
+		return fmt.Errorf("NOT OK GET " + postType + " FILE PATH! _")
 	}
 	fileNameDir := strings.Split(cAny.Result.File_path, ".")
 	fileNameInServer := fmt.Sprintf("./files/%s.%s", cAny.Result.File_unique_id, fileNameDir[1])
-	fmt.Println("fileNameInServer:", fileNameInServer)
+	srv.l.Info("fileNameInServer:", fileNameInServer)
 	_, err = os.Stat(fileNameInServer)
 	if errors.Is(err, os.ErrNotExist) {
 		err = files.DownloadFile(
@@ -310,18 +297,18 @@ func (srv *TgService) sendChPostAsVamp_Video_or_Photo(vampBot entity.Bot, m mode
 			fmt.Sprintf("https://api.telegram.org/file/bot%s/%s", srv.Token, cAny.Result.File_path),
 		)
 		if err != nil {
-			srv.l.Err("send_ch_post_as_vamp.go:318 ->",err)
+			srv.l.Err("send_ch_post_as_vamp.go:318 ->", err)
 			return err
 		}
 	}
-	
+
 	futureVideoJson[postType] = fmt.Sprintf("@%s", fileNameInServer)
-	
+
 	cf, body, err := files.CreateForm(futureVideoJson)
 	if err != nil {
 		return err
 	}
-	method := "sendVideo" 
+	method := "sendVideo"
 	if postType == "photo" {
 		method = "sendPhoto"
 	}
@@ -362,7 +349,6 @@ func (srv *TgService) downloadPostMedia(m models.Update, postType string) (strin
 		fileId = m.ChannelPost.Photo[len(m.ChannelPost.Photo)-1].FileId
 	}
 	srv.l.Info("getting file: ", fmt.Sprintf(srv.TgEndp, srv.Token, fmt.Sprintf("getFile?file_id=%s", fileId)))
-	fmt.Println("getting file: ", fmt.Sprintf(srv.TgEndp, srv.Token, fmt.Sprintf("getFile?file_id=%s", fileId)))
 	getFilePAthResp, err := http.Get(
 		fmt.Sprintf(srv.TgEndp, srv.Token, fmt.Sprintf("getFile?file_id=%s", fileId)),
 	)
@@ -383,21 +369,20 @@ func (srv *TgService) downloadPostMedia(m models.Update, postType string) (strin
 		return "", fmt.Errorf("in method downloadPostMedia[2] err: %s", err)
 	}
 	if !cAny.Ok {
-		fmt.Println("NOT OK GET " + postType +" FILE PATH!")
-		return "", fmt.Errorf("NOT OK GET " + postType +" FILE PATH! _")
+		fmt.Println("NOT OK GET " + postType + " FILE PATH!")
+		return "", fmt.Errorf("NOT OK GET " + postType + " FILE PATH! _")
 	}
 	srv.l.Info("getFilePAthResp:: ", cAny)
 	fileNameDir := strings.Split(cAny.Result.File_path, ".")
 	fileNameInServer := fmt.Sprintf("./files/%s.%s", cAny.Result.File_unique_id, fileNameDir[1])
 	srv.l.Info("fileNameInServer:", fileNameInServer)
 	srv.l.Info("downloading file:", fmt.Sprintf("https://api.telegram.org/file/bot%s/%s", srv.Token, cAny.Result.File_path))
-	fmt.Println("downloading file:", fmt.Sprintf("https://api.telegram.org/file/bot%s/%s", srv.Token, cAny.Result.File_path))
 	err = files.DownloadFile(
 		fileNameInServer,
 		fmt.Sprintf("https://api.telegram.org/file/bot%s/%s", srv.Token, cAny.Result.File_path),
 	)
 	if err != nil {
-		srv.l.Err("send_ch_post_as_vamp.go:412 ->",err)
+		srv.l.Err("send_ch_post_as_vamp.go:412 ->", err)
 		return "", fmt.Errorf("in method downloadPostMedia[3] err: %s", err)
 	}
 	return fileNameInServer, nil
@@ -413,7 +398,7 @@ func (srv *TgService) sendAndDeleteMedia(vampBot entity.Bot, fileNameInServer st
 	if err != nil {
 		return "", err
 	}
-	method := "sendVideo" 
+	method := "sendVideo"
 	if postType == "photo" {
 		method = "sendPhoto"
 	}
@@ -431,10 +416,10 @@ func (srv *TgService) sendAndDeleteMedia(vampBot entity.Bot, fileNameInServer st
 		Ok     bool `json:"ok"`
 		Result struct {
 			MessageId int `json:"message_id"`
-			Chat struct {
+			Chat      struct {
 				Id int `json:"id"`
 			} `json:"chat"`
-			Video models.Video `json:"video"`
+			Video models.Video       `json:"video"`
 			Photo []models.PhotoSize `json:"photo"`
 		} `json:"result,omitempty"`
 	}
@@ -444,7 +429,7 @@ func (srv *TgService) sendAndDeleteMedia(vampBot entity.Bot, fileNameInServer st
 	srv.l.Info(method, "----resp body:", cAny2)
 	// fmt.Println(method, "----resp body:", cAny2)
 	if !cAny2.Ok {
-		return "", fmt.Errorf("NOT OK " + method + " :", cAny2)
+		return "", fmt.Errorf("NOT OK "+method+" :", cAny2)
 	}
 	DelJson, err := json.Marshal(map[string]any{
 		"chat_id":    strconv.Itoa(vampBot.ChId),
@@ -464,9 +449,9 @@ func (srv *TgService) sendAndDeleteMedia(vampBot entity.Bot, fileNameInServer st
 	defer rrres.Body.Close()
 	var cAny3 struct {
 		Ok          bool `json:"ok"`
-		Result      any `json:"result,omitempty"`
-		ErrorCode   any `json:"error_code,omitempty"`
-		Description any `json:"description,omitempty"`
+		Result      any  `json:"result,omitempty"`
+		ErrorCode   any  `json:"error_code,omitempty"`
+		Description any  `json:"description,omitempty"`
 	}
 	if err := json.NewDecoder(rrres.Body).Decode(&cAny3); err != nil && err != io.EOF {
 		return "", err
@@ -479,11 +464,10 @@ func (srv *TgService) sendAndDeleteMedia(vampBot entity.Bot, fileNameInServer st
 	var fileId string
 	if postType == "photo" && len(cAny2.Result.Photo) > 0 {
 		fileId = cAny2.Result.Photo[len(cAny2.Result.Photo)-1].FileId
-	}else if postType == "video" && cAny2.Result.Video.FileId != "" {
+	} else if postType == "video" && cAny2.Result.Video.FileId != "" {
 		fileId = cAny2.Result.Video.FileId
-	}else{
+	} else {
 		return "", fmt.Errorf("no photo no video ;-(")
 	}
 	return fileId, nil
 }
-
