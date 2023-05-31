@@ -18,6 +18,8 @@ func (srv *TgService) Donor_addChannelPost(m models.Update) error {
 	message_id := m.ChannelPost.MessageId
 	channel_id := m.ChannelPost.Chat.Id
 
+	// Проверка что пост есть уже в базе нужна для того что бы телега не отрпавляла 
+	// кучу запросов повторно , тк ответ долгий из за рассылки
 	post, err := srv.As.GetPostByDonorIdAndChId(message_id, channel_id)
 	if err != nil && !errors.Is(err, repository.ErrNotFound) {
 		return err
