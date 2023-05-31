@@ -38,8 +38,7 @@ func New(config config.Config, l *logger.Logger) (*Database, error) {
 	if err != nil {
 		return nil, err
 	}
-	db.SetMaxOpenConns(10)
-	if err := db.Ping(); err != nil { // проверка что есть подключеие к БД
+	if err := db.Ping(); err != nil {
 		return nil, err
 	}
 	queries := []string{
@@ -49,7 +48,7 @@ func New(config config.Config, l *logger.Logger) (*Database, error) {
 		group_link_schema,
 	}
 	for _, v := range queries {
-		if _, err := db.Exec(v); err != nil { //создаем таблицы в БД
+		if _, err := db.Exec(v); err != nil {
 			return nil, err
 		}
 	}
