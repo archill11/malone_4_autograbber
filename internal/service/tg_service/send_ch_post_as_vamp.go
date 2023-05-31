@@ -42,7 +42,7 @@ func (srv *TgService) sendChPostAsVamp(vampBot entity.Bot, m models.Update) erro
 			replToDonorChPostId := m.ChannelPost.ReplyToMessage.MessageId
 			currPost, err := srv.As.GetPostByDonorIdAndChId(replToDonorChPostId, vampBot.ChId)
 			if err != nil {
-				return err
+				return fmt.Errorf("sendChPostAsVamp (1): %v", err)
 			}
 			futureMesJson["reply_to_message_id"] = currPost.PostId
 		}
@@ -71,7 +71,7 @@ func (srv *TgService) sendChPostAsVamp(vampBot entity.Bot, m models.Update) erro
 						}
 						currPost, err := srv.As.GetPostByDonorIdAndChId(refToDonorChPostId, vampBot.ChId)
 						if err != nil {
-							return err
+							return fmt.Errorf("sendChPostAsVamp (2): %v", err)
 						}
 						if vampBot.ChId < 0 {
 							urlArr[ii+2] = strconv.Itoa(-vampBot.ChId)
@@ -132,7 +132,7 @@ func (srv *TgService) sendChPostAsVamp_VideoNote(vampBot entity.Bot, m models.Up
 		replToDonorChPostId := m.ChannelPost.ReplyToMessage.MessageId
 		currPost, err := srv.As.GetPostByDonorIdAndChId(replToDonorChPostId, vampBot.ChId)
 		if err != nil {
-			return err
+			return fmt.Errorf("sendChPostAsVamp_VideoNote: %v", err)
 		}
 		futureVideoNoteJson["reply_to_message_id"] = strconv.Itoa(currPost.PostId)
 	}
@@ -210,7 +210,7 @@ func (srv *TgService) sendChPostAsVamp_Video_or_Photo(vampBot entity.Bot, m mode
 		replToDonorChPostId := m.ChannelPost.ReplyToMessage.MessageId
 		currPost, err := srv.As.GetPostByDonorIdAndChId(replToDonorChPostId, vampBot.ChId)
 		if err != nil {
-			return err
+			return fmt.Errorf("sendChPostAsVamp_Video_or_Photo (1): %v", err)
 		}
 		futureVideoJson["reply_to_message_id"] = strconv.Itoa(currPost.PostId)
 	}
@@ -242,7 +242,7 @@ func (srv *TgService) sendChPostAsVamp_Video_or_Photo(vampBot entity.Bot, m mode
 					}
 					currPost, err := srv.As.GetPostByDonorIdAndChId(refToDonorChPostId, vampBot.ChId)
 					if err != nil {
-						return err
+						return fmt.Errorf("sendChPostAsVamp_Video_or_Photo (2): %v", err)
 					}
 					if vampBot.ChId < 0 {
 						urlArr[ii+2] = strconv.Itoa(-vampBot.ChId)

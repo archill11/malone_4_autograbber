@@ -118,7 +118,7 @@ func New(conf config.Config, as *as.AppService, l *logger.Logger) (*TgService, e
 							replToDonorChPostId := media.Reply_to_donor_message_id
 							currPost, err := s.As.GetPostByDonorIdAndChId(replToDonorChPostId, vampBot.ChId)
 							if err != nil {
-								s.l.Err(err)
+								s.l.Err(fmt.Errorf("service queue (1): %v", err))
 							}
 							mediaArr[i].Reply_to_message_id = currPost.PostId
 						}
@@ -148,7 +148,7 @@ func New(conf config.Config, as *as.AppService, l *logger.Logger) (*TgService, e
 										}
 										currPost, err := s.As.GetPostByDonorIdAndChId(refToDonorChPostId, vampBot.ChId)
 										if err != nil {
-											s.l.Err(err)
+											s.l.Err(fmt.Errorf("service queue (2): %v", err))
 										}
 										if vampBot.ChId < 0 {
 											urlArr[ii+2] = strconv.Itoa(-vampBot.ChId)
