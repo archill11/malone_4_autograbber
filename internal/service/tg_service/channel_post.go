@@ -22,7 +22,7 @@ func (srv *TgService) Donor_addChannelPost(m models.Update) error {
 	// кучу запросов повторно , тк ответ долгий из за рассылки
 	post, err := srv.As.GetPostByDonorIdAndChId(message_id, channel_id)
 	if err != nil && !errors.Is(err, repository.ErrNotFound) {
-		return err
+		return fmt.Errorf("Donor_addChannelPost: %v", err)
 	}
 	if post.PostId != 0 {
 		srv.l.Info("пост уже есть в БД, валим!")
