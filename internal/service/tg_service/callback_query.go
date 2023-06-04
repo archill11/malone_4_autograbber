@@ -3,6 +3,8 @@ package tg_service
 import (
 	"myapp/internal/models"
 	u "myapp/internal/utils"
+
+	"go.uber.org/zap"
 )
 
 func (srv *TgService) CQ_vampire_register(m models.Update) error {
@@ -71,6 +73,12 @@ func (srv *TgService) CQ_update_group_link(m models.Update) error {
 func (srv *TgService) CQ_accept_ch_post_by_admin(m models.Update) error {
 	// cq := m.CallbackQuery
 	// chatId := cq.From.Id
-	err := srv.sendChPostAsVamp_Media_Group()
+	DonorBot, err := srv.As.GetBotInfoByToken(srv.Token)
+	if err != nil {
+		srv.l.Error("CQ_accept_ch_post_by_admin: srv.As.GetBotInfoByToken(srv.Token)", zap.Error(err))
+	}
+	srv.ShowMessClient(DonorBot.ChId, "ок, начинаю рассылку по остальным")
+
+	err = srv.sendChPostAsVamp_Media_Group()
 	return err
 }

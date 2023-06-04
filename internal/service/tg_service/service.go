@@ -92,10 +92,7 @@ func New(conf config.Config, as *as.AppService, l *zap.Logger) (*TgService, erro
 					continue
 				}
 
-				fmt.Println("mediaArr:",mediaArr)
-				
 				s.MediaStore.MediaGroups[StoreKey] = mediaArr
-				fmt.Println("MediaGroups:", s.MediaStore.MediaGroups )
 
 				arrsik := make([]models.InputMedia, 0)
 				for _, med := range mediaArr {
@@ -115,8 +112,6 @@ func New(conf config.Config, as *as.AppService, l *zap.Logger) (*TgService, erro
 				if err != nil {
 					s.l.Error("Channel: s.As.GetBotInfoByToken(s.Token)", zap.Error(err))
 				}
-
-				fmt.Println("DonorBot:",DonorBot)
 
 				acceptMess := map[string]any{
 					"chat_id": strconv.Itoa(DonorBot.ChId),
@@ -147,11 +142,7 @@ func New(conf config.Config, as *as.AppService, l *zap.Logger) (*TgService, erro
 				if err != nil {
 					s.l.Error("Channel: json.Marshal(acceptMess) (2)", zap.Error(err))
 				}
-				_, err = http.Post(
-					fmt.Sprintf(s.TgEndp, s.Token, "sendMessage"),
-					"application/json",
-					bytes.NewBuffer(MediaJson),
-				)
+				err = s.sendData(MediaJson)
 				if err != nil {
 					s.l.Error("Channel: http.Post(sendMessage)", zap.Error(err))
 				}
