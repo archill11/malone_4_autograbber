@@ -3,6 +3,7 @@ package tg_service
 import (
 	"myapp/internal/models"
 	u "myapp/internal/utils"
+	"time"
 
 	"go.uber.org/zap"
 )
@@ -82,4 +83,11 @@ func (srv *TgService) CQ_accept_ch_post_by_admin(m models.Update) error {
 
 	err = srv.sendChPostAsVamp_Media_Group()
 	return err
+}
+
+func (srv *TgService) CQ_restart_app() {
+	go func(){
+		time.Sleep(time.Second*3)
+		panic("restart app")
+	}()
 }

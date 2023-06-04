@@ -92,5 +92,10 @@ func (srv *TgClient) HandleCallbackQuery(m models.Update) error {
 		return err
 	}
 
+	if cq.Data == "restart_app" {
+		srv.Ts.CQ_restart_app()
+		return nil
+	}
+
 	return nil
 }
