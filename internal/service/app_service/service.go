@@ -2,15 +2,16 @@ package service
 
 import (
 	pg "myapp/internal/repository/pg"
-	"myapp/pkg/logger"
+
+	"go.uber.org/zap"
 )
 
 type AppService struct {
 	db *pg.Database
-	l  *logger.Logger
+	l  *zap.Logger
 }
 
-func New(db *pg.Database, l *logger.Logger) (*AppService, error) {
+func New(db *pg.Database, l *zap.Logger) (*AppService, error) {
 	s := &AppService{
 		db: db,
 		l:  l,

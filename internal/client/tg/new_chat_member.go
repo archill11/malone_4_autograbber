@@ -1,13 +1,10 @@
 package tg
 
 import (
-	"fmt"
 	"myapp/internal/models"
 )
 
 func (srv *TgClient) HandleNewChatMember(m models.Update) error {
-	srv.l.Info("client::tg::newChatMem::", m)
-	fmt.Println("client::tg::newChatMem::", m)
 	status := m.MyChatMember.NewChatMember.Status
 	// chat := m.MyChatMember.Chat
 	// newMemberId := m.MyChatMember.NewChatMember.User.Id

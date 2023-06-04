@@ -5,9 +5,10 @@ import (
 	_ "embed"
 	"fmt"
 	"myapp/config"
-	"myapp/pkg/logger"
 
 	_ "github.com/jackc/pgx/v4/stdlib"
+	jsoniter "github.com/json-iterator/go"
+	"go.uber.org/zap"
 )
 
 //go:embed schemes/bots_schema.sql
@@ -22,13 +23,13 @@ var users_schema string
 //go:embed schemes/group_link_schema.sql
 var group_link_schema string
 
-// Database - хранилище заказов.
 type Database struct {
-	db *sql.DB
-	l  *logger.Logger
+	db   *sql.DB
+	l    *zap.Logger
+	json jsoniter.API
 }
 
-func New(config config.Config, l *logger.Logger) (*Database, error) {
+func New(config config.Config, l *zap.Logger, j jsoniter.API) (*Database, error) {
 	// databaseURI += "sslmode=disable&default_query_exec_mode=cache_describe&pool_max_conns=10&pool_max_conn_lifetime=1m&pool_max_conn_idle_time=1m"
 	databaseURI := fmt.Sprintf(
 		"postgres://%s:%s@%s:%s/%s",
@@ -55,6 +56,7 @@ func New(config config.Config, l *logger.Logger) (*Database, error) {
 	storage := &Database{
 		db: db,
 		l:  l,
+		json: j,
 	}
 	return storage, nil
 }

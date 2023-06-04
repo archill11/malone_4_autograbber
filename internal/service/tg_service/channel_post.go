@@ -6,6 +6,8 @@ import (
 	"myapp/internal/models"
 	"myapp/internal/repository"
 	"time"
+
+	"go.uber.org/zap"
 )
 
 func (srv *TgService) Donor_addChannelPost(m models.Update) error {
@@ -13,7 +15,7 @@ func (srv *TgService) Donor_addChannelPost(m models.Update) error {
 	// msgText := m.Message.Text
 	// userFirstName := m.Message.From.FirstName
 	// userUserName := m.Message.From.UserName
-	srv.l.Info("tg_service::AddChannelPost::")
+	// srv.l.Info("tg_service::AddChannelPost::")
 
 	message_id := m.ChannelPost.MessageId
 	channel_id := m.ChannelPost.Chat.Id
@@ -75,9 +77,9 @@ func (srv *TgService) Donor_addChannelPost(m models.Update) error {
 		}
 		err := srv.sendChPostAsVamp(vampBot, m)
 		if err != nil {
-			srv.l.Err("sendChPostAsVamp ERR: ", err)
+			srv.l.Error("Donor_addChannelPost: sendChPostAsVamp", zap.Error(err))
 		}
-		srv.l.Info("bot idx:", i)
+		srv.l.Info("Donor_addChannelPost", zap.Any("bot index in arr", i))
 		time.Sleep(time.Second * 3)
 	}
 

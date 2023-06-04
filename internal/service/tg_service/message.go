@@ -3,6 +3,8 @@ package tg_service
 import (
 	"fmt"
 	"myapp/internal/models"
+
+	"go.uber.org/zap"
 )
 
 func (srv *TgService) M_start(m models.Update) error {
@@ -10,7 +12,7 @@ func (srv *TgService) M_start(m models.Update) error {
 	msgText := m.Message.Text
 	userFirstName := m.Message.From.FirstName
 	userUserName := m.Message.From.UserName
-	srv.l.Info("tg_service::Mess::", userUserName, msgText)
+	srv.l.Info("M_start:", zap.Any("userUserName", userUserName), zap.Any("msgText", msgText))
 
 	err := srv.ShowMessClient(chatId, fmt.Sprintf("Привет %s", userFirstName))
 	if err != nil {
@@ -25,7 +27,7 @@ func (srv *TgService) M_admin(m models.Update) error {
 	chatId := m.Message.Chat.Id
 	msgText := m.Message.Text
 	userUserName := m.Message.From.UserName
-	srv.l.Info("tg_service::Mess::", userUserName, msgText)
+	srv.l.Info("M_admin:", zap.Any("userUserName", userUserName), zap.Any("msgText", msgText))
 
 	u, err := srv.As.GetUserById(chatId)
 	if err != nil {

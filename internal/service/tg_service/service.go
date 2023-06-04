@@ -9,13 +9,14 @@ import (
 	"myapp/internal/entity"
 	"myapp/internal/models"
 	as "myapp/internal/service/app_service"
-	"myapp/pkg/logger"
 	"myapp/pkg/mycopy"
 	"net/http"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
+
+	"go.uber.org/zap"
 )
 
 type TgService struct {
@@ -24,7 +25,7 @@ type TgService struct {
 	TgEndp  string
 	Token   string
 	As      *as.AppService
-	l       *logger.Logger
+	l       *zap.Logger
 	LMG     LockMediaGroups
 	MediaCh chan Media
 }
@@ -47,7 +48,7 @@ type Media struct {
 	Reply_to_message_id       int // реплай на сообщение в канале вампире
 }
 
-func New(conf config.Config, as *as.AppService, l *logger.Logger) (*TgService, error) {
+func New(conf config.Config, as *as.AppService, l *zap.Logger) (*TgService, error) {
 	s := &TgService{
 		HostUrl: conf.MY_URL,
 		MyPort:  conf.PORT,
@@ -80,11 +81,10 @@ func New(conf config.Config, as *as.AppService, l *logger.Logger) (*TgService, e
 				if ok {
 					ok := MediaInSlice2(mediaArr, x)
 					if !ok {
-						s.l.Info("Value %v was read.\n", x)
 						mediaArr = append(mediaArr, x)
 					}
 				} else {
-					s.l.Err("Channel closed!")
+					s.l.Error("Channel closed!")
 					return
 				}
 			case <-time.After(time.Second * 15):
@@ -92,14 +92,14 @@ func New(conf config.Config, as *as.AppService, l *logger.Logger) (*TgService, e
 					continue
 				}
 				if len(mediaArr) == 1 {
-					s.l.Err("!!!!!!!!!!  len(mediaArr) == 1  !!!!!!!!!!!!!!!!")
+					s.l.Error("len(mediaArr) == 1")
 					continue
 				}
 				// TODO
 				// разбить на много разных методов
 				allVampBots, err := s.As.GetAllVampBots()
 				if err != nil {
-					s.l.Err(err)
+					s.l.Error("Channel: s.As.GetAllVampBots", zap.Error(err))
 				}
 				for _, vampBot := range allVampBots {
 					if vampBot.ChId == 0 {
@@ -108,9 +108,8 @@ func New(conf config.Config, as *as.AppService, l *logger.Logger) (*TgService, e
 					for i, media := range mediaArr {
 						fileId, err := s.sendAndDeleteMedia(vampBot, media.fileNameInServer, media.Type_media)
 						if err != nil {
-							s.l.Err(err)
+							s.l.Error("Channel: s.sendAndDeleteMedia", zap.Error(err))
 						}
-						s.l.Info("---fileId:", fileId)
 						mediaArr[i].File_id = fileId
 
 						// fn replaceReplyMessId
@@ -118,7 +117,7 @@ func New(conf config.Config, as *as.AppService, l *logger.Logger) (*TgService, e
 							replToDonorChPostId := media.Reply_to_donor_message_id
 							currPost, err := s.As.GetPostByDonorIdAndChId(replToDonorChPostId, vampBot.ChId)
 							if err != nil {
-								s.l.Err(fmt.Errorf("service queue (1): %v", err))
+								s.l.Error("Channel: service queue (1)", zap.Error(err))
 							}
 							mediaArr[i].Reply_to_message_id = currPost.PostId
 						}
@@ -130,7 +129,7 @@ func New(conf config.Config, as *as.AppService, l *logger.Logger) (*TgService, e
 								if strings.HasPrefix(v.Url, "http://fake-link") || strings.HasPrefix(v.Url, "fake-link") || strings.HasPrefix(v.Url, "https://fake-link") {
 									groupLink, err := s.As.GetGroupLinkById(vampBot.GroupLinkId)
 									if err != nil {
-										s.l.Err(err)
+										s.l.Error("Channel: GetGroupLinkById", zap.Error(err))
 									}
 									entities[i].Url = groupLink.Link
 									continue
@@ -144,11 +143,11 @@ func New(conf config.Config, as *as.AppService, l *logger.Logger) (*TgService, e
 										fmt.Printf("\nэто ссылка на канал %s и пост %s\n", urlArr[ii+2], urlArr[ii+3])
 										refToDonorChPostId, err := strconv.Atoi(urlArr[ii+3])
 										if err != nil {
-											s.l.Err(err)
+											s.l.Error("Channel: strconv.Atoi (1)", zap.Error(err))
 										}
 										currPost, err := s.As.GetPostByDonorIdAndChId(refToDonorChPostId, vampBot.ChId)
 										if err != nil {
-											s.l.Err(fmt.Errorf("service queue (2): %v", err))
+											s.l.Error("Channel: service queue (2)", zap.Error(err))
 										}
 										if vampBot.ChId < 0 {
 											urlArr[ii+2] = strconv.Itoa(-vampBot.ChId)
@@ -177,7 +176,6 @@ func New(conf config.Config, as *as.AppService, l *logger.Logger) (*TgService, e
 						}
 						ok := MediaInSlice(arrsik, nwmd)
 						if !ok {
-							s.l.Info("medial element: ", nwmd)
 							arrsik = append(arrsik, nwmd)
 						}
 					}
@@ -192,7 +190,7 @@ func New(conf config.Config, as *as.AppService, l *logger.Logger) (*TgService, e
 
 					MediaJson, err := json.Marshal(ttttt)
 					if err != nil {
-						s.l.Err(err)
+						s.l.Error("Channel: json.Marshal(ttttt)", zap.Error(err))
 					}
 					fmt.Println("\nMediaJson::::", string(MediaJson))
 					rrresfyhfy, err := http.Post(
@@ -200,9 +198,9 @@ func New(conf config.Config, as *as.AppService, l *logger.Logger) (*TgService, e
 						"application/json",
 						bytes.NewBuffer(MediaJson),
 					)
-					s.l.Info("sending media-group:", ttttt)
+					s.l.Info("Channel: sending media-group", zap.Any("map[string]any", ttttt))
 					if err != nil {
-						s.l.Err(err)
+						s.l.Error("Channel: ending media-group err", zap.Error(err))
 					}
 					defer rrresfyhfy.Body.Close()
 					var cAny223 struct {
@@ -218,16 +216,16 @@ func New(conf config.Config, as *as.AppService, l *logger.Logger) (*TgService, e
 						} `json:"result,omitempty"`
 					}
 					if err := json.NewDecoder(rrresfyhfy.Body).Decode(&cAny223); err != nil && err != io.EOF {
-						s.l.Err(err)
+						s.l.Error("Channel: json.NewDecoder(rrresfyhfy.Body)", zap.Error(err))
 					}
-					s.l.Info("sending media-group response: ", cAny223)
+					s.l.Info("Channel: sending media-group response", zap.Any("resp struct", cAny223))
 					for _, v := range cAny223.Result {
 						if v.MessageId != 0 {
 							for _, med := range mediaArr {
 								time.Sleep(time.Millisecond * 500)
 								err = s.As.AddNewPost(vampBot.ChId, v.MessageId, med.Donor_message_id)
 								if err != nil {
-									s.l.Err(err)
+									s.l.Error("Channel: s.As.AddNewPost", zap.Error(err))
 								}
 							}
 						}

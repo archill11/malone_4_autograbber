@@ -2,10 +2,12 @@ package tg_service
 
 import (
 	"myapp/internal/models"
+
+	"go.uber.org/zap"
 )
 
 func (srv *TgService) NCM_administrator(m models.Update) error {
-	srv.l.Info("tg_service::tg::newChatMem::administrator::", m)
+	srv.l.Info("NCM_administrator:", zap.Any("models.Update", m))
 	// status := m.MyChatMember.NewChatMember.Status
 	chat := m.MyChatMember.Chat
 	newMemberId := m.MyChatMember.NewChatMember.User.Id
@@ -20,7 +22,6 @@ func (srv *TgService) NCM_administrator(m models.Update) error {
 	if err != nil {
 		return err
 	}
-	srv.l.Info("cAny::Result:", cAny)
 	bot.ChId = cAny.Result.Id
 	bot.ChLink = cAny.Result.InviteLink
 

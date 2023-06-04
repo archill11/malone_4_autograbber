@@ -15,10 +15,7 @@ func (s *Database) AddNewBot(id int, username, firstname, token string, idDonor 
 		ON CONFLICT DO NOTHING`
 	_, err := s.db.Exec(q, e.Id, e.Username, e.Firstname, e.Token, e.IsDonor)
 	if err != nil {
-		s.l.Err("Postgres: could not save the bot")
-		return err
-	} else {
-		s.l.Info("Postgres: save bot")
+		return fmt.Errorf("db: AddNewBot: %w", err)
 	}
 	return nil
 }
@@ -27,10 +24,7 @@ func (s *Database) DeleteBot(id int) error {
 	q := `DELETE FROM bots WHERE id = $1`
 	_, err := s.db.Exec(q, id)
 	if err != nil {
-		s.l.Err("Postgres: ERR: could not delete the bot ")
-		return err
-	} else {
-		s.l.Info("Postgres: delete bot")
+		return fmt.Errorf("db: DeleteBot: %w", err)
 	}
 	return nil
 }
@@ -62,7 +56,7 @@ func (s *Database) GetBotByChannelId(channelId int) (entity.Bot, error) {
 		if errors.Is(err, sql.ErrNoRows) {
 			return b, repository.ErrNotFound
 		}
-		return b, fmt.Errorf("GetBotByChannelId: %w", err)
+		return b, fmt.Errorf("db: GetBotByChannelId: %w", err)
 	}
 	return b, nil
 }
@@ -82,7 +76,7 @@ func (s *Database) GetBotsByGrouLinkId(groupLinkId int) ([]entity.Bot, error) {
 		WHERE group_link_id = $1`
 	rows, err := s.db.Query(q, groupLinkId)
 	if err != nil {
-		return nil, fmt.Errorf("GetBotsByGrouLinkId: %w", err)
+		return nil, fmt.Errorf("db: GetBotsByGrouLinkId: %w", err)
 	}
 	defer rows.Close()
 	for rows.Next() {
@@ -97,7 +91,7 @@ func (s *Database) GetBotsByGrouLinkId(groupLinkId int) ([]entity.Bot, error) {
 			&b.ChLink,
 			&b.GroupLinkId,
 		); err != nil {
-			return nil, fmt.Errorf("GetBotsByGrouLinkId (2): %w", err)
+			return nil, fmt.Errorf("db: GetBotsByGrouLinkId (2): %w", err)
 		}
 		bots = append(bots, b)
 	}
@@ -133,7 +127,7 @@ func (s *Database) GetAllBots() ([]entity.Bot, error) {
 			&b.ChLink,
 			&b.GroupLinkId,
 		); err != nil {
-			return nil, fmt.Errorf("GetAllBots (2): %w", err)
+			return nil, fmt.Errorf("db: GetAllBots (2): %w", err)
 		}
 		bots = append(bots, b)
 	}
@@ -155,7 +149,7 @@ func (s *Database) GetAllVampBots() ([]entity.Bot, error) {
 		WHERE is_donor = 0`
 	rows, err := s.db.Query(q)
 	if err != nil {
-		return nil, fmt.Errorf("GetAllVampBots: %w", err)
+		return nil, fmt.Errorf("db: GetAllVampBots: %w", err)
 	}
 	defer rows.Close()
 	for rows.Next() {
@@ -170,7 +164,7 @@ func (s *Database) GetAllVampBots() ([]entity.Bot, error) {
 			&b.ChLink,
 			&b.GroupLinkId,
 		); err != nil {
-			return nil, fmt.Errorf("GetAllVampBots (2): %w", err)
+			return nil, fmt.Errorf("db: GetAllVampBots (2): %w", err)
 		}
 		bots = append(bots, b)
 	}
@@ -204,7 +198,7 @@ func (s *Database) GetBotInfoById(botId int) (entity.Bot, error) {
 		if errors.Is(err, sql.ErrNoRows) {
 			return b, repository.ErrNotFound
 		}
-		return b, fmt.Errorf("GetBotInfoById: %w", err)
+		return b, fmt.Errorf("db: GetBotInfoById: %w", err)
 	}
 	return b, nil
 }
@@ -213,31 +207,25 @@ func (s *Database) EditBotField(botId int, field string, content any) error {
 	q := fmt.Sprintf(`UPDATE bots SET %s = $1 WHERE id = $2`, field)
 	_, err := s.db.Exec(q, content, botId)
 	if err != nil {
-		s.l.Err("Postgres: could not change bot field ", field, content)
-	} else {
-		s.l.Info("Postgres: change bot field ", field, content)
+		return fmt.Errorf("db: EditBotField: %v", err)
 	}
-	return err
+	return nil
 }
 
 func (s *Database) EditBotGroupLinkIdToNull(groupLinkId int) error {
 	q := `UPDATE bots SET group_link_id = 0 WHERE group_link_id = $1`
 	_, err := s.db.Exec(q, groupLinkId)
 	if err != nil {
-		s.l.Err("Postgres: could not change bot field group_link_id", groupLinkId)
-	} else {
-		s.l.Info("Postgres: change bot field group_link_id", groupLinkId)
+		return fmt.Errorf("db: EditBotGroupLinkIdToNull: %v", err)
 	}
-	return err
+	return nil 
 }
 
 func (s *Database) EditBotGroupLinkId(groupLinkId, botId int) error {
 	q := `UPDATE bots SET group_link_id = $1 WHERE id = $2`
 	_, err := s.db.Exec(q, groupLinkId, botId)
 	if err != nil {
-		s.l.Err("Postgres: could not change bot field group_link_id", groupLinkId)
-	} else {
-		s.l.Info("Postgres: change bot field group_link_id", groupLinkId)
+		return fmt.Errorf("db: EditBotGroupLinkId: %v", err)
 	}
-	return err
+	return nil
 }

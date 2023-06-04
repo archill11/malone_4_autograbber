@@ -12,13 +12,15 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+
+	"go.uber.org/zap"
 )
 
 func (srv *TgService) RM_obtain_vampire_bot_token(m models.Update) error {
 	rm := m.Message.ReplyToMessage
 	replyMes := m.Message.Text
 	chatId := m.Message.From.Id
-	srv.l.Info("tg_service::tg::rm::", rm.Text, replyMes)
+	srv.l.Info("tg_service: RM_obtain_vampire_bot_token", zap.Any("rm.Text", rm.Text), zap.Any("replyMes",replyMes))
 
 	tgobotResp, err := srv.getBotByToken(strings.TrimSpace(replyMes))
 	if err != nil {
@@ -38,7 +40,7 @@ func (srv *TgService) RM_obtain_vampire_bot_token(m models.Update) error {
 		srv.TgEndp, bot.Token, fmt.Sprintf("setWebhook?url=%s/api/v1/vampire/update", srv.HostUrl)), // set Webhook
 	)
 	if err != nil {
-		srv.l.Err("Error set Webhook::", err)
+		srv.l.Error("RM_obtain_vampire_bot_token: set Webhook::", zap.Error(err))
 	}
 	defer resp.Body.Close()
 
@@ -52,10 +54,10 @@ func (srv *TgService) RM_obtain_vampire_bot_token(m models.Update) error {
 		return err
 	}
 	if !tgResp.Ok {
-		srv.l.Err(err, tgResp.Description)
+		srv.l.Error("RM_obtain_vampire_bot_token: !tgResp.Ok", zap.Error(err), zap.Any("tgResp.Description", tgResp.Description))
 		srv.ShowMessClient(chatId, u.ERR_MSG)
 	}
-	srv.l.Info("set Webhook::", fmt.Sprintf(srv.TgEndp, bot.Token, fmt.Sprintf("setWebhook?url=%s/api/v1/vampire/update", srv.HostUrl)))
+	srv.l.Info("RM_obtain_vampire_bot_token: set Webhook", zap.Any("Webhook url", fmt.Sprintf(srv.TgEndp, bot.Token, fmt.Sprintf("setWebhook?url=%s/api/v1/vampire/update", srv.HostUrl))))
 	srv.ShowMessClient(chatId, u.SUCCESS_ADDED_BOT)
 
 	grl, _ := srv.As.GetAllGroupLinks()
@@ -71,7 +73,7 @@ func (srv *TgService) RM_delete_bot(m models.Update) error {
 	rm := m.Message.ReplyToMessage
 	replyMes := m.Message.Text
 	chatId := m.Message.From.Id
-	srv.l.Info("tg_service::tg::rm::", rm.Text, replyMes)
+	srv.l.Info("tg_service: RM_delete_bot", zap.Any("rm.Text", rm.Text), zap.Any("replyMes", replyMes))
 
 	id, err := strconv.Atoi(strings.TrimSpace(replyMes))
 	if err != nil {
@@ -93,7 +95,7 @@ func (srv *TgService) RM_delete_bot(m models.Update) error {
 	}
 	_, err = http.Get(fmt.Sprintf(srv.TgEndp, bot.Token, "setWebhook?url=")) // delete Webhook
 	if err != nil {
-		srv.l.Err("Error delete Webhook::", err)
+		srv.l.Error("RM_delete_bot: delete Webhook", zap.Error(err))
 	}
 	err = srv.As.DeleteBot(id)
 	if err != nil {
@@ -108,7 +110,7 @@ func (srv *TgService) RM_add_admin(m models.Update) error {
 	rm := m.Message.ReplyToMessage
 	replyMes := m.Message.Text
 	chatId := m.Message.From.Id
-	srv.l.Info("tg_service::tg::rm::", rm.Text, replyMes)
+	srv.l.Info("tg_service: RM_add_admin", zap.Any("rm.Text", rm.Text), zap.Any("replyMes", replyMes))
 
 	usr, err := srv.As.GetUserByUsername(strings.TrimSpace(replyMes))
 	if err != nil {
@@ -117,12 +119,12 @@ func (srv *TgService) RM_add_admin(m models.Update) error {
 			return err
 		}
 		srv.ShowMessClient(chatId, u.ERR_MSG)
-		return err
+		return fmt.Errorf("RM_add_admin: srv.As.GetUserByUsername(%s) : %v", strings.TrimSpace(replyMes), err)
 	}
 	err = srv.As.EditAdmin(usr.Username, 1)
 	if err != nil {
 		srv.ShowMessClient(chatId, u.ERR_MSG)
-		return err
+		return fmt.Errorf("RM_add_admin: srv.As.EditAdmin(%s, 1) : %v", usr.Username, err)
 	}
 	err = srv.ShowMessClient(chatId, "Админ добавлен")
 	return err
@@ -132,7 +134,7 @@ func (srv *TgService) RM_add_group_link(m models.Update) error {
 	rm := m.Message.ReplyToMessage
 	replyMes := m.Message.Text
 	chatId := m.Message.From.Id
-	srv.l.Info("tg_service::tg::rm::", rm.Text, replyMes)
+	srv.l.Info("tg_service: RM_add_group_link", zap.Any("rm.Text", rm.Text), zap.Any("replyMes", replyMes))
 
 	replyMes = strings.TrimSpace(replyMes)
 	runeStr := []rune(replyMes)
@@ -153,7 +155,7 @@ func (srv *TgService) RM_add_group_link(m models.Update) error {
 	err := srv.As.AddNewGroupLink(groupLinkTitle, groupLinkLink)
 	if err != nil {
 		srv.ShowMessClient(chatId, u.ERR_MSG)
-		return err
+		return fmt.Errorf("RM_add_admin: srv.As.AddNewGroupLink(%s, %s) : %v", groupLinkTitle, groupLinkLink, err)
 	}
 	err = srv.ShowMessClient(chatId, "группа-ссылка добавлен")
 	return err
@@ -163,7 +165,7 @@ func (srv *TgService) RM_delete_group_link(m models.Update) error {
 	rm := m.Message.ReplyToMessage
 	replyMes := m.Message.Text
 	chatId := m.Message.From.Id
-	srv.l.Info("tg_service::tg::rm::", rm.Text, replyMes)
+	srv.l.Info("tg_service: RM_delete_group_link", zap.Any("rm.Text", rm.Text), zap.Any("replyMes", replyMes))
 
 	replyMes = strings.TrimSpace(replyMes)
 	grId, err := strconv.Atoi(replyMes)
@@ -189,7 +191,7 @@ func (srv *TgService) RM_update_bot_group_link(m models.Update, botId int) error
 	rm := m.Message.ReplyToMessage
 	replyMes := m.Message.Text
 	chatId := m.Message.From.Id
-	srv.l.Info("tg_service::tg::rm::", rm.Text, replyMes)
+	srv.l.Info("tg_service: RM_update_bot_group_link", zap.Any("rm.Text", rm.Text), zap.Any("replyMes", replyMes))
 	replyMes = strings.TrimSpace(replyMes)
 
 	grId, err := strconv.Atoi(replyMes)
@@ -210,7 +212,7 @@ func (srv *TgService) RM_update_group_link(m models.Update, refId int) error {
 	rm := m.Message.ReplyToMessage
 	replyMes := m.Message.Text
 	chatId := m.Message.From.Id
-	srv.l.Info("tg_service::tg::rm::", rm.Text, replyMes)
+	srv.l.Info("tg_service: RM_update_group_link", zap.Any("rm.Text", rm.Text), zap.Any("replyMes", replyMes))
 	replyMes = strings.TrimSpace(replyMes)
 
 	err := srv.As.UpdateGroupLink(refId, replyMes)

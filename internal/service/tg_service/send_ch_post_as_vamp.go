@@ -15,6 +15,8 @@ import (
 	"os"
 	"strconv"
 	"strings"
+
+	"go.uber.org/zap"
 )
 
 func (srv *TgService) sendChPostAsVamp(vampBot entity.Bot, m models.Update) error {
@@ -64,7 +66,6 @@ func (srv *TgService) sendChPostAsVamp(vampBot entity.Bot, m models.Update) erro
 				urlArr := strings.Split(v.Url, "/")
 				for ii, vv := range urlArr {
 					if vv == "t.me" && urlArr[ii+1] == "c" {
-						srv.l.Info("\nэто ссылка на канал %s и пост %s\n", urlArr[ii+2], urlArr[ii+3])
 						refToDonorChPostId, err := strconv.Atoi(urlArr[ii+3])
 						if err != nil {
 							return err
@@ -156,7 +157,7 @@ func (srv *TgService) sendChPostAsVamp_VideoNote(vampBot entity.Bot, m models.Up
 	}
 	fileNameDir := strings.Split(cAny.Result.File_path, ".")
 	fileNameInServer := fmt.Sprintf("./files/%s.%s", cAny.Result.File_unique_id, fileNameDir[1])
-	srv.l.Info("fileNameInServer:", fileNameInServer)
+	srv.l.Info("sendChPostAsVamp_VideoNote: fileNameInServer:", zap.Any("fileNameInServer", fileNameInServer))
 	_, err = os.Stat(fileNameInServer)
 	if errors.Is(err, os.ErrNotExist) {
 		err = files.DownloadFile(
@@ -180,7 +181,7 @@ func (srv *TgService) sendChPostAsVamp_VideoNote(vampBot entity.Bot, m models.Up
 	if err != nil {
 		return err
 	}
-	fmt.Sprintln()
+
 	defer rrres.Body.Close()
 	var cAny2 struct {
 		Ok     bool `json:"ok"`
@@ -235,7 +236,6 @@ func (srv *TgService) sendChPostAsVamp_Video_or_Photo(vampBot entity.Bot, m mode
 					break
 				}
 				if vv == "t.me" && urlArr[ii+1] == "c" {
-					srv.l.Info("\nэто ссылка на канал %s и пост %s\n", urlArr[ii+2], urlArr[ii+3])
 					refToDonorChPostId, err := strconv.Atoi(urlArr[ii+3])
 					if err != nil {
 						return err
@@ -289,7 +289,7 @@ func (srv *TgService) sendChPostAsVamp_Video_or_Photo(vampBot entity.Bot, m mode
 	}
 	fileNameDir := strings.Split(cAny.Result.File_path, ".")
 	fileNameInServer := fmt.Sprintf("./files/%s.%s", cAny.Result.File_unique_id, fileNameDir[1])
-	srv.l.Info("fileNameInServer:", fileNameInServer)
+	srv.l.Info("sendChPostAsVamp_VideoNote: fileNameInServer:", zap.Any("fileNameInServer", fileNameInServer))
 	_, err = os.Stat(fileNameInServer)
 	if errors.Is(err, os.ErrNotExist) {
 		err = files.DownloadFile(
@@ -297,7 +297,7 @@ func (srv *TgService) sendChPostAsVamp_Video_or_Photo(vampBot entity.Bot, m mode
 			fmt.Sprintf("https://api.telegram.org/file/bot%s/%s", srv.Token, cAny.Result.File_path),
 		)
 		if err != nil {
-			srv.l.Err("send_ch_post_as_vamp.go:318 ->", err)
+			srv.l.Error("sendChPostAsVamp_Video_or_Photo: send_ch_post_as_vamp.go:318", zap.Error(err))
 			return err
 		}
 	}
@@ -348,12 +348,12 @@ func (srv *TgService) downloadPostMedia(m models.Update, postType string) (strin
 	if postType == "photo" {
 		fileId = m.ChannelPost.Photo[len(m.ChannelPost.Photo)-1].FileId
 	}
-	srv.l.Info("getting file: ", fmt.Sprintf(srv.TgEndp, srv.Token, fmt.Sprintf("getFile?file_id=%s", fileId)))
+	srv.l.Info("downloadPostMedia: getting file: ", zap.Any("url", fmt.Sprintf(srv.TgEndp, srv.Token, "getFile?file_id="+fileId)))
 	getFilePAthResp, err := http.Get(
 		fmt.Sprintf(srv.TgEndp, srv.Token, fmt.Sprintf("getFile?file_id=%s", fileId)),
 	)
 	if err != nil {
-		return "", fmt.Errorf("in method downloadPostMedia err: %s", err)
+		return "", fmt.Errorf("downloadPostMedia: http.Get(1): %s", err)
 	}
 	defer getFilePAthResp.Body.Close()
 	var cAny struct {
@@ -372,17 +372,16 @@ func (srv *TgService) downloadPostMedia(m models.Update, postType string) (strin
 		fmt.Println("NOT OK GET " + postType + " FILE PATH!")
 		return "", fmt.Errorf("NOT OK GET " + postType + " FILE PATH! _")
 	}
-	srv.l.Info("getFilePAthResp:: ", cAny)
 	fileNameDir := strings.Split(cAny.Result.File_path, ".")
 	fileNameInServer := fmt.Sprintf("./files/%s.%s", cAny.Result.File_unique_id, fileNameDir[1])
-	srv.l.Info("fileNameInServer:", fileNameInServer)
-	srv.l.Info("downloading file:", fmt.Sprintf("https://api.telegram.org/file/bot%s/%s", srv.Token, cAny.Result.File_path))
+	// srv.l.Info("fileNameInServer:", fileNameInServer)
+	// srv.l.Info("downloading file:", fmt.Sprintf("https://api.telegram.org/file/bot%s/%s", srv.Token, cAny.Result.File_path))
 	err = files.DownloadFile(
 		fileNameInServer,
 		fmt.Sprintf("https://api.telegram.org/file/bot%s/%s", srv.Token, cAny.Result.File_path),
 	)
 	if err != nil {
-		srv.l.Err("send_ch_post_as_vamp.go:412 ->", err)
+		srv.l.Error("downloadPostMedia: send_ch_post_as_vamp.go:412", zap.Error(err))
 		return "", fmt.Errorf("in method downloadPostMedia[3] err: %s", err)
 	}
 	return fileNameInServer, nil
@@ -402,7 +401,7 @@ func (srv *TgService) sendAndDeleteMedia(vampBot entity.Bot, fileNameInServer st
 	if postType == "photo" {
 		method = "sendPhoto"
 	}
-	srv.l.Info("sending method: ", fmt.Sprintf(srv.TgEndp, vampBot.Token, method))
+	// srv.l.Info("sending method: ", fmt.Sprintf(srv.TgEndp, vampBot.Token, method))
 	rrres, err := http.Post(
 		fmt.Sprintf(srv.TgEndp, vampBot.Token, method),
 		cf,
@@ -426,7 +425,7 @@ func (srv *TgService) sendAndDeleteMedia(vampBot entity.Bot, fileNameInServer st
 	if err := json.NewDecoder(rrres.Body).Decode(&cAny2); err != nil && err != io.EOF {
 		return "", err
 	}
-	srv.l.Info(method, "----resp body:", cAny2)
+	// srv.l.Info(method, "----resp body:", cAny2)
 	// fmt.Println(method, "----resp body:", cAny2)
 	if !cAny2.Ok {
 		return "", fmt.Errorf("NOT OK "+method+" :", cAny2)
@@ -456,10 +455,10 @@ func (srv *TgService) sendAndDeleteMedia(vampBot entity.Bot, fileNameInServer st
 	if err := json.NewDecoder(rrres.Body).Decode(&cAny3); err != nil && err != io.EOF {
 		return "", err
 	}
-	srv.l.Info("deleteMessage resp body:", cAny3)
+	// srv.l.Info("deleteMessage resp body:", cAny3)
 	// fmt.Println("-+-deleteMessage resp body:", cAny3)
 	if !cAny3.Ok {
-		return "", fmt.Errorf("NOT OK deleteMessage :", cAny3)
+		return "", fmt.Errorf("sendAndDeleteMedia: NOT OK deleteMessage :", cAny3)
 	}
 	var fileId string
 	if postType == "photo" && len(cAny2.Result.Photo) > 0 {
@@ -467,7 +466,7 @@ func (srv *TgService) sendAndDeleteMedia(vampBot entity.Bot, fileNameInServer st
 	} else if postType == "video" && cAny2.Result.Video.FileId != "" {
 		fileId = cAny2.Result.Video.FileId
 	} else {
-		return "", fmt.Errorf("no photo no video ;-(")
+		return "", fmt.Errorf("sendAndDeleteMedia: no photo no video ;-(")
 	}
 	return fileId, nil
 }

@@ -4,21 +4,21 @@ import (
 	"myapp/config"
 	"myapp/internal/client/tg"
 	service "myapp/internal/service/app_service"
-	"myapp/pkg/logger"
 	"runtime"
 
 	"github.com/gofiber/fiber/v2"
+	"go.uber.org/zap"
 )
 
 type APIServer struct {
 	Server  *fiber.App
 	service *service.AppService
 	tgc     *tg.TgClient
-	l       *logger.Logger
+	l       *zap.Logger
 	sem     chan struct{}
 }
 
-func New(conf config.Config, service *service.AppService, tgc *tg.TgClient, l *logger.Logger) (*APIServer, error) {
+func New(conf config.Config, service *service.AppService, tgc *tg.TgClient, l *zap.Logger) (*APIServer, error) {
 	app := fiber.New()
 	ser := &APIServer{
 		Server:  app,

@@ -16,7 +16,7 @@ func (s *Database) GetUserById(id int) (entity.User, error) {
 		if errors.Is(err, sql.ErrNoRows) {
 			return entity.User{}, repository.ErrNotFound
 		}
-		return entity.User{}, fmt.Errorf("GetUserById: %w", err)
+		return entity.User{}, fmt.Errorf("db: GetUserById: %w", err)
 	}
 	return u, nil
 }
@@ -29,7 +29,7 @@ func (s *Database) GetUserByUsername(username string) (entity.User, error) {
 		if errors.Is(err, sql.ErrNoRows) {
 			return entity.User{}, repository.ErrNotFound
 		}
-		return entity.User{}, fmt.Errorf("GetUserByUsername: %w", err)
+		return entity.User{}, fmt.Errorf("db: GetUserByUsername: %w", err)
 	}
 	return u, nil
 }
@@ -38,12 +38,9 @@ func (s *Database) EditAdmin(username string, is_admin int) error {
 	q := `UPDATE users SET is_admin = $1 WHERE username = $2`
 	_, err := s.db.Exec(q, is_admin, username)
 	if err != nil {
-		s.l.Err("Postgres: could not update users table")
-		return err
-	} else {
-		s.l.Info("Postgres: update users table")
-		return nil
+		return fmt.Errorf("db: EditAdmin: %w", err)
 	}
+	return nil
 }
 
 func (s *Database) AddNewUser(id int, username, firstname string) error {
@@ -53,10 +50,7 @@ func (s *Database) AddNewUser(id int, username, firstname string) error {
 		ON CONFLICT DO NOTHING`
 	_, err := s.db.Exec(q, id, username, firstname)
 	if err != nil {
-		s.l.Err("Postgres: could not save the user %d: %s", id, err)
-		return err
-	} else {
-		s.l.Info("Postgres: save %d user", id)
+		return fmt.Errorf("db: AddNewUser: %w", err)
 	}
 	return nil
 }

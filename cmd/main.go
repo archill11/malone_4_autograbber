@@ -12,14 +12,26 @@ import (
 	"os/signal"
 	"syscall"
 
-	"myapp/pkg/logger"
+	jsoniter "github.com/json-iterator/go"
+	_ "go.uber.org/automaxprocs"
+	"go.uber.org/zap"
 )
 
 func main() {
-	l := logger.New()      // Логгер
-	config := config.Get() // Конфиг
+	config := config.Get()
 
-	db, err := pg.New(config, l) // БД
+	// zapCfg := zap.NewProductionConfig()
+	zapCfg := zap.NewDevelopmentConfig()
+	zapCfg.OutputPaths = []string{"logs/info.log", "stderr"}
+	l, err := zapCfg.Build()
+	if err != nil {
+		log.Fatal("can't init logger", err)
+	}
+	defer l.Sync()
+
+	json := jsoniter.ConfigFastest
+
+	db, err := pg.New(config, l, json) // БД
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -49,7 +61,7 @@ func main() {
 
 	defer func() {
 		if err := ser.Server.Shutdown(); err != nil {
-			l.Err(err)
+			l.Error("ser.Server.Shutdown()", zap.Error(err))
 		}
 	}()
 	sigint := make(chan os.Signal, 1)

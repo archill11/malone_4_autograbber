@@ -2,6 +2,8 @@ package tg
 
 import (
 	"myapp/internal/models"
+
+	"go.uber.org/zap"
 )
 
 func (srv *TgClient) HandleMessage(m models.Update) error {
@@ -10,7 +12,7 @@ func (srv *TgClient) HandleMessage(m models.Update) error {
 	userUserName := m.Message.From.UserName
 	msgText := m.Message.Text
 
-	srv.l.Info("client::tg::Mess::", userUserName, msgText)
+	srv.l.Info("tgClient: HandleMessage", zap.Any("userUserName", userUserName), zap.Any("msgText", msgText))
 
 	if msgText == "/admin" {
 		err := srv.Ts.M_admin(m)

@@ -4,13 +4,15 @@ import (
 	"fmt"
 	"myapp/internal/models"
 	u "myapp/internal/utils"
+
+	"go.uber.org/zap"
 )
 
 func (srv *TgClient) HandleCallbackQuery(m models.Update) error {
 	cq := m.CallbackQuery
 	chatId := cq.From.Id
 	fmt.Printf("%+v\n", m)
-	srv.l.Info("client::tg::HandleCallbackQuery::", cq, chatId)
+	srv.l.Info("tgClient: HandleCallbackQuery", zap.Any("cq", cq), zap.Any("chatId", chatId))
 
 	if cq.Data == "create_vampere_bot" {
 		err := srv.Ts.CQ_vampire_register(m)
