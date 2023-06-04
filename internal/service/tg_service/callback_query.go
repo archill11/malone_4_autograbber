@@ -78,6 +78,7 @@ func (srv *TgService) CQ_accept_ch_post_by_admin(m models.Update) error {
 		srv.l.Error("CQ_accept_ch_post_by_admin: srv.As.GetBotInfoByToken(srv.Token)", zap.Error(err))
 	}
 	srv.ShowMessClient(DonorBot.ChId, "ок, начинаю рассылку по остальным")
+	srv.DeleteMess(DonorBot.ChId, m.CallbackQuery.Message.MessageId)
 
 	err = srv.sendChPostAsVamp_Media_Group()
 	return err

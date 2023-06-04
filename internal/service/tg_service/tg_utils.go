@@ -176,6 +176,25 @@ func (srv *TgService) ShowMessClient(chat int, mess string) error {
 	return nil
 }
 
+func (srv *TgService) DeleteMess(chat, messId int) error {
+	json_data, err := json.Marshal(map[string]any{
+		"chat_id":    strconv.Itoa(chat),
+		"message_id": strconv.Itoa(messId),
+	})
+	if err != nil {
+		return err
+	}
+	_, err = http.Post(
+		fmt.Sprintf(srv.TgEndp, srv.Token, "deleteMessage"),
+		"application/json",
+		bytes.NewBuffer(json_data),
+	)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (srv *TgService) sendData(json_data []byte) error {
 	_, err := http.Post(
 		fmt.Sprintf(srv.TgEndp, srv.Token, "sendMessage"),
