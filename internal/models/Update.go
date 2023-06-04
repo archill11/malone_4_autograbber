@@ -24,41 +24,41 @@ type ResponseParameters struct {
 
 type Update struct {
 	UpdateId           int                `json:"update_id"`
-	Message            Message            `json:"message"`
-	ChannelPost        Message            `json:"channel_post,omitempty"`
-	CallbackQuery      CallbackQuery      `json:"callback_query,omitempty"`
-	InlineQuery        InlineQuery        `json:"inline_query,omitempty"`
-	ChosenInlineResult ChosenInlineResult `json:"chosen_inline_result,omitempty"`
-	MyChatMember       ChatMemberUpdated  `json:"my_chat_member,omitempty"`
-	ChatMember         ChatMemberUpdated  `json:"chat_member,omitempty"`
-	ChatJoinRequest    ChatJoinRequest    `json:"chat_join_request,omitempty"`
+	Message            *Message            `json:"message"`
+	ChannelPost        *Message            `json:"channel_post,omitempty"`
+	CallbackQuery      *CallbackQuery      `json:"callback_query,omitempty"`
+	InlineQuery        *InlineQuery        `json:"inline_query,omitempty"`
+	ChosenInlineResult *ChosenInlineResult `json:"chosen_inline_result,omitempty"`
+	MyChatMember       *ChatMemberUpdated  `json:"my_chat_member,omitempty"`
+	ChatMember         *ChatMemberUpdated  `json:"chat_member,omitempty"`
+	ChatJoinRequest    *ChatJoinRequest    `json:"chat_join_request,omitempty"`
 }
 
 type Message struct {
 	MessageId            int             `json:"message_id"`
-	MessageThreadId      int             `json:"message_thread_id"`
+	MessageThreadId      *int             `json:"message_thread_id"`
 	From                 User            `json:"from"`
 	Date                 int             `json:"date"`
-	Chat                 Chat            `json:"chat"`
-	ForwardFrom          User            `json:"forward_from"`
-	ForwardFromChat      Chat            `json:"forward_from_chat"`
-	ForwardFromMessageId int             `json:"forward_from_message_id"`
+	Chat                 *Chat            `json:"chat"`
+	ForwardFrom          *User            `json:"forward_from"`
+	ForwardFromChat      *Chat            `json:"forward_from_chat"`
+	ForwardFromMessageId *int             `json:"forward_from_message_id"`
 	Text                 string          `json:"text"`
-	AuthorSignature      string          `json:"author_signature"`
-	SenderChat           Chat            `json:"sender_chat"`
+	AuthorSignature      *string          `json:"author_signature"`
+	SenderChat           *Chat            `json:"sender_chat"`
 	Entities             []MessageEntity `json:"entities"`
-	Animation            Animation       `json:"animation"`
-	ReplyToMessage       ReplyToMessage  `json:"reply_to_message"`
-	LeftChatMember       User            `json:"left_chat_member"`
-	Caption              string          `json:"caption"`
+	Animation            *Animation       `json:"animation"`
+	ReplyToMessage       *ReplyToMessage  `json:"reply_to_message"`
+	LeftChatMember       *User            `json:"left_chat_member"`
+	Caption              *string          `json:"caption"`
 	CaptionEntities      []MessageEntity `json:"caption_entities"`
 	NewChatMembers       []User          `json:"new_chat_members"`
-	MediaGroupId         string          `json:"media_group_id"`
+	MediaGroupId         *string          `json:"media_group_id"`
 	Photo                []PhotoSize     `json:"photo"`
-	Sticker              Sticker         `json:"sticker"`
-	Video                Video           `json:"video"`
-	VideoNote            VideoNote       `json:"video_note"`
-	IsTopicMessage       bool            `json:"is_topic_message"`
+	Sticker              *Sticker         `json:"sticker"`
+	Video                *Video           `json:"video"`
+	VideoNote            *VideoNote       `json:"video_note"`
+	IsTopicMessage       *bool            `json:"is_topic_message"`
 	// ReplyMarkup InlineKeyboardMarkup `json:"reply_markup"`
 }
 

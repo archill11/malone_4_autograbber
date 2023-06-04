@@ -32,6 +32,10 @@ func (s *AppService) GetBotInfoById(botId int) (entity.Bot, error) {
 	return s.db.GetBotInfoById(botId)
 }
 
+func (s *AppService) GetBotInfoByToken(token string) (entity.Bot, error) {
+	return s.db.GetBotInfoByToken(token)
+}
+
 func (s *AppService) EditBotChField(bot entity.Bot) error {
 	err := s.db.EditBotField(bot.Id, "ch_id", bot.ChId)
 	if err != nil {

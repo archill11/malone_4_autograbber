@@ -1,7 +1,6 @@
 package tg
 
 import (
-	"fmt"
 	"myapp/internal/models"
 	u "myapp/internal/utils"
 
@@ -11,7 +10,6 @@ import (
 func (srv *TgClient) HandleCallbackQuery(m models.Update) error {
 	cq := m.CallbackQuery
 	chatId := cq.From.Id
-	fmt.Printf("%+v\n", m)
 	srv.l.Info("tgClient: HandleCallbackQuery", zap.Any("cq", cq), zap.Any("chatId", chatId))
 
 	if cq.Data == "create_vampere_bot" {
@@ -80,6 +78,14 @@ func (srv *TgClient) HandleCallbackQuery(m models.Update) error {
 
 	if cq.Data == "show_admin_panel" {
 		err := srv.Ts.CQ_show_admin_panel(m)
+		if err != nil {
+			srv.Ts.ShowMessClient(chatId, u.ERR_MSG)
+		}
+		return err
+	}
+
+	if cq.Data == "accept_ch_post_by_admin" {
+		err := srv.Ts.CQ_accept_ch_post_by_admin(m)
 		if err != nil {
 			srv.Ts.ShowMessClient(chatId, u.ERR_MSG)
 		}

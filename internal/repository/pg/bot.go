@@ -203,6 +203,38 @@ func (s *Database) GetBotInfoById(botId int) (entity.Bot, error) {
 	return b, nil
 }
 
+func (s *Database) GetBotInfoByToken(token string) (entity.Bot, error) {
+	var b entity.Bot
+	q := `SELECT
+			id,
+			token,
+			username,
+			first_name,
+			is_donor,
+			ch_id,
+			ch_link,
+			group_link_id
+		FROM bots
+		WHERE token = $1`
+	err := s.db.QueryRow(q, token).Scan(
+		&b.Id,
+		&b.Token,
+		&b.Username,
+		&b.Firstname,
+		&b.IsDonor,
+		&b.ChId,
+		&b.ChLink,
+		&b.GroupLinkId,
+	)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return b, repository.ErrNotFound
+		}
+		return b, fmt.Errorf("db: GetBotInfoByToken: %w", err)
+	}
+	return b, nil
+}
+
 func (s *Database) EditBotField(botId int, field string, content any) error {
 	q := fmt.Sprintf(`UPDATE bots SET %s = $1 WHERE id = $2`, field)
 	_, err := s.db.Exec(q, content, botId)

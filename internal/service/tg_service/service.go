@@ -4,36 +4,32 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io"
 	"myapp/config"
 	"myapp/internal/entity"
 	"myapp/internal/models"
 	as "myapp/internal/service/app_service"
-	"myapp/pkg/mycopy"
 	"net/http"
 	"strconv"
-	"strings"
-	"sync"
 	"time"
 
 	"go.uber.org/zap"
 )
 
+const StoreKey = "example"
+
 type TgService struct {
-	HostUrl string
-	MyPort  string
-	TgEndp  string
-	Token   string
-	As      *as.AppService
-	l       *zap.Logger
-	LMG     LockMediaGroups
-	MediaCh chan Media
+	HostUrl    string
+	MyPort     string
+	TgEndp     string
+	Token      string
+	As         *as.AppService
+	l          *zap.Logger
+	MediaCh    chan Media
+	MediaStore MediaStore
 }
 
-type LockMediaGroups struct {
+type MediaStore struct {
 	MediaGroups map[string][]Media
-	Mu          sync.Mutex
-	MuExecuted  bool
 }
 
 type Media struct {
@@ -50,14 +46,14 @@ type Media struct {
 
 func New(conf config.Config, as *as.AppService, l *zap.Logger) (*TgService, error) {
 	s := &TgService{
-		HostUrl: conf.MY_URL,
-		MyPort:  conf.PORT,
-		TgEndp:  conf.TG_ENDPOINT,
-		Token:   conf.TOKEN,
-		As:      as,
-		l:       l,
-		MediaCh: make(chan Media, 10),
-		LMG: LockMediaGroups{
+		HostUrl:    conf.MY_URL,
+		MyPort:     conf.PORT,
+		TgEndp:     conf.TG_ENDPOINT,
+		Token:      conf.TOKEN,
+		As:         as,
+		l:          l,
+		MediaCh:    make(chan Media, 10),
+		MediaStore: MediaStore{
 			MediaGroups: make(map[string][]Media),
 		},
 	}
@@ -95,141 +91,69 @@ func New(conf config.Config, as *as.AppService, l *zap.Logger) (*TgService, erro
 					s.l.Error("len(mediaArr) == 1")
 					continue
 				}
-				// TODO
-				// разбить на много разных методов
-				allVampBots, err := s.As.GetAllVampBots()
-				if err != nil {
-					s.l.Error("Channel: s.As.GetAllVampBots", zap.Error(err))
+
+				fmt.Println("mediaArr:",mediaArr)
+				
+				s.MediaStore.MediaGroups[StoreKey] = mediaArr
+				fmt.Println("MediaGroups:", s.MediaStore.MediaGroups )
+
+				arrsik := make([]models.InputMedia, 0)
+				for _, med := range mediaArr {
+					nwmd := models.InputMedia{
+						Type:            med.Type_media,
+						Media:           med.File_id,
+						Caption:         med.Caption,
+						CaptionEntities: med.Caption_entities,
+					}
+					ok := MediaInSlice(arrsik, nwmd)
+					if !ok {
+						arrsik = append(arrsik, nwmd)
+					}
 				}
-				for _, vampBot := range allVampBots {
-					if vampBot.ChId == 0 {
-						continue
-					}
-					for i, media := range mediaArr {
-						fileId, err := s.sendAndDeleteMedia(vampBot, media.fileNameInServer, media.Type_media)
-						if err != nil {
-							s.l.Error("Channel: s.sendAndDeleteMedia", zap.Error(err))
-						}
-						mediaArr[i].File_id = fileId
+		
+				DonorBot, err := s.As.GetBotInfoByToken(s.Token)
+				if err != nil {
+					s.l.Error("Channel: s.As.GetBotInfoByToken(s.Token)", zap.Error(err))
+				}
 
-						// fn replaceReplyMessId
-						if media.Reply_to_donor_message_id != 0 {
-							replToDonorChPostId := media.Reply_to_donor_message_id
-							currPost, err := s.As.GetPostByDonorIdAndChId(replToDonorChPostId, vampBot.ChId)
-							if err != nil {
-								s.l.Error("Channel: service queue (1)", zap.Error(err))
-							}
-							mediaArr[i].Reply_to_message_id = currPost.PostId
-						}
-						// fn replaceCaptionEntities
-						if len(media.Caption_entities) > 0 {
-							entities := make([]models.MessageEntity, len(media.Caption_entities))
-							mycopy.DeepCopy(media.Caption_entities, &entities)
-							for i, v := range entities {
-								if strings.HasPrefix(v.Url, "http://fake-link") || strings.HasPrefix(v.Url, "fake-link") || strings.HasPrefix(v.Url, "https://fake-link") {
-									groupLink, err := s.As.GetGroupLinkById(vampBot.GroupLinkId)
-									if err != nil {
-										s.l.Error("Channel: GetGroupLinkById", zap.Error(err))
-									}
-									entities[i].Url = groupLink.Link
-									continue
-								}
-								urlArr := strings.Split(v.Url, "/")
-								for ii, vv := range urlArr {
-									if len(urlArr) < 4 {
-										break
-									}
-									if vv == "t.me" && urlArr[ii+1] == "c" {
-										fmt.Printf("\nэто ссылка на канал %s и пост %s\n", urlArr[ii+2], urlArr[ii+3])
-										refToDonorChPostId, err := strconv.Atoi(urlArr[ii+3])
-										if err != nil {
-											s.l.Error("Channel: strconv.Atoi (1)", zap.Error(err))
-										}
-										currPost, err := s.As.GetPostByDonorIdAndChId(refToDonorChPostId, vampBot.ChId)
-										if err != nil {
-											s.l.Error("Channel: service queue (2)", zap.Error(err))
-										}
-										if vampBot.ChId < 0 {
-											urlArr[ii+2] = strconv.Itoa(-vampBot.ChId)
-										} else {
-											urlArr[ii+2] = strconv.Itoa(vampBot.ChId)
-										}
-										if urlArr[ii+2][0] == '1' && urlArr[ii+2][1] == '0' && urlArr[ii+2][2] == '0' {
-											urlArr[ii+2] = urlArr[ii+2][3:]
-										}
-										urlArr[ii+3] = strconv.Itoa(currPost.PostId)
-										entities[i].Url = strings.Join(urlArr, "/")
-									}
-								}
-							}
-							mediaArr[i].Caption_entities = entities
-						}
-					}
+				fmt.Println("DonorBot:",DonorBot)
 
-					arrsik := make([]models.InputMedia, 0)
-					for _, med := range mediaArr {
-						nwmd := models.InputMedia{
-							Type:            med.Type_media,
-							Media:           med.File_id,
-							Caption:         med.Caption,
-							CaptionEntities: med.Caption_entities,
-						}
-						ok := MediaInSlice(arrsik, nwmd)
-						if !ok {
-							arrsik = append(arrsik, nwmd)
-						}
-					}
+				acceptMess := map[string]any{
+					"chat_id": strconv.Itoa(DonorBot.ChId),
+					"media":   arrsik,
+				}
+				if mediaArr[0].Reply_to_message_id != 0 {
+					acceptMess["reply_to_message_id"] = mediaArr[0].Reply_to_message_id
+				}
+				MediaJson, err := json.Marshal(acceptMess)
+				if err != nil {
+					s.l.Error("Channel: json.Marshal(acceptMess)", zap.Error(err))
+				}
+				_, err = http.Post(
+					fmt.Sprintf(s.TgEndp, s.Token, "sendMediaGroup"),
+					"application/json",
+					bytes.NewBuffer(MediaJson),
+				)
+				if err != nil {
+					s.l.Error("Channel: http.Post(sendMediaGroup)", zap.Error(err))
+				}
 
-					ttttt := map[string]any{
-						"chat_id": strconv.Itoa(vampBot.ChId),
-						"media":   arrsik,
-					}
-					if mediaArr[0].Reply_to_message_id != 0 {
-						ttttt["reply_to_message_id"] = mediaArr[0].Reply_to_message_id
-					}
-
-					MediaJson, err := json.Marshal(ttttt)
-					if err != nil {
-						s.l.Error("Channel: json.Marshal(ttttt)", zap.Error(err))
-					}
-					fmt.Println("\nMediaJson::::", string(MediaJson))
-					rrresfyhfy, err := http.Post(
-						fmt.Sprintf(s.TgEndp, vampBot.Token, "sendMediaGroup"),
-						"application/json",
-						bytes.NewBuffer(MediaJson),
-					)
-					s.l.Info("Channel: sending media-group", zap.Any("map[string]any", ttttt))
-					if err != nil {
-						s.l.Error("Channel: ending media-group err", zap.Error(err))
-					}
-					defer rrresfyhfy.Body.Close()
-					var cAny223 struct {
-						Ok          bool   `json:"ok"`
-						Description string `json:"description"`
-						Result      []struct {
-							MessageId int `json:"message_id,omitempty"`
-							Chat      struct {
-								Id int `json:"id,omitempty"`
-							} `json:"chat,omitempty"`
-							Video models.Video       `json:"video,omitempty"`
-							Photo []models.PhotoSize `json:"photo,omitempty"`
-						} `json:"result,omitempty"`
-					}
-					if err := json.NewDecoder(rrresfyhfy.Body).Decode(&cAny223); err != nil && err != io.EOF {
-						s.l.Error("Channel: json.NewDecoder(rrresfyhfy.Body)", zap.Error(err))
-					}
-					s.l.Info("Channel: sending media-group response", zap.Any("resp struct", cAny223))
-					for _, v := range cAny223.Result {
-						if v.MessageId != 0 {
-							for _, med := range mediaArr {
-								time.Sleep(time.Millisecond * 500)
-								err = s.As.AddNewPost(vampBot.ChId, v.MessageId, med.Donor_message_id)
-								if err != nil {
-									s.l.Error("Channel: s.As.AddNewPost", zap.Error(err))
-								}
-							}
-						}
-					}
+				acceptMess = map[string]any{
+					"chat_id": strconv.Itoa(DonorBot.ChId),
+					"text":    "подтвердите сообщение сверху",
+					"reply_markup": `{ "inline_keyboard" : [[{ "text": "разослать по каналам", "callback_data": "accept_ch_post_by_admin" }]] }`,
+				}
+				MediaJson, err = json.Marshal(acceptMess)
+				if err != nil {
+					s.l.Error("Channel: json.Marshal(acceptMess) (2)", zap.Error(err))
+				}
+				_, err = http.Post(
+					fmt.Sprintf(s.TgEndp, s.Token, "sendMessage"),
+					"application/json",
+					bytes.NewBuffer(MediaJson),
+				)
+				if err != nil {
+					s.l.Error("Channel: http.Post(sendMessage)", zap.Error(err))
 				}
 
 				mediaArr = mediaArr[0:0]

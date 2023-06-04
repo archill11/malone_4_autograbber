@@ -38,7 +38,7 @@ func (srv *TgService) Donor_addChannelPost(m models.Update) error {
 	}
 
 	// если Media_Group
-	if m.ChannelPost.MediaGroupId != "" {
+	if m.ChannelPost.MediaGroupId != nil {
 		var postType string
 		if len(m.ChannelPost.Photo) > 0 {
 			postType = "photo"
@@ -52,16 +52,29 @@ func (srv *TgService) Donor_addChannelPost(m models.Update) error {
 			return err
 		}
 		newmedia := Media{
-			Media_group_id:            m.ChannelPost.MediaGroupId,
+			Media_group_id:            *m.ChannelPost.MediaGroupId,
 			Type_media:                postType,
 			fileNameInServer:          filePath,
 			Donor_message_id:          message_id,
-			Reply_to_donor_message_id: m.ChannelPost.ReplyToMessage.MessageId,
-			Caption:                   m.ChannelPost.Caption,
+			Reply_to_donor_message_id: 0,
+			Caption:                   "",
 			Caption_entities:          m.ChannelPost.CaptionEntities,
-			// File_id + добавляем позже
-			// Reply_to_message_id + добавляем позже
+			//File_id: // нужно для подтверждения в доноре, позже в вампирах заменяем
+			//Reply_to_message_id:  // нужно для подтверждения в доноре, позже в вампирах заменяем
 		}
+		if postType == "photo" {
+			newmedia.File_id = m.ChannelPost.Photo[len(m.ChannelPost.Photo)-1].FileId
+		} else if postType == "video" {
+			newmedia.File_id = m.ChannelPost.Video.FileId
+		}
+		if m.ChannelPost.ReplyToMessage != nil {
+			newmedia.Reply_to_message_id = m.ChannelPost.ReplyToMessage.MessageId
+			newmedia.Reply_to_donor_message_id = m.ChannelPost.ReplyToMessage.MessageId
+		}
+		if m.ChannelPost.Caption != nil {
+			newmedia.Caption = *m.ChannelPost.Caption
+		}
+
 		srv.MediaCh <- newmedia
 		return nil
 	}

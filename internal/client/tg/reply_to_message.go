@@ -14,7 +14,7 @@ func (srv *TgClient) HandleReplyToMessage(m models.Update) error {
 	rm := m.Message.ReplyToMessage
 	replyMes := m.Message.Text
 	// chatId := m.Message.From.Id
-	// srv.l.Info("client::tg::rm::", m.Message)
+
 	srv.l.Info("tgClient: HandleReplyToMessage", zap.Any("rm.Tex", rm.Text), zap.Any("replyMes", replyMes))
 
 	if rm.Text == u.NEW_BOT_MSG {

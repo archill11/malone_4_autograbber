@@ -67,3 +67,10 @@ func (srv *TgService) CQ_update_group_link(m models.Update) error {
 	err := srv.SendForceReply(chatId, u.UPDATE_GROUP_LINK_MSG)
 	return err
 }
+
+func (srv *TgService) CQ_accept_ch_post_by_admin(m models.Update) error {
+	// cq := m.CallbackQuery
+	// chatId := cq.From.Id
+	err := srv.sendChPostAsVamp_Media_Group()
+	return err
+}

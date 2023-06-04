@@ -20,7 +20,6 @@ import (
 func main() {
 	config := config.Get()
 
-	// zapCfg := zap.NewProductionConfig()
 	zapCfg := zap.NewDevelopmentConfig()
 	zapCfg.OutputPaths = []string{"logs/info.log", "stderr"}
 	l, err := zapCfg.Build()
