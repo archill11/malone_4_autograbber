@@ -421,14 +421,16 @@ func (srv *TgService) sendAndDeleteMedia(vampBot entity.Bot, fileNameInServer st
 			Video models.Video       `json:"video"`
 			Photo []models.PhotoSize `json:"photo"`
 		} `json:"result,omitempty"`
+		ErrorCode   any  `json:"error_code,omitempty"`
+		Description any  `json:"description,omitempty"`
 	}
 	if err := json.NewDecoder(rrres.Body).Decode(&cAny2); err != nil && err != io.EOF {
-		return "", err
+		return "", fmt.Errorf("sendAndDeleteMedia: json.NewDecoder(rrres.Body).Decode(&cAny2): %v", err)
 	}
 	// srv.l.Info(method, "----resp body:", cAny2)
 	// fmt.Println(method, "----resp body:", cAny2)
 	if !cAny2.Ok {
-		return "", fmt.Errorf("NOT OK "+method+" :", cAny2)
+		return "", fmt.Errorf("sendAndDeleteMedia: NOT OK %s: %+v", method, cAny2)
 	}
 	DelJson, err := json.Marshal(map[string]any{
 		"chat_id":    strconv.Itoa(vampBot.ChId),

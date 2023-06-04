@@ -79,8 +79,8 @@ func New(conf config.Config, as *as.AppService, l *zap.Logger) (*TgService, erro
 			select {
 			case x, ok := <-s.MediaCh:
 				if ok {
-					ok := MediaInSlice2(mediaArr, x)
-					if !ok {
+					okk := MediaInSlice2(mediaArr, x)
+					if !okk {
 						mediaArr = append(mediaArr, x)
 					}
 				} else {
