@@ -81,8 +81,14 @@ func (srv *TgService) CQ_accept_ch_post_by_admin(m models.Update) error {
 	srv.ShowMessClient(DonorBot.ChId, "ок, начинаю рассылку по остальным")
 	srv.DeleteMess(DonorBot.ChId, m.CallbackQuery.Message.MessageId)
 
-	err = srv.sendChPostAsVamp_Media_Group()
-	return err
+	go func(){
+		err = srv.sendChPostAsVamp_Media_Group()
+		if err != nil {
+			srv.ShowMessClient(DonorBot.ChId, u.ERR_MSG +": " + err.Error())
+		}
+	}()
+
+	return nil
 }
 
 func (srv *TgService) CQ_restart_app() {
