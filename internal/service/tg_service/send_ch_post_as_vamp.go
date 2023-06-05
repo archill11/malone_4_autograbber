@@ -130,7 +130,7 @@ func (srv *TgService) sendChPostAsVamp_VideoNote(vampBot entity.Bot, m models.Up
 	futureVideoNoteJson := map[string]string{
 		"chat_id": strconv.Itoa(vampBot.ChId),
 	}
-	if m.ChannelPost.ReplyToMessage.MessageId != 0 {
+	if m.ChannelPost.ReplyToMessage != nil {
 		replToDonorChPostId := m.ChannelPost.ReplyToMessage.MessageId
 		currPost, err := srv.As.GetPostByDonorIdAndChId(replToDonorChPostId, vampBot.ChId)
 		if err != nil {
