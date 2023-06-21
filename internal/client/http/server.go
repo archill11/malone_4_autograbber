@@ -28,8 +28,8 @@ func New(conf config.Config, service *service.AppService, tgc *tg.TgClient, l *z
 		sem:     make(chan struct{}, runtime.NumCPU()),
 	}
 
-	app.Post("/api/v1/donor/update", ser.donor_Update)
-	app.Post("/api/v1/vampire/update", ser.vampire_Update)
+	// app.Post("/api/v1/donor/update", ser.donor_Update)
+	// app.Post("/api/v1/vampire/update", ser.vampire_Update)
 
 	return ser, nil
 }

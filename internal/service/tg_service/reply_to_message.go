@@ -1,10 +1,8 @@
 package tg_service
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"myapp/internal/entity"
 	"myapp/internal/models"
 	"myapp/internal/repository"
@@ -15,6 +13,71 @@ import (
 
 	"go.uber.org/zap"
 )
+
+func (srv *TgService) HandleReplyToMessage(m models.Update) error {
+	rm := m.Message.ReplyToMessage
+	replyMes := m.Message.Text
+	// chatId := m.Message.From.Id
+
+	srv.l.Info("tgClient: HandleReplyToMessage", zap.Any("rm.Tex", rm.Text), zap.Any("replyMes", replyMes))
+
+	if rm.Text == u.NEW_BOT_MSG {
+		err := srv.RM_obtain_vampire_bot_token(m)
+		return err
+	}
+
+	if rm.Text == u.DELETE_BOT_MSG {
+		err := srv.RM_delete_bot(m)
+		return err
+	}
+
+	if rm.Text == u.NEW_ADMIN_MSG {
+		err := srv.RM_add_admin(m)
+		return err
+	}
+
+	if rm.Text == u.NEW_GROUP_LINK_MSG {
+		err := srv.RM_add_group_link(m)
+		return err
+	}
+
+	if rm.Text == u.DELETE_GROUP_LINK_MSG {
+		err := srv.RM_delete_group_link(m)
+		return err
+	}
+
+	if rm.Text == u.UPDATE_GROUP_LINK_MSG {
+		chatId := m.Message.From.Id
+		replyMes := m.Message.Text
+		replyMes = strings.TrimSpace(replyMes)
+	
+		grId, err := strconv.Atoi(replyMes)
+		if err != nil {
+			srv.ShowMessClient(chatId, u.ERR_MSG)
+			return err
+		}
+		err = srv.SendForceReply(chatId, fmt.Sprintf(u.GROUP_LINK_UPDATE_MSG, grId))
+		return err
+	}
+
+	if strings.HasPrefix(rm.Text, "укажите номер группы-ссылки для нового бота[") {
+		runes := []rune(rm.Text)
+		runesStr := string(runes[len([]rune("укажите номер группы-ссылки для нового бота[")):])
+		botId, _ := strconv.Atoi(runesStr)
+		err := srv.RM_update_bot_group_link(m, botId)
+		return err
+	}
+
+	if strings.HasPrefix(rm.Text, "укажите новую ссылку для ref [") {
+		runes := []rune(rm.Text)
+		runesStr := string(runes[len([]rune("укажите новую ссылку для ref [")):])
+		refId, _ := strconv.Atoi(runesStr)
+		err := srv.RM_update_group_link(m, refId)
+		return err
+	}
+
+	return nil
+}
 
 func (srv *TgService) RM_obtain_vampire_bot_token(m models.Update) error {
 	rm := m.Message.ReplyToMessage
@@ -32,32 +95,32 @@ func (srv *TgService) RM_obtain_vampire_bot_token(m models.Update) error {
 	if err != nil {
 		return err
 	}
-	tgResp := struct {
-		Ok          bool   `json:"ok"`
-		Description string `json:"description"`
-	}{}
-	resp, err := http.Get(fmt.Sprintf(
-		srv.TgEndp, bot.Token, fmt.Sprintf("setWebhook?url=%s/api/v1/vampire/update", srv.HostUrl)), // set Webhook
-	)
-	if err != nil {
-		srv.l.Error("RM_obtain_vampire_bot_token: set Webhook::", zap.Error(err))
-	}
-	defer resp.Body.Close()
+	// tgResp := struct {
+	// 	Ok          bool   `json:"ok"`
+	// 	Description string `json:"description"`
+	// }{}
+	// resp, err := http.Get(fmt.Sprintf(
+	// 	srv.TgEndp, bot.Token, fmt.Sprintf("setWebhook?url=%s/api/v1/vampire/update", srv.HostUrl)), // set Webhook
+	// )
+	// if err != nil {
+	// 	srv.l.Error("RM_obtain_vampire_bot_token: set Webhook::", zap.Error(err))
+	// }
+	// defer resp.Body.Close()
 
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return err
-	}
-	err = json.Unmarshal(body, &tgResp)
-	if err != nil {
-		srv.ShowMessClient(chatId, u.ERR_MSG)
-		return err
-	}
-	if !tgResp.Ok {
-		srv.l.Error("RM_obtain_vampire_bot_token: !tgResp.Ok", zap.Error(err), zap.Any("tgResp.Description", tgResp.Description))
-		srv.ShowMessClient(chatId, u.ERR_MSG)
-	}
-	srv.l.Info("RM_obtain_vampire_bot_token: set Webhook", zap.Any("Webhook url", fmt.Sprintf(srv.TgEndp, bot.Token, fmt.Sprintf("setWebhook?url=%s/api/v1/vampire/update", srv.HostUrl))))
+	// body, err := io.ReadAll(resp.Body)
+	// if err != nil {
+	// 	return err
+	// }
+	// err = json.Unmarshal(body, &tgResp)
+	// if err != nil {
+	// 	srv.ShowMessClient(chatId, u.ERR_MSG)
+	// 	return err
+	// }
+	// if !tgResp.Ok {
+	// 	srv.l.Error("RM_obtain_vampire_bot_token: !tgResp.Ok", zap.Error(err), zap.Any("tgResp.Description", tgResp.Description))
+	// 	srv.ShowMessClient(chatId, u.ERR_MSG)
+	// }
+	// srv.l.Info("RM_obtain_vampire_bot_token: set Webhook", zap.Any("Webhook url", fmt.Sprintf(srv.TgEndp, bot.Token, fmt.Sprintf("setWebhook?url=%s/api/v1/vampire/update", srv.HostUrl))))
 	srv.ShowMessClient(chatId, u.SUCCESS_ADDED_BOT)
 
 	grl, _ := srv.As.GetAllGroupLinks()

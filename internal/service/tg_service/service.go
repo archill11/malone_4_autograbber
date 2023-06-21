@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"log"
 	"myapp/config"
 	"myapp/internal/entity"
 	"myapp/internal/models"
@@ -18,7 +19,7 @@ import (
 const StoreKey = "example"
 
 type TgService struct {
-	HostUrl    string
+	// HostUrl    string
 	MyPort     string
 	TgEndp     string
 	Token      string
@@ -28,25 +29,35 @@ type TgService struct {
 	MediaStore MediaStore
 }
 
-type MediaStore struct {
-	MediaGroups map[string][]Media
-}
+type (
+	UpdateConfig struct {
+		Offset  int
+		Timeout int
+		Buffer  int
+	}
+)
 
-type Media struct {
-	Media_group_id            string
-	Type_media                string
-	fileNameInServer          string
-	Donor_message_id          int
-	Reply_to_donor_message_id int // реплай на сообщение в канале доноре
-	Caption                   string
-	Caption_entities          []models.MessageEntity
-	File_id                   string
-	Reply_to_message_id       int // реплай на сообщение в канале вампире
-}
+type (
+	MediaStore struct {
+		MediaGroups map[string][]Media
+	}
+
+	Media struct {
+		Media_group_id            string
+		Type_media                string
+		fileNameInServer          string
+		Donor_message_id          int
+		Reply_to_donor_message_id int // реплай на сообщение в канале доноре
+		Caption                   string
+		Caption_entities          []models.MessageEntity
+		File_id                   string
+		Reply_to_message_id       int // реплай на сообщение в канале вампире
+	}
+)
 
 func New(conf config.Config, as *as.AppService, l *zap.Logger) (*TgService, error) {
 	s := &TgService{
-		HostUrl:    conf.MY_URL,
+		// HostUrl:    conf.MY_URL,
 		MyPort:     conf.PORT,
 		TgEndp:     conf.TG_ENDPOINT,
 		Token:      conf.TOKEN,
@@ -69,6 +80,55 @@ func New(conf config.Config, as *as.AppService, l *zap.Logger) (*TgService, erro
 		return s, err
 	}
 
+	// получение tg updates Donor
+	go func() {
+		updConf := UpdateConfig{
+			Offset: 0,
+			Timeout: 30,
+			Buffer: 1000,
+		}
+		updates, _ := s.GetUpdatesChan(&updConf, s.Token)
+		for update := range updates {
+			s.Donor_Update_v2(update)
+		}
+	}()
+
+	// получение tg updates Vampires
+	go func() {
+		var noChannelBotsLen int
+		for {
+			if noChannelBotsLen > 0 {
+				time.Sleep(time.Minute*10)
+				continue
+			}
+			noChannelBots, err := s.As.GetAllNoChannelBots()
+			if err != nil {
+				s.l.Error("Channel: s.As.GetAllNoChannelBots()", zap.Error(err))
+			}
+			noChannelBotsLen = len(noChannelBots)
+			for _, v := range noChannelBots {
+				go func(v entity.Bot){
+					updConf := UpdateConfig{
+						Offset: 0,
+						Timeout: 30,
+						Buffer: 1000,
+					}
+					updates, shutdownCh := s.GetUpdatesChan(&updConf, v.Token)
+					for update := range updates {
+						closeUpdates, _ := s.Vapmire_Update_v2(update)
+						if closeUpdates {
+							shutdownCh<- struct{}{}
+							s.l.Info("Channel: shutdownCh<- struct{}. Закрыли канал обновлений вампира", zap.Any("bot token", v.Token))
+							noChannelBotsLen--
+						}
+					}
+				}(v)
+			}
+			time.Sleep(time.Minute*10)
+		}
+	}()
+
+	// когда MediaGroup
 	go func() {
 		mediaArr := make([]Media, 0)
 		for {
@@ -153,6 +213,125 @@ func New(conf config.Config, as *as.AppService, l *zap.Logger) (*TgService, erro
 	}()
 
 	return s, nil
+}
+
+func (ts *TgService) GetUpdatesChan(conf *UpdateConfig, token string) (chan models.Update, chan struct{}) {
+	UpdCh := make(chan models.Update, conf.Buffer)
+	shutdownCh := make(chan struct{})
+
+	go func() {
+		for {
+			select {
+			case <-shutdownCh:
+				close(UpdCh)
+				return
+			default:
+				updates, err := ts.GetUpdates(conf, token)
+				if err != nil {
+					log.Println("err: ", err)
+					log.Println("Failed to get updates, retrying in 3 seconds...")
+					time.Sleep(time.Second * 3)
+					continue
+				}
+	
+				for _, update := range updates {
+					if update.UpdateId >= conf.Offset {
+						conf.Offset = update.UpdateId + 1
+						UpdCh <- update
+					}
+				}
+			}
+		}
+	}()
+	return UpdCh, shutdownCh
+}
+
+func (ts *TgService) GetUpdates(conf *UpdateConfig, token string) ([]models.Update, error) {
+	json_data, err := json.Marshal(map[string]any{
+		"offset":  conf.Offset,
+		"timeout": conf.Timeout,
+	})
+	if err != nil {
+		return []models.Update{}, err
+	}
+	fmt.Println(
+		fmt.Sprintf(ts.TgEndp, token, "getUpdates"),
+	)
+	resp, err := http.Post(
+		fmt.Sprintf(ts.TgEndp, token, "getUpdates"),
+		"application/json",
+		bytes.NewBuffer(json_data),
+	)
+	if err != nil {
+		return  []models.Update{}, err
+	}
+	defer resp.Body.Close()
+
+	var j models.APIResponse
+	if err := json.NewDecoder(resp.Body).Decode(&j); err != nil {
+		return []models.Update{}, err
+	}
+
+	return j.Result, err
+}
+
+func (srv *TgService) Donor_Update_v2(m models.Update) error {
+
+	if m.ChannelPost != nil { // on Channel_Post
+		err := srv.Donor_HandleChannelPost(m)
+		if err != nil {
+			srv.l.Error("donor_Update: Donor_HandleChannelPost(m)", zap.Error(err))
+		}
+		return nil
+	}
+
+	if m.CallbackQuery != nil { // on Callback_Query
+		err := srv.HandleCallbackQuery(m)
+		if err != nil {
+			srv.l.Error("donor_Update: HandleCallbackQuery(m)", zap.Error(err))
+		}
+		return nil
+	}
+
+	if m.Message != nil && m.Message.ReplyToMessage != nil { // on Reply_To_Message
+		err := srv.HandleReplyToMessage(m)
+		if err != nil {
+			srv.l.Error("donor_Update: HandleReplyToMessage(m)", zap.Error(err))
+		}
+		return nil
+	}
+
+	if m.Message != nil && m.Message.Chat != nil { // on Message
+		err := srv.HandleMessage(m)
+		if err != nil {
+			srv.l.Error("donor_Update: HandleMessage(m)", zap.Error(err))
+		}
+		return nil
+	}
+
+	if m.MyChatMember != nil && m.MyChatMember.NewChatMember.Status != "" { // on New_Chat_Member
+		err := srv.HandleNewChatMember(m)
+		if err != nil {
+			srv.l.Error("donor_Update: HandleNewChatMember(m)", zap.Error(err))
+		}
+		return nil
+	}
+
+	return nil
+}
+
+func (srv *TgService) Vapmire_Update_v2(m models.Update) (bool, error) {
+	if m.MyChatMember != nil && m.MyChatMember.NewChatMember.Status != "" { // on New_Chat_Member
+		err := srv.HandleNewChatMember(m)
+		if err != nil {
+			srv.l.Error("vampire_Update: HandleNewChatMember(m)", zap.Error(err))
+			return false, err
+		}
+		// возвращаем true когда понимаем что обновления бота от tg больше не нужны
+		return true, nil
+	}
+
+	return false, nil
 }
 
 func MediaInSlice(s []models.InputMedia, m models.InputMedia) bool {

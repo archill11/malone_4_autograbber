@@ -8,7 +8,7 @@ import (
 )
 
 type Config struct {
-	MY_URL      string
+	// MY_URL      string
 	TG_ENDPOINT string
 	TOKEN       string
 	PORT        string
@@ -25,7 +25,7 @@ func Get() Config {
 	}
 	var c Config
 
-	c.MY_URL      = os.Getenv("MY_URL")
+	// c.MY_URL      = os.Getenv("MY_URL")
 	c.TG_ENDPOINT = os.Getenv("TG_ENDPOINT")
 	c.TOKEN       = os.Getenv("BOT_TOKEN")
 	c.PORT        = os.Getenv("APP_PORT")

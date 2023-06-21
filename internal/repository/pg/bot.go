@@ -171,6 +171,43 @@ func (s *Database) GetAllVampBots() ([]entity.Bot, error) {
 	return bots, nil
 }
 
+func (s *Database) GetAllNoChannelBots() ([]entity.Bot, error) {
+	bots := make([]entity.Bot, 0)
+	q := `SELECT 
+			id,
+			token,
+			username,
+			first_name,
+			is_donor,
+			ch_id,
+			ch_link,
+			group_link_id
+		FROM bots
+		WHERE ch_id = 0`
+	rows, err := s.db.Query(q)
+	if err != nil {
+		return nil, fmt.Errorf("db: GetAllNoChannelBots: %w", err)
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var b entity.Bot
+		if err := rows.Scan(
+			&b.Id,
+			&b.Token,
+			&b.Username,
+			&b.Firstname,
+			&b.IsDonor,
+			&b.ChId,
+			&b.ChLink,
+			&b.GroupLinkId,
+		); err != nil {
+			return nil, fmt.Errorf("db: GetAllNoChannelBots (2): %w", err)
+		}
+		bots = append(bots, b)
+	}
+	return bots, nil
+}
+
 func (s *Database) GetBotInfoById(botId int) (entity.Bot, error) {
 	var b entity.Bot
 	q := `SELECT

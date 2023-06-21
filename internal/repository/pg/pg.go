@@ -11,16 +11,16 @@ import (
 	"go.uber.org/zap"
 )
 
-//go:embed schemes/bots_schema.sql
+//go:embed schemes/bot.sql
 var bots_schema string
 
-//go:embed schemes/posts_schema.sql
+//go:embed schemes/post.sql
 var posts_schema string
 
-//go:embed schemes/users_schema.sql
+//go:embed schemes/user.sql
 var users_schema string
 
-//go:embed schemes/group_link_schema.sql
+//go:embed schemes/group_link.sql
 var group_link_schema string
 
 type Database struct {

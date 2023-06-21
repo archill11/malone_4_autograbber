@@ -7,6 +7,27 @@ import (
 	"go.uber.org/zap"
 )
 
+func (srv *TgService) HandleMessage(m models.Update) error {
+	// chatId := m.Message.Chat.Id
+	// userFirstName := m.Message.From.FirstName
+	userUserName := m.Message.From.UserName
+	msgText := m.Message.Text
+
+	srv.l.Info("tgClient: HandleMessage", zap.Any("userUserName", userUserName), zap.Any("msgText", msgText))
+
+	if msgText == "/admin" {
+		err := srv.M_admin(m)
+		return err
+	}
+
+	if msgText == "/start" {
+		err := srv.M_start(m)
+		return err
+	}
+
+	return nil
+}
+
 func (srv *TgService) M_start(m models.Update) error {
 	chatId := m.Message.Chat.Id
 	msgText := m.Message.Text

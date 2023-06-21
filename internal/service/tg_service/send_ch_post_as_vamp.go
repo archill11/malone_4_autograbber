@@ -462,7 +462,7 @@ func (srv *TgService) sendAndDeleteMedia(vampBot entity.Bot, fileNameInServer st
 	// srv.l.Info("deleteMessage resp body:", cAny3)
 	// fmt.Println("-+-deleteMessage resp body:", cAny3)
 	if !cAny3.Ok {
-		return "", fmt.Errorf("sendAndDeleteMedia: NOT OK deleteMessage :", cAny3)
+		return "", fmt.Errorf("sendAndDeleteMedia: NOT OK deleteMessage : %v", cAny3)
 	}
 	var fileId string
 	if postType == "photo" && len(cAny2.Result.Photo) > 0 {

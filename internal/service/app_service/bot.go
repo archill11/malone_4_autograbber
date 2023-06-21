@@ -20,6 +20,10 @@ func (s *AppService) GetAllVampBots() ([]entity.Bot, error) {
 	return s.db.GetAllVampBots()
 }
 
+func (s *AppService) GetAllNoChannelBots() ([]entity.Bot, error) {
+	return s.db.GetAllNoChannelBots()
+}
+
 func (s *AppService) GetBotByChannelId(chatId int) (entity.Bot, error) {
 	return s.db.GetBotByChannelId(chatId)
 }
