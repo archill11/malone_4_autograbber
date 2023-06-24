@@ -63,6 +63,24 @@ func (srv *TgService) showBotsAndChannels(chatId int) error {
 			mess.WriteString("-Донор")
 		}
 		mess.WriteString(fmt.Sprintf("\n	ch_link: %s\n", b.ChLink))
+
+		if i % 50 == 0 && i > 0 {
+			json_data, err := json.Marshal(map[string]any{
+				"chat_id": strconv.Itoa(chatId),
+				"text":    mess.String(),
+				"reply_markup": `{"inline_keyboard" : [
+					[{ "text": "Назад", "callback_data": "show_admin_panel" }]
+				]}`,
+			})
+			if err != nil {
+				return err
+			}
+			err = srv.sendData(json_data)
+			if err != nil {
+				return err
+			}
+			mess.Reset()
+		}
 	}
 	txt := mess.String()
 	if len(txt) > 4000 {
