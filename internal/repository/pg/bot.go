@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"myapp/internal/entity"
-	"myapp/internal/repository"
 )
 
 func (s *Database) AddNewBot(id int, username, firstname, token string, idDonor int) error {
@@ -54,9 +53,9 @@ func (s *Database) GetBotByChannelId(channelId int) (entity.Bot, error) {
 	)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return b, repository.ErrNotFound
+			return b, fmt.Errorf("db: GetBotByChannelId: channelId: %d ErrNotFound", channelId)
 		}
-		return b, fmt.Errorf("db: GetBotByChannelId: %w", err)
+		return b, fmt.Errorf("db: GetBotByChannelId: channelId: %d err: %w", channelId, err)
 	}
 	return b, nil
 }
@@ -233,9 +232,10 @@ func (s *Database) GetBotInfoById(botId int) (entity.Bot, error) {
 	)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return b, repository.ErrNotFound
+			return b, fmt.Errorf("db: GetBotInfoById: botId: %d ErrNotFound", botId)
+			
 		}
-		return b, fmt.Errorf("db: GetBotInfoById: %w", err)
+		return b, fmt.Errorf("db: GetBotInfoById: botId: %d err: %w", botId, err)
 	}
 	return b, nil
 }
@@ -265,9 +265,9 @@ func (s *Database) GetBotInfoByToken(token string) (entity.Bot, error) {
 	)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return b, repository.ErrNotFound
+			return b, fmt.Errorf("db: GetBotInfoByToken: token: %s ErrNotFound", token)
 		}
-		return b, fmt.Errorf("db: GetBotInfoByToken: %w", err)
+		return b, fmt.Errorf("db: GetBotInfoByToken: token: %s err: %w", token, err)
 	}
 	return b, nil
 }
@@ -276,7 +276,7 @@ func (s *Database) EditBotField(botId int, field string, content any) error {
 	q := fmt.Sprintf(`UPDATE bots SET %s = $1 WHERE id = $2`, field)
 	_, err := s.db.Exec(q, content, botId)
 	if err != nil {
-		return fmt.Errorf("db: EditBotField: %v", err)
+		return fmt.Errorf("db: EditBotField: botId: %d field: %s content: %v err: %w", botId, field, content, err)
 	}
 	return nil
 }
@@ -285,7 +285,7 @@ func (s *Database) EditBotGroupLinkIdToNull(groupLinkId int) error {
 	q := `UPDATE bots SET group_link_id = 0 WHERE group_link_id = $1`
 	_, err := s.db.Exec(q, groupLinkId)
 	if err != nil {
-		return fmt.Errorf("db: EditBotGroupLinkIdToNull: %v", err)
+		return fmt.Errorf("db: EditBotGroupLinkIdToNull: groupLinkId: %d err: %w", groupLinkId, err)
 	}
 	return nil 
 }
@@ -294,7 +294,8 @@ func (s *Database) EditBotGroupLinkId(groupLinkId, botId int) error {
 	q := `UPDATE bots SET group_link_id = $1 WHERE id = $2`
 	_, err := s.db.Exec(q, groupLinkId, botId)
 	if err != nil {
-		return fmt.Errorf("db: EditBotGroupLinkId: %v", err)
+		return fmt.Errorf("db: EditBotGroupLinkId: groupLinkId: %d botId: %d  err: %w", groupLinkId, botId, err)
+		
 	}
 	return nil
 }

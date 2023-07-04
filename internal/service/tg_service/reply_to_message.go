@@ -7,7 +7,6 @@ import (
 	"myapp/internal/models"
 	"myapp/internal/repository"
 	u "myapp/internal/utils"
-	"net/http"
 	"strconv"
 	"strings"
 
@@ -156,10 +155,10 @@ func (srv *TgService) RM_delete_bot(m models.Update) error {
 		srv.ShowMessClient(chatId, "главного бота нельзя удалить")
 		return nil
 	}
-	_, err = http.Get(fmt.Sprintf(srv.TgEndp, bot.Token, "setWebhook?url=")) // delete Webhook
-	if err != nil {
-		srv.l.Error("RM_delete_bot: delete Webhook", zap.Error(err))
-	}
+	// _, err = http.Get(fmt.Sprintf(srv.TgEndp, bot.Token, "setWebhook?url=")) // delete Webhook
+	// if err != nil {
+	// 	srv.l.Error("RM_delete_bot: delete Webhook", zap.Error(err))
+	// }
 	err = srv.As.DeleteBot(id)
 	if err != nil {
 		return err

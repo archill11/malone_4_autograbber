@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"myapp/internal/entity"
-	"myapp/internal/repository"
 )
 
 func (s *Database) AddNewPost(u entity.Post) error {
@@ -15,7 +14,7 @@ func (s *Database) AddNewPost(u entity.Post) error {
 		ON CONFLICT DO NOTHING`
 	_, err := s.db.Exec(q, u.ChId, u.PostId, u.DonorChPostId)
 	if err != nil {
-		return fmt.Errorf("db: AddNewPost: %w", err)
+		return fmt.Errorf("db: AddNewPost: ChId: %d PostId %d DonorChPostId %d err: %w", u.ChId, u.PostId, u.DonorChPostId, err)
 	}
 	return nil
 }
@@ -37,9 +36,9 @@ func (s *Database) GetPostByDonorIdAndChId(donorChPostId, channelId int) (entity
 	)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return p, repository.ErrNotFound
+			return p, fmt.Errorf("db: GetPostByDonorIdAndChId: channelId: %d donorChPostId %d ErrNoRows", channelId, donorChPostId)
 		}
-		return p, fmt.Errorf("db: GetPostByDonorIdAndChId: %w", err)
+		return p, fmt.Errorf("db: GetPostByDonorIdAndChId: channelId: %d donorChPostId %d err: %w", channelId, donorChPostId, err)
 	}
 	return p, nil
 }
@@ -63,9 +62,9 @@ func (s *Database) GetPostByChIdAndBotToken(channelId int, botToken string) (ent
 	)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return p, repository.ErrNotFound
+			return p, fmt.Errorf("db: GetPostByChIdAndBotToken: channelId: %d botToken %s ErrNoRows", channelId, botToken)
 		}
-		return p, fmt.Errorf("db: GetPostByChIdAndBotToken: %w", err)
+		return p, fmt.Errorf("db: GetPostByChIdAndBotToken: channelId: %d botToken %s err: %w", channelId, botToken, err)
 	}
 	return p, nil
 }
