@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"myapp/internal/entity"
+	"myapp/internal/repository"
 )
 
 func (s *Database) AddNewBot(id int, username, firstname, token string, idDonor int) error {
@@ -232,7 +233,7 @@ func (s *Database) GetBotInfoById(botId int) (entity.Bot, error) {
 	)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return b, fmt.Errorf("db: GetBotInfoById: botId: %d ErrNotFound", botId)
+			return b, repository.ErrNotFound
 			
 		}
 		return b, fmt.Errorf("db: GetBotInfoById: botId: %d err: %w", botId, err)

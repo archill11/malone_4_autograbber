@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"myapp/internal/entity"
+	"myapp/internal/repository"
 )
 
 func (s *Database) AddNewPost(u entity.Post) error {
@@ -36,7 +37,7 @@ func (s *Database) GetPostByDonorIdAndChId(donorChPostId, channelId int) (entity
 	)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return p, fmt.Errorf("db: GetPostByDonorIdAndChId: channelId: %d donorChPostId %d ErrNoRows", channelId, donorChPostId)
+			return p, repository.ErrNotFound
 		}
 		return p, fmt.Errorf("db: GetPostByDonorIdAndChId: channelId: %d donorChPostId %d err: %w", channelId, donorChPostId, err)
 	}
