@@ -493,7 +493,7 @@ func (s *TgService) sendChPostAsVamp_Media_Group() error {
 		for i, media := range mediaArr {
 			fileId, err := s.sendAndDeleteMedia(vampBot, media.fileNameInServer, media.Type_media)
 			if err != nil {
-				s.l.Error("sendChPostAsVamp_Media_Group: s.sendAndDeleteMedia", zap.Error(err))
+				s.l.Error("sendChPostAsVamp_Media_Group: s.sendAndDeleteMedia", zap.Error(err), zap.Any("bot ch link", vampBot.ChLink))
 			}
 			mediaArr[i].File_id = fileId
 
