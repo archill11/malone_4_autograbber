@@ -22,6 +22,7 @@ func (srv *TgService) showAdminPanel(chatId int) error {
 			[{ "text": "Редактировать группу-ссылку", "callback_data": "update_group_link" }],
 			[{ "text": "Все группы-ссылки", "callback_data": "show_all_group_links" }],
 			[{ "text": "Добавить Админа", "callback_data": "add_admin_btn" }],
+			[{ "text": "Удалить потеряных ботов", "callback_data": "del_lost_bots" }],
 			[{ "text": "Restart app", "callback_data": "restart_app" }]
 		]}`,
 	})

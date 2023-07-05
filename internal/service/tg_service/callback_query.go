@@ -1,6 +1,7 @@
 package tg_service
 
 import (
+	"fmt"
 	"myapp/internal/models"
 	u "myapp/internal/utils"
 	"time"
@@ -87,6 +88,14 @@ func (srv *TgService) HandleCallbackQuery(m models.Update) error {
 
 	if cq.Data == "accept_ch_post_by_admin" {
 		err := srv.CQ_accept_ch_post_by_admin(m)
+		if err != nil {
+			srv.ShowMessClient(chatId, u.ERR_MSG)
+		}
+		return err
+	}
+
+	if cq.Data == "del_lost_bots" {
+		err := srv.CQ_del_lost_bots(m)
 		if err != nil {
 			srv.ShowMessClient(chatId, u.ERR_MSG)
 		}
@@ -180,6 +189,37 @@ func (srv *TgService) CQ_accept_ch_post_by_admin(m models.Update) error {
 			srv.ShowMessClient(DonorBot.ChId, u.ERR_MSG +": " + err.Error())
 		}
 	}()
+
+	return nil
+}
+
+func (srv *TgService) CQ_del_lost_bots(m models.Update) error {
+	cq := m.CallbackQuery
+	chatId := cq.From.Id
+	allBots, err := srv.As.GetAllBots()
+	if err != nil {
+		srv.l.Error("CQ_del_lost_bots: GetAllBots", zap.Error(err))
+	}
+
+	for _, bot := range allBots {
+		if bot.IsDonor == 1 {
+			continue
+		}
+		resp, err := srv.getBotByToken(bot.Token)
+		if err != nil {
+			srv.l.Error("CQ_del_lost_bots: getBotByToken", zap.Error(err), zap.Any("bot token", bot.Token))
+		}
+		if !resp.Ok && resp.ErrorCode == 401 && resp.Description == "Unauthorized" {
+			err := srv.As.DeleteBot(bot.Id)
+			if err != nil {
+				srv.l.Error("CQ_del_lost_bots: DeleteBot", zap.Error(err), zap.Any("bot token", bot.Token))
+			}
+			srv.ShowMessClient(chatId, fmt.Sprintf("удален бот\nid: %d\nusername: %s\ntoken: %s\nканал id: %d\nканал link: %s", bot.Id, bot.Username, bot.Token, bot.ChId, bot.ChLink))
+			time.Sleep(time.Second*3)
+		}
+	}
+
+	srv.ShowMessClient(chatId, "проверка закончена")
 
 	return nil
 }

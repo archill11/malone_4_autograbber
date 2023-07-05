@@ -7,6 +7,8 @@ type GetChatResult struct {
 type APIRBotresp struct {
 	Ok     bool `json:"ok"`
 	Result User `json:"result,omitempty"`
+	ErrorCode int `json:"error_code,omitempty"`
+	Description string `json:"description,omitempty"`
 }
 
 type APIResponse struct {
