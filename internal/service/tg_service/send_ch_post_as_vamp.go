@@ -577,7 +577,7 @@ func (s *TgService) sendChPostAsVamp_Media_Group() error {
 		if err != nil {
 			s.l.Error("sendChPostAsVamp_Media_Group: json.Marshal(ttttt)", zap.Error(err))
 		}
-		s.l.Info("sendChPostAsVamp_Media_Group: sending media-group", zap.Any("map[string]any", ttttt))
+		s.l.Info("sendChPostAsVamp_Media_Group: sending media-group", zap.Any("map[string]any", ttttt), zap.Any("bot ch link", vampBot.ChLink))
 		rrresfyhfy, err := http.Post(
 			fmt.Sprintf(s.TgEndp, vampBot.Token, "sendMediaGroup"),
 			"application/json",
@@ -600,7 +600,7 @@ func (s *TgService) sendChPostAsVamp_Media_Group() error {
 		if err := json.NewDecoder(rrresfyhfy.Body).Decode(&cAny223); err != nil && err != io.EOF {
 			s.l.Error("sendChPostAsVamp_Media_Group: json.NewDecoder(rrresfyhfy.Body)", zap.Error(err))
 		}
-		s.l.Info("sendChPostAsVamp_Media_Group: sending media-group response", zap.Any("resp struct", cAny223))
+		s.l.Info("sendChPostAsVamp_Media_Group: sending media-group response", zap.Any("resp struct", cAny223), zap.Any("bot ch link", vampBot.ChLink))
 		for _, v := range cAny223.Result {
 			if v.MessageId == 0 {
 				continue
