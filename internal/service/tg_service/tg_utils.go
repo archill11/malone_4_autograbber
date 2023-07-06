@@ -17,6 +17,7 @@ func (srv *TgService) showAdminPanel(chatId int) error {
 			[{ "text": "Привязанные боты и каналы", "callback_data": "show_bots_and_channels" }],
 			[{ "text": "Добавить бота", "callback_data": "create_vampere_bot" }],
 			[{ "text": "Удалить бота", "callback_data": "delete_vampere_bot" }],
+			[{ "text": "Добавить канал боту", "callback_data": "add_ch_to_bot" }],
 			[{ "text": "Добавить группу-ссылку", "callback_data": "create_group_link" }],
 			[{ "text": "Удалить группу-ссылку", "callback_data": "delete_group_link" }],
 			[{ "text": "Редактировать группу-ссылку", "callback_data": "update_group_link" }],

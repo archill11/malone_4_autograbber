@@ -185,6 +185,7 @@ type User struct {
 	UserName     string `json:"username"`
 	LanguageCode string `json:"language_code"`
 	IsBot        bool   `json:"is_bot"`
+	InviteLink   string `json:"invite_link"`
 }
 
 type Chat struct {

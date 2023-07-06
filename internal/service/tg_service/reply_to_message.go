@@ -1,12 +1,15 @@
 package tg_service
 
 import (
+	"bytes"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"myapp/internal/entity"
 	"myapp/internal/models"
 	"myapp/internal/repository"
 	u "myapp/internal/utils"
+	"net/http"
 	"strconv"
 	"strings"
 
@@ -27,6 +30,19 @@ func (srv *TgService) HandleReplyToMessage(m models.Update) error {
 
 	if rm.Text == u.DELETE_BOT_MSG {
 		err := srv.RM_delete_bot(m)
+		return err
+	}
+
+	if rm.Text == u.ADD_CH_TO_BOT_MSG {
+		err := srv.RM_add_ch_to_bot(m)
+		return err
+	}
+
+	if strings.HasPrefix(rm.Text, "укажите id канала в котором уже бот админ и к которому нужно привязать бота-") {
+		runes := []rune(rm.Text)
+		runesStr := string(runes[len([]rune("укажите id канала в котором уже бот админ и к которому нужно привязать бота-")):])
+		botId, _ := strconv.Atoi(runesStr)
+		err := srv.RM_add_ch_to_bot_spet2(m, botId)
 		return err
 	}
 
@@ -165,6 +181,90 @@ func (srv *TgService) RM_delete_bot(m models.Update) error {
 	}
 	err = srv.ShowMessClient(chatId, u.SUCCESS_DELETE_BOT)
 
+	return err
+}
+
+func (srv *TgService) RM_add_ch_to_bot(m models.Update) error {
+	rm := m.Message.ReplyToMessage
+	replyMes := m.Message.Text
+	chatId := m.Message.From.Id
+	srv.l.Info("tg_service: RM_add_ch_to_bot", zap.Any("rm.Text", rm.Text), zap.Any("replyMes", replyMes))
+
+	id, err := strconv.Atoi(strings.TrimSpace(replyMes))
+	if err != nil {
+		srv.ShowMessClient(chatId, "неправильный формат id !")
+		return err
+	}
+	bot, err := srv.As.GetBotInfoById(id)
+	if err != nil {
+		if errors.Is(err, repository.ErrNotFound) {
+			srv.ShowMessClient(chatId, "я не знаю такого бота !")
+			return err
+		}
+		srv.ShowMessClient(chatId, u.ERR_MSG)
+		return err
+	}
+
+	err = srv.SendForceReply(chatId, fmt.Sprintf("укажите id канала в котором уже бот админ и к которому нужно привязать бота-%d", bot.Id))
+
+	return err
+}
+
+func (srv *TgService) RM_add_ch_to_bot_spet2(m models.Update, botId int) error {
+	rm := m.Message.ReplyToMessage
+	replyMes := m.Message.Text
+	chatId := m.Message.From.Id
+	srv.l.Info("tg_service: RM_add_ch_to_bot_spet2", zap.Any("rm.Text", rm.Text), zap.Any("replyMes", replyMes))
+	replyMes = strings.TrimSpace(replyMes)
+
+	chId, err := strconv.Atoi("-100"+replyMes)
+	if err != nil {
+		srv.ShowMessClient(chatId, fmt.Sprintf("%s: %v", u.ERR_MSG, err))
+		return err
+	}
+	bot, err := srv.As.GetBotInfoById(botId)
+	if err != nil {
+		if errors.Is(err, repository.ErrNotFound) {
+			srv.ShowMessClient(chatId, "я не знаю такого бота !")
+			return err
+		}
+		srv.ShowMessClient(chatId, u.ERR_MSG)
+		return err
+	}
+
+	json_data, err := json.Marshal(map[string]any{
+		"chat_id": strconv.Itoa(chId),
+	})
+	if err != nil {
+		return err
+	}
+	resp, err := http.Post(
+		fmt.Sprintf(srv.TgEndp, bot.Token, "getChat"),
+		"application/json",
+		bytes.NewBuffer(json_data),
+	)
+	if err != nil {
+		return fmt.Errorf("RM_add_ch_to_bot_spet2 POSt getChat err: %v", err)
+	}
+	defer resp.Body.Close()
+
+	var j models.APIRBotresp
+	if err := json.NewDecoder(resp.Body).Decode(&j); err != nil {
+		return fmt.Errorf("RM_add_ch_to_bot_spet2 NewDecoder err: %v", err)
+	}
+
+	if !j.Ok {
+		return fmt.Errorf("RM_add_ch_to_bot_spet2 !j.Ok error: %v. ch_id %d", j.Description, chId)
+	}
+
+	bot.ChId = j.Result.Id
+	bot.ChLink = j.Result.InviteLink
+	err = srv.As.EditBotChField(bot)
+	if err != nil {
+		srv.ShowMessClient(chatId, u.ERR_MSG)
+		return err
+	}
+	err = srv.ShowMessClient(chatId, fmt.Sprintf("канал %d привязанна к боту %d", chId, botId))
 	return err
 }
 

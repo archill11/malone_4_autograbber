@@ -30,6 +30,14 @@ func (srv *TgService) HandleCallbackQuery(m models.Update) error {
 		return err
 	}
 
+	if cq.Data == "add_ch_to_bot" {
+		err := srv.CQ_add_ch_to_bot(m)
+		if err != nil {
+			srv.ShowMessClient(chatId, u.ERR_MSG)
+		}
+		return err
+	}
+
 	if cq.Data == "create_group_link" {
 		err := srv.CQ_create_group_link(m)
 		if err != nil {
@@ -121,6 +129,13 @@ func (srv *TgService) CQ_vampire_delete(m models.Update) error {
 	cq := m.CallbackQuery
 	chatId := cq.From.Id
 	err := srv.SendForceReply(chatId, u.DELETE_BOT_MSG)
+	return err
+}
+
+func (srv *TgService) CQ_add_ch_to_bot(m models.Update) error {
+	cq := m.CallbackQuery
+	chatId := cq.From.Id
+	err := srv.SendForceReply(chatId, u.ADD_CH_TO_BOT_MSG)
 	return err
 }
 

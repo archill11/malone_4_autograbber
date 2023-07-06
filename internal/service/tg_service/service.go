@@ -9,6 +9,7 @@ import (
 	"myapp/internal/entity"
 	"myapp/internal/models"
 	as "myapp/internal/service/app_service"
+	u "myapp/internal/utils"
 	"net/http"
 	"strconv"
 	"time"
@@ -94,39 +95,39 @@ func New(conf config.Config, as *as.AppService, l *zap.Logger) (*TgService, erro
 	}()
 
 	// получение tg updates Vampires
-	go func() {
-		var noChannelBotsLen int
-		for {
-			if noChannelBotsLen > 0 {
-				time.Sleep(time.Minute*10)
-				continue
-			}
-			noChannelBots, err := s.As.GetAllNoChannelBots()
-			if err != nil {
-				s.l.Error("Channel: s.As.GetAllNoChannelBots()", zap.Error(err))
-			}
-			noChannelBotsLen = len(noChannelBots)
-			for _, v := range noChannelBots {
-				go func(v entity.Bot){
-					updConf := UpdateConfig{
-						Offset: 0,
-						Timeout: 30,
-						Buffer: 1000,
-					}
-					updates, shutdownCh := s.GetUpdatesChan(&updConf, v.Token)
-					for update := range updates {
-						closeUpdates, _ := s.Vapmire_Update_v2(update)
-						if closeUpdates {
-							shutdownCh<- struct{}{}
-							s.l.Info("Channel: shutdownCh<- struct{}. Закрыли канал обновлений вампира", zap.Any("bot token", v.Token))
-							noChannelBotsLen--
-						}
-					}
-				}(v)
-			}
-			time.Sleep(time.Minute*10)
-		}
-	}()
+	// go func() {
+	// 	var noChannelBotsLen int
+	// 	for {
+	// 		if noChannelBotsLen > 0 {
+	// 			time.Sleep(time.Minute*10)
+	// 			continue
+	// 		}
+	// 		noChannelBots, err := s.As.GetAllNoChannelBots()
+	// 		if err != nil {
+	// 			s.l.Error("Channel: s.As.GetAllNoChannelBots()", zap.Error(err))
+	// 		}
+	// 		noChannelBotsLen = len(noChannelBots)
+	// 		for _, v := range noChannelBots {
+	// 			go func(v entity.Bot){
+	// 				updConf := UpdateConfig{
+	// 					Offset: 0,
+	// 					Timeout: 30,
+	// 					Buffer: 1000,
+	// 				}
+	// 				updates, shutdownCh := s.GetUpdatesChan(&updConf, v.Token)
+	// 				for update := range updates {
+	// 					closeUpdates, _ := s.Vapmire_Update_v2(update)
+	// 					if closeUpdates {
+	// 						shutdownCh<- struct{}{}
+	// 						s.l.Info("Channel: shutdownCh<- struct{}. Закрыли канал обновлений вампира", zap.Any("bot token", v.Token))
+	// 						noChannelBotsLen--
+	// 					}
+	// 				}
+	// 			}(v)
+	// 		}
+	// 		time.Sleep(time.Minute*10)
+	// 	}
+	// }()
 
 	// когда MediaGroup
 	go func() {
@@ -276,7 +277,6 @@ func (ts *TgService) GetUpdates(conf *UpdateConfig, token string) ([]models.Upda
 }
 
 func (srv *TgService) Donor_Update_v2(m models.Update) error {
-
 	if m.ChannelPost != nil { // on Channel_Post
 		err := srv.Donor_HandleChannelPost(m)
 		if err != nil {
@@ -294,9 +294,11 @@ func (srv *TgService) Donor_Update_v2(m models.Update) error {
 	}
 
 	if m.Message != nil && m.Message.ReplyToMessage != nil { // on Reply_To_Message
+		chatId := m.Message.From.Id
 		err := srv.HandleReplyToMessage(m)
 		if err != nil {
 			srv.l.Error("donor_Update: HandleReplyToMessage(m)", zap.Error(err))
+			srv.ShowMessClient(chatId, fmt.Sprintf("%s: %v", u.ERR_MSG, err))
 		}
 		return nil
 	}
