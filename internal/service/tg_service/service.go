@@ -11,9 +11,11 @@ import (
 	as "myapp/internal/service/app_service"
 	u "myapp/internal/utils"
 	"net/http"
+	"os"
 	"strconv"
 	"time"
 
+	"github.com/go-co-op/gocron"
 	"go.uber.org/zap"
 )
 
@@ -80,6 +82,21 @@ func New(conf config.Config, as *as.AppService, l *zap.Logger) (*TgService, erro
 	if err != nil {
 		return s, err
 	}
+
+	go func() {
+		mskLoc, _ := time.LoadLocation("Europe/Moscow")
+		cron := gocron.NewScheduler(mskLoc)
+		cron.Every(1).Day().At("02:30").Do(func(){
+			err := os.RemoveAll("files/")
+			if err != nil {
+				s.l.Error(fmt.Sprintf("os.RemoveAll('files/') err: %v", err))
+			}
+			err = os.MkdirAll("files/", 0777)
+			if err != nil {
+				s.l.Error(fmt.Sprintf("os.MkdirAll('files/', 0777) err: %v", err))
+			}
+		})
+	}()
 
 	// получение tg updates Donor
 	go func() {
