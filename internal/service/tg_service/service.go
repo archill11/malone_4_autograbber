@@ -10,8 +10,8 @@ import (
 	"myapp/internal/models"
 	as "myapp/internal/service/app_service"
 	u "myapp/internal/utils"
+	"myapp/pkg/files"
 	"net/http"
-	"os"
 	"strconv"
 	"time"
 
@@ -83,19 +83,18 @@ func New(conf config.Config, as *as.AppService, l *zap.Logger) (*TgService, erro
 		return s, err
 	}
 
+	// удаление ненужных файлов
 	go func() {
 		mskLoc, _ := time.LoadLocation("Europe/Moscow")
 		cron := gocron.NewScheduler(mskLoc)
 		cron.Every(1).Day().At("02:30").Do(func(){
-			err := os.RemoveAll("files/")
+			err := files.RemoveContentsFromDir("files")
 			if err != nil {
-				s.l.Error(fmt.Sprintf("os.RemoveAll('files/') err: %v", err))
+				s.l.Error(fmt.Sprintf("files.RemoveContentsFromDir('files') err: %v", err))
 			}
-			err = os.MkdirAll("files/", 0777)
-			if err != nil {
-				s.l.Error(fmt.Sprintf("os.MkdirAll('files/', 0777) err: %v", err))
-			}
+			s.l.Info("cron.Every(1).Day().At(02:30)")
 		})
+		cron.StartAsync()
 	}()
 
 	// получение tg updates Donor
@@ -328,30 +327,10 @@ func (srv *TgService) Donor_Update_v2(m models.Update) error {
 		return nil
 	}
 
-	if m.MyChatMember != nil && m.MyChatMember.NewChatMember.Status != "" { // on New_Chat_Member
-		err := srv.HandleNewChatMember(m)
-		if err != nil {
-			srv.l.Error("donor_Update: HandleNewChatMember(m)", zap.Error(err))
-		}
-		return nil
-	}
 
 	return nil
 }
 
-func (srv *TgService) Vapmire_Update_v2(m models.Update) (bool, error) {
-	if m.MyChatMember != nil && m.MyChatMember.NewChatMember.Status != "" { // on New_Chat_Member
-		err := srv.HandleNewChatMember(m)
-		if err != nil {
-			srv.l.Error("vampire_Update: HandleNewChatMember(m)", zap.Error(err))
-			return false, err
-		}
-		// возвращаем true когда понимаем что обновления бота от tg больше не нужны
-		return true, nil
-	}
-
-	return false, nil
-}
 
 func MediaInSlice(s []models.InputMedia, m models.InputMedia) bool {
 	for _, v := range s {

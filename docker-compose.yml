@@ -15,7 +15,7 @@ services:
 
   grab_db:
     container_name: grab_db
-    image: postgres:12-alpine
+    image: postgres:15-alpine
     ports:
       - "5432:5432"
     restart: unless-stopped
