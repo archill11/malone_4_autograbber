@@ -52,6 +52,7 @@ func (srv *TgService) sendChPostAsVamp(vampBot entity.Bot, m models.Update) erro
 		if len(m.ChannelPost.Entities) > 0 {
 			entities := make([]models.MessageEntity, len(m.ChannelPost.Entities))
 			mycopy.DeepCopy(m.ChannelPost.Entities, &entities)
+			cutEntities := false
 			for i, v := range entities {
 				if strings.HasPrefix(v.Url, "http://fake-link") || strings.HasPrefix(v.Url, "fake-link") || strings.HasPrefix(v.Url, "https://fake-link") {
 					groupLink, err := srv.As.GetGroupLinkById(vampBot.GroupLinkId)
@@ -60,6 +61,15 @@ func (srv *TgService) sendChPostAsVamp(vampBot entity.Bot, m models.Update) erro
 					}
 					if groupLink.Link == "" {
 						continue
+					}
+					if strings.HasPrefix(groupLink.Link, "http://cut-link") || strings.HasPrefix(groupLink.Link, "cut-link") || strings.HasPrefix(groupLink.Link, "https://cut-link") {
+						messText := m.ChannelPost.Text
+						messText = strings.Replace(messText, "Переходим по ссылке - ССЫЛКА", "", -1)
+						messText = strings.Replace(messText, "👉 РЕГИСТРАЦИЯ ТУТ 👈", "", -1)
+						messText = strings.Replace(messText, "🔖 Написать мне 🔖", "", -1)
+						m.ChannelPost.Text = messText
+						cutEntities = true
+						break
 					}
 					entities[i].Url = groupLink.Link
 					continue
@@ -88,7 +98,9 @@ func (srv *TgService) sendChPostAsVamp(vampBot entity.Bot, m models.Update) erro
 					}
 				}
 			}
-			futureMesJson["entities"] = entities
+			if !cutEntities {
+				futureMesJson["entities"] = entities
+			}
 		}
 
 		text_message := m.ChannelPost.Text
