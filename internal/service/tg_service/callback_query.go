@@ -78,6 +78,14 @@ func (srv *TgService) HandleCallbackQuery(m models.Update) error {
 		return err
 	}
 
+	if cq.Data == "edit_bot_group_link" {
+		err := srv.CQ_edit_bot_group_link(m)
+		if err != nil {
+			srv.ShowMessClient(chatId, u.ERR_MSG)
+		}
+		return err
+	}
+
 	if cq.Data == "show_all_group_links" {
 		err := srv.CQ_show_all_group_links(m)
 		if err != nil {
@@ -150,6 +158,13 @@ func (srv *TgService) CQ_show_bots_and_channels(m models.Update) error {
 	cq := m.CallbackQuery
 	chatId := cq.From.Id
 	err := srv.showBotsAndChannels(chatId)
+	return err
+}
+
+func (srv *TgService) CQ_edit_bot_group_link(m models.Update) error {
+	cq := m.CallbackQuery
+	chatId := cq.From.Id
+	err := srv.SendForceReply(chatId, u.EDIT_BOT_GROUP_LINK_MSG)
 	return err
 }
 

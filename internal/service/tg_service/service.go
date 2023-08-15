@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"log"
 	"myapp/config"
-	"myapp/internal/entity"
 	"myapp/internal/models"
 	as "myapp/internal/service/app_service"
 	u "myapp/internal/utils"
@@ -72,16 +71,16 @@ func New(conf config.Config, as *as.AppService, l *zap.Logger) (*TgService, erro
 		},
 	}
 
-	tgobotResp, err := s.getBotByToken(s.Token)
-	if err != nil {
-		return s, err
-	}
-	res := tgobotResp.Result
-	bot := entity.NewBot(res.Id, res.UserName, res.FirstName, s.Token, 1)
-	err = s.As.AddNewBot(bot.Id, bot.Username, bot.Firstname, bot.Token, bot.IsDonor)
-	if err != nil {
-		return s, err
-	}
+	// tgobotResp, err := s.getBotByToken(s.Token)
+	// if err != nil {
+	// 	return s, err
+	// }
+	// res := tgobotResp.Result
+	// bot := entity.NewBot(res.Id, res.UserName, res.FirstName, s.Token, 1)
+	// err = s.As.AddNewBot(bot.Id, bot.Username, bot.Firstname, bot.Token, bot.IsDonor)
+	// if err != nil {
+	// 	return s, err
+	// }
 
 	// удаление ненужных файлов
 	go func() {

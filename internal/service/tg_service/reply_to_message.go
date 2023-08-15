@@ -56,6 +56,11 @@ func (srv *TgService) HandleReplyToMessage(m models.Update) error {
 		return err
 	}
 
+	if rm.Text == u.EDIT_BOT_GROUP_LINK_MSG {
+		err := srv.RM_edit_bot_group_link(m)
+		return err
+	}
+
 	if rm.Text == u.DELETE_GROUP_LINK_MSG {
 		err := srv.RM_delete_group_link(m)
 		return err
@@ -320,6 +325,50 @@ func (srv *TgService) RM_add_group_link(m models.Update) error {
 		return fmt.Errorf("RM_add_admin: srv.As.AddNewGroupLink(%s, %s) : %v", groupLinkTitle, groupLinkLink, err)
 	}
 	err = srv.ShowMessClient(chatId, "группа-ссылка добавлен")
+	return err
+}
+
+func (srv *TgService) RM_edit_bot_group_link(m models.Update) error {
+	rm := m.Message.ReplyToMessage
+	replyMes := m.Message.Text
+	chatId := m.Message.From.Id
+	srv.l.Info("tg_service: RM_edit_bot_group_link", zap.Any("rm.Text", rm.Text), zap.Any("replyMes", replyMes))
+
+	replyMes = strings.TrimSpace(replyMes)
+	runeStr := []rune(replyMes)
+	var botIdStr string
+	var groupLinkIdStr string
+	for i := 0; i < len(runeStr); i++ {
+		if i < 1 {
+			continue
+		}
+		if string(runeStr[i-1]) == ":" && string(runeStr[i]) == ":" && string(runeStr[i+1]) == ":" {
+			botIdStr = string(runeStr[:i-1])
+			groupLinkIdStr = string(runeStr[i+2:])
+		}
+	}
+
+	botId, err := strconv.Atoi(botIdStr)
+	if err != nil {
+		return fmt.Errorf("RM_edit_bot_group_link: некоректный id бота-%s : %v", botIdStr, err)
+	}
+	groupLinkId, err := strconv.Atoi(groupLinkIdStr)
+	if err != nil {
+		return fmt.Errorf("RM_edit_bot_group_link: некоректный id группы-ссылки-%s : %v", groupLinkIdStr, err)
+	}
+
+	bot, err := srv.As.GetBotInfoById(botId)
+	if err != nil {
+		return fmt.Errorf("RM_edit_bot_group_link: GetBotInfoById-%d : %v", botId, err)
+	}
+	oldGroupLink := bot.GroupLinkId
+
+	err = srv.As.EditBotGroupLinkId(groupLinkId, botId)
+	if err != nil {
+		return fmt.Errorf("RM_edit_bot_group_link: EditBotGroupLinkId-%d grId-%d : %v", botId, groupLinkId, err)
+	}
+	
+	err = srv.ShowMessClient(chatId, fmt.Sprintf("для бота %d, ссылка успешно изменена %d -> %d", botId, oldGroupLink, groupLinkId))
 	return err
 }
 
