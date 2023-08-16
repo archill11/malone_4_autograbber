@@ -110,6 +110,7 @@ func (srv *TgService) sendChPostAsVamp(vampBot entity.Bot, m models.Update) erro
 		if err != nil {
 			return err
 		}
+		srv.l.Info("sendChPostAsVamp -> если просто текст -> http.Post", zap.Any("futureMesJson", futureMesJson), zap.Any("string(json_data)", string(json_data)))
 		sendVampPostResp, err := http.Post(
 			fmt.Sprintf(srv.TgEndp, vampBot.Token, "sendMessage"),
 			"application/json",
