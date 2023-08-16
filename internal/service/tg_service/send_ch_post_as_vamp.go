@@ -59,6 +59,7 @@ func (srv *TgService) sendChPostAsVamp(vampBot entity.Bot, m models.Update) erro
 					if err != nil && !errors.Is(err, repository.ErrNotFound) {
 						return err
 					}
+					srv.l.Info("sendChPostAsVamp -> если просто текст -> entities -> GetGroupLinkById", zap.Any("vampBot", vampBot), zap.Any("groupLink", groupLink))
 					if groupLink.Link == "" {
 						continue
 					}
