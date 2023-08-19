@@ -49,6 +49,8 @@ func (srv *TgService) sendChPostAsVamp(vampBot entity.Bot, m models.Update) erro
 			}
 			futureMesJson["reply_to_message_id"] = currPost.PostId
 		}
+
+		var messText string // строка в которую скопируем значение текста поста, тк структуры копируются по ебаной ссылке, и если срезаем часть текста то потом везде так будет
 		if len(m.ChannelPost.Entities) > 0 {
 			entities := make([]models.MessageEntity, len(m.ChannelPost.Entities))
 			mycopy.DeepCopy(m.ChannelPost.Entities, &entities)
@@ -64,11 +66,10 @@ func (srv *TgService) sendChPostAsVamp(vampBot entity.Bot, m models.Update) erro
 						continue
 					}
 					if strings.HasPrefix(groupLink.Link, "http://cut-link") || strings.HasPrefix(groupLink.Link, "cut-link") || strings.HasPrefix(groupLink.Link, "https://cut-link") {
-						messText := m.ChannelPost.Text
+						mycopy.DeepCopy(m.ChannelPost.Text, &messText)// какого хуя в Го структуры копируются по ссылке  ??
 						messText = strings.Replace(messText, "Переходим по ссылке - ССЫЛКА", "", -1)
 						messText = strings.Replace(messText, "👉 РЕГИСТРАЦИЯ ТУТ 👈", "", -1)
 						messText = strings.Replace(messText, "🔖 Написать мне 🔖", "", -1)
-						m.ChannelPost.Text = messText
 						cutEntities = true
 						break
 					}
@@ -105,7 +106,11 @@ func (srv *TgService) sendChPostAsVamp(vampBot entity.Bot, m models.Update) erro
 		}
 
 		text_message := m.ChannelPost.Text
-		futureMesJson["text"] = text_message
+		if messText != "" {
+			futureMesJson["text"] = messText
+		}else{
+			futureMesJson["text"] = text_message
+		}
 		json_data, err := json.Marshal(futureMesJson)
 		if err != nil {
 			return err
