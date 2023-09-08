@@ -21,7 +21,6 @@ import (
 const StoreKey = "example"
 
 type TgService struct {
-	// HostUrl    string
 	MyPort     string
 	TgEndp     string
 	Token      string
@@ -59,7 +58,6 @@ type (
 
 func New(conf config.Config, as *as.AppService, l *zap.Logger) (*TgService, error) {
 	s := &TgService{
-		// HostUrl:    conf.MY_URL,
 		MyPort:     conf.PORT,
 		TgEndp:     conf.TG_ENDPOINT,
 		Token:      conf.TOKEN,
@@ -108,41 +106,6 @@ func New(conf config.Config, as *as.AppService, l *zap.Logger) (*TgService, erro
 			s.Donor_Update_v2(update)
 		}
 	}()
-
-	// получение tg updates Vampires
-	// go func() {
-	// 	var noChannelBotsLen int
-	// 	for {
-	// 		if noChannelBotsLen > 0 {
-	// 			time.Sleep(time.Minute*10)
-	// 			continue
-	// 		}
-	// 		noChannelBots, err := s.As.GetAllNoChannelBots()
-	// 		if err != nil {
-	// 			s.l.Error("Channel: s.As.GetAllNoChannelBots()", zap.Error(err))
-	// 		}
-	// 		noChannelBotsLen = len(noChannelBots)
-	// 		for _, v := range noChannelBots {
-	// 			go func(v entity.Bot){
-	// 				updConf := UpdateConfig{
-	// 					Offset: 0,
-	// 					Timeout: 30,
-	// 					Buffer: 1000,
-	// 				}
-	// 				updates, shutdownCh := s.GetUpdatesChan(&updConf, v.Token)
-	// 				for update := range updates {
-	// 					closeUpdates, _ := s.Vapmire_Update_v2(update)
-	// 					if closeUpdates {
-	// 						shutdownCh<- struct{}{}
-	// 						s.l.Info("Channel: shutdownCh<- struct{}. Закрыли канал обновлений вампира", zap.Any("bot token", v.Token))
-	// 						noChannelBotsLen--
-	// 					}
-	// 				}
-	// 			}(v)
-	// 		}
-	// 		time.Sleep(time.Minute*10)
-	// 	}
-	// }()
 
 	// когда MediaGroup
 	go func() {
@@ -296,6 +259,14 @@ func (srv *TgService) Donor_Update_v2(m models.Update) error {
 		err := srv.Donor_HandleChannelPost(m)
 		if err != nil {
 			srv.l.Error("donor_Update: Donor_HandleChannelPost(m)", zap.Error(err))
+		}
+		return nil
+	}
+
+	if m.EditedChannelPost != nil { // on Edited_Channel_Post
+		err := srv.Donor_HandleEditedChannelPost(m)
+		if err != nil {
+			srv.l.Error("donor_Update: Donor_HandleEditedChannelPost(m)", zap.Error(err))
 		}
 		return nil
 	}

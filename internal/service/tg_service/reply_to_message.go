@@ -115,32 +115,6 @@ func (srv *TgService) RM_obtain_vampire_bot_token(m models.Update) error {
 	if err != nil {
 		return err
 	}
-	// tgResp := struct {
-	// 	Ok          bool   `json:"ok"`
-	// 	Description string `json:"description"`
-	// }{}
-	// resp, err := http.Get(fmt.Sprintf(
-	// 	srv.TgEndp, bot.Token, fmt.Sprintf("setWebhook?url=%s/api/v1/vampire/update", srv.HostUrl)), // set Webhook
-	// )
-	// if err != nil {
-	// 	srv.l.Error("RM_obtain_vampire_bot_token: set Webhook::", zap.Error(err))
-	// }
-	// defer resp.Body.Close()
-
-	// body, err := io.ReadAll(resp.Body)
-	// if err != nil {
-	// 	return err
-	// }
-	// err = json.Unmarshal(body, &tgResp)
-	// if err != nil {
-	// 	srv.ShowMessClient(chatId, u.ERR_MSG)
-	// 	return err
-	// }
-	// if !tgResp.Ok {
-	// 	srv.l.Error("RM_obtain_vampire_bot_token: !tgResp.Ok", zap.Error(err), zap.Any("tgResp.Description", tgResp.Description))
-	// 	srv.ShowMessClient(chatId, u.ERR_MSG)
-	// }
-	// srv.l.Info("RM_obtain_vampire_bot_token: set Webhook", zap.Any("Webhook url", fmt.Sprintf(srv.TgEndp, bot.Token, fmt.Sprintf("setWebhook?url=%s/api/v1/vampire/update", srv.HostUrl))))
 	srv.ShowMessClient(chatId, u.SUCCESS_ADDED_BOT)
 
 	grl, _ := srv.As.GetAllGroupLinks()
@@ -176,10 +150,6 @@ func (srv *TgService) RM_delete_bot(m models.Update) error {
 		srv.ShowMessClient(chatId, "главного бота нельзя удалить")
 		return nil
 	}
-	// _, err = http.Get(fmt.Sprintf(srv.TgEndp, bot.Token, "setWebhook?url=")) // delete Webhook
-	// if err != nil {
-	// 	srv.l.Error("RM_delete_bot: delete Webhook", zap.Error(err))
-	// }
 	err = srv.As.DeleteBot(id)
 	if err != nil {
 		return err
