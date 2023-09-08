@@ -23,7 +23,7 @@ func (srv *TgService) Donor_HandleEditedChannelPost(m models.Update) error {
 	// msgText := m.Message.Text
 	// userFirstName := m.Message.From.FirstName
 	// userUserName := m.Message.From.UserName
-	srv.l.Info("tgClient: Donor_EditEditedChannelPost", zap.Any("models.Update", m))
+	srv.l.Info("tgClient: Donor_HandleEditedChannelPost", zap.Any("models.Update", m))
 
 	err := srv.Donor_editEditedChannelPost(m)
 	if err != nil {
@@ -210,7 +210,7 @@ func (srv *TgService) editChPostAsVamp(vampBot entity.Bot, m models.Update) erro
 		}
 		srv.l.Info("sendChPostAsVamp -> если просто текст -> http.Post", zap.Any("futureMesJson", futureMesJson), zap.Any("string(json_data)", string(json_data)))
 		_, err = http.Post(
-			fmt.Sprintf(srv.TgEndp, vampBot.Token, "editMessageText"),
+			fmt.Sprintf(srv.Cfg.TgEndp, vampBot.Token, "editMessageText"),
 			"application/json",
 			bytes.NewBuffer(json_data),
 		)

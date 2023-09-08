@@ -214,7 +214,7 @@ func (srv *TgService) RM_add_ch_to_bot_spet2(m models.Update, botId int) error {
 		return err
 	}
 	resp, err := http.Post(
-		fmt.Sprintf(srv.TgEndp, bot.Token, "getChat"),
+		fmt.Sprintf(srv.Cfg.TgEndp, bot.Token, "getChat"),
 		"application/json",
 		bytes.NewBuffer(json_data),
 	)

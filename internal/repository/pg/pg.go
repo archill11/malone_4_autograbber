@@ -4,10 +4,8 @@ import (
 	"database/sql"
 	_ "embed"
 	"fmt"
-	"myapp/config"
 
 	_ "github.com/jackc/pgx/v4/stdlib"
-	jsoniter "github.com/json-iterator/go"
 	"go.uber.org/zap"
 )
 
@@ -23,17 +21,26 @@ var users_schema string
 //go:embed schemes/group_link.sql
 var group_link_schema string
 
-type Database struct {
-	db   *sql.DB
-	l    *zap.Logger
-	json jsoniter.API
-}
+type(
+	DBConfig struct {
+		User     string
+		Password string
+		Database string
+		Host     string
+		Port     string
+	}
 
-func New(config config.Config, l *zap.Logger, j jsoniter.API) (*Database, error) {
+	Database struct {
+		db   *sql.DB
+		l    *zap.Logger
+	}
+)
+
+func New(config DBConfig, l *zap.Logger) (*Database, error) {
 	// databaseURI += "sslmode=disable&default_query_exec_mode=cache_describe&pool_max_conns=10&pool_max_conn_lifetime=1m&pool_max_conn_idle_time=1m"
 	databaseURI := fmt.Sprintf(
 		"postgres://%s:%s@%s:%s/%s",
-		config.PG_USER, config.PG_PASSWORD, config.PG_HOST, "5432", config.PG_DATABASE,
+		config.User, config.Password, config.Host, config.Port, config.Database,
 	)
 	db, err := sql.Open("pgx", databaseURI)
 	if err != nil {
@@ -56,7 +63,6 @@ func New(config config.Config, l *zap.Logger, j jsoniter.API) (*Database, error)
 	storage := &Database{
 		db: db,
 		l:  l,
-		json: j,
 	}
 	return storage, nil
 }

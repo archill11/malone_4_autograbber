@@ -10,9 +10,7 @@ import (
 )
 
 func (srv *TgService) getBotByToken(token string) (models.APIRBotresp, error) {
-	resp, err := http.Get(fmt.Sprintf(
-		srv.TgEndp, token, "getMe",
-	))
+	resp, err := http.Get(fmt.Sprintf(srv.Cfg.TgEndp, token, "getMe"))
 	if err != nil {
 		return models.APIRBotresp{}, err
 	}
@@ -123,7 +121,7 @@ func (srv *TgService) getChatByCurrBot(chatId int, token string) (models.GetChat
 		return models.GetChatResult{}, err
 	}
 	resp, err := http.Post(
-		fmt.Sprintf(srv.TgEndp, token, "getChat"),
+		fmt.Sprintf(srv.Cfg.TgEndp, token, "getChat"),
 		"application/json",
 		bytes.NewBuffer(json_data),
 	)
@@ -178,7 +176,7 @@ func (srv *TgService) DeleteMess(chat, messId int) error {
 		return err
 	}
 	_, err = http.Post(
-		fmt.Sprintf(srv.TgEndp, srv.Token, "deleteMessage"),
+		fmt.Sprintf(srv.Cfg.TgEndp, srv.Cfg.Token, "deleteMessage"),
 		"application/json",
 		bytes.NewBuffer(json_data),
 	)
@@ -190,7 +188,7 @@ func (srv *TgService) DeleteMess(chat, messId int) error {
 
 func (srv *TgService) sendData(json_data []byte) error {
 	_, err := http.Post(
-		fmt.Sprintf(srv.TgEndp, srv.Token, "sendMessage"),
+		fmt.Sprintf(srv.Cfg.TgEndp, srv.Cfg.Token, "sendMessage"),
 		"application/json",
 		bytes.NewBuffer(json_data),
 	)

@@ -225,7 +225,7 @@ func (srv *TgService) sendChPostAsVamp(vampBot entity.Bot, m models.Update) erro
 		}
 		srv.l.Info("sendChPostAsVamp -> если просто текст -> http.Post", zap.Any("futureMesJson", futureMesJson), zap.Any("string(json_data)", string(json_data)))
 		sendVampPostResp, err := http.Post(
-			fmt.Sprintf(srv.TgEndp, vampBot.Token, "sendMessage"),
+			fmt.Sprintf(srv.Cfg.TgEndp, vampBot.Token, "sendMessage"),
 			"application/json",
 			bytes.NewBuffer(json_data),
 		)
@@ -266,7 +266,7 @@ func (srv *TgService) sendChPostAsVamp_VideoNote(vampBot entity.Bot, m models.Up
 		futureVideoNoteJson["reply_to_message_id"] = strconv.Itoa(currPost.PostId)
 	}
 	getFilePAthResp, err := http.Get(
-		fmt.Sprintf(srv.TgEndp, srv.Token, fmt.Sprintf("getFile?file_id=%s", m.ChannelPost.VideoNote.FileId)),
+		fmt.Sprintf(srv.Cfg.TgEndp, srv.Cfg.Token, fmt.Sprintf("getFile?file_id=%s", m.ChannelPost.VideoNote.FileId)),
 	)
 	if err != nil {
 		return err
@@ -290,7 +290,7 @@ func (srv *TgService) sendChPostAsVamp_VideoNote(vampBot entity.Bot, m models.Up
 	if errors.Is(err, os.ErrNotExist) {
 		err = files.DownloadFile(
 			fileNameInServer,
-			fmt.Sprintf("https://api.telegram.org/file/bot%s/%s", srv.Token, cAny.Result.File_path),
+			fmt.Sprintf("https://api.telegram.org/file/bot%s/%s", srv.Cfg.Token, cAny.Result.File_path),
 		)
 		if err != nil {
 			return err
@@ -302,7 +302,7 @@ func (srv *TgService) sendChPostAsVamp_VideoNote(vampBot entity.Bot, m models.Up
 		return err
 	}
 	rrres, err := http.Post(
-		fmt.Sprintf(srv.TgEndp, vampBot.Token, "sendVideoNote"),
+		fmt.Sprintf(srv.Cfg.TgEndp, vampBot.Token, "sendVideoNote"),
 		cf,
 		body,
 	)
@@ -396,7 +396,7 @@ func (srv *TgService) sendChPostAsVamp_Video_or_Photo(vampBot entity.Bot, m mode
 	}
 
 	getFilePAthResp, err := http.Get(
-		fmt.Sprintf(srv.TgEndp, srv.Token, fmt.Sprintf("getFile?file_id=%s", fileId)),
+		fmt.Sprintf(srv.Cfg.TgEndp, srv.Cfg.Token, fmt.Sprintf("getFile?file_id=%s", fileId)),
 	)
 	if err != nil {
 		return err
@@ -423,7 +423,7 @@ func (srv *TgService) sendChPostAsVamp_Video_or_Photo(vampBot entity.Bot, m mode
 	if errors.Is(err, os.ErrNotExist) {
 		err = files.DownloadFile(
 			fileNameInServer,
-			fmt.Sprintf("https://api.telegram.org/file/bot%s/%s", srv.Token, cAny.Result.File_path),
+			fmt.Sprintf("https://api.telegram.org/file/bot%s/%s", srv.Cfg.Token, cAny.Result.File_path),
 		)
 		if err != nil {
 			srv.l.Error("sendChPostAsVamp_Video_or_Photo: send_ch_post_as_vamp.go:318", zap.Error(err))
@@ -442,7 +442,7 @@ func (srv *TgService) sendChPostAsVamp_Video_or_Photo(vampBot entity.Bot, m mode
 		method = "sendPhoto"
 	}
 	rrres, err := http.Post(
-		fmt.Sprintf(srv.TgEndp, vampBot.Token, method),
+		fmt.Sprintf(srv.Cfg.TgEndp, vampBot.Token, method),
 		cf,
 		body,
 	)
@@ -479,9 +479,9 @@ func (srv *TgService) downloadPostMedia(m models.Update, postType string) (strin
 	} else if m.ChannelPost.Video != nil {
 		fileId = m.ChannelPost.Video.FileId
 	}
-	srv.l.Info("downloadPostMedia: getting file: ", zap.Any("url", fmt.Sprintf(srv.TgEndp, srv.Token, "getFile?file_id="+fileId)))
+	srv.l.Info("downloadPostMedia: getting file: ", zap.Any("url", fmt.Sprintf(srv.Cfg.TgEndp, srv.Cfg.Token, "getFile?file_id="+fileId)))
 	getFilePAthResp, err := http.Get(
-		fmt.Sprintf(srv.TgEndp, srv.Token, fmt.Sprintf("getFile?file_id=%s", fileId)),
+		fmt.Sprintf(srv.Cfg.TgEndp, srv.Cfg.Token, fmt.Sprintf("getFile?file_id=%s", fileId)),
 	)
 	if err != nil {
 		return "", fmt.Errorf("downloadPostMedia: http.Get(1): %s", err)
@@ -509,7 +509,7 @@ func (srv *TgService) downloadPostMedia(m models.Update, postType string) (strin
 	// srv.l.Info("downloading file:", fmt.Sprintf("https://api.telegram.org/file/bot%s/%s", srv.Token, cAny.Result.File_path))
 	err = files.DownloadFile(
 		fileNameInServer,
-		fmt.Sprintf("https://api.telegram.org/file/bot%s/%s", srv.Token, cAny.Result.File_path),
+		fmt.Sprintf("https://api.telegram.org/file/bot%s/%s", srv.Cfg.Token, cAny.Result.File_path),
 	)
 	if err != nil {
 		srv.l.Error("downloadPostMedia: send_ch_post_as_vamp.go:412", zap.Error(err))
@@ -534,7 +534,7 @@ func (srv *TgService) sendAndDeleteMedia(vampBot entity.Bot, fileNameInServer st
 	}
 	// srv.l.Info("sending method: ", fmt.Sprintf(srv.TgEndp, vampBot.Token, method))
 	rrres, err := http.Post(
-		fmt.Sprintf(srv.TgEndp, vampBot.Token, method),
+		fmt.Sprintf(srv.Cfg.TgEndp, vampBot.Token, method),
 		cf,
 		body,
 	)
@@ -569,7 +569,7 @@ func (srv *TgService) sendAndDeleteMedia(vampBot entity.Bot, fileNameInServer st
 		return "", err
 	}
 	rrres, err = http.Post(
-		fmt.Sprintf(srv.TgEndp, vampBot.Token, "deleteMessage"),
+		fmt.Sprintf(srv.Cfg.TgEndp, vampBot.Token, "deleteMessage"),
 		"application/json",
 		bytes.NewBuffer(DelJson),
 	)
@@ -706,7 +706,7 @@ func (s *TgService) sendChPostAsVamp_Media_Group() error {
 		}
 		s.l.Info("sendChPostAsVamp_Media_Group: sending media-group", zap.Any("map[string]any", ttttt), zap.Any("bot ch link", vampBot.ChLink))
 		rrresfyhfy, err := http.Post(
-			fmt.Sprintf(s.TgEndp, vampBot.Token, "sendMediaGroup"),
+			fmt.Sprintf(s.Cfg.TgEndp, vampBot.Token, "sendMediaGroup"),
 			"application/json",
 			bytes.NewBuffer(MediaJson),
 		)

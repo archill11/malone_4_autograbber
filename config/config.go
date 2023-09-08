@@ -2,20 +2,18 @@ package config
 
 import (
 	"log"
+	"myapp/internal/client/http"
+	"myapp/internal/repository/pg"
+	"myapp/internal/service/tg_service"
 	"os"
 
 	"github.com/joho/godotenv"
 )
 
 type Config struct {
-	// MY_URL      string
-	TG_ENDPOINT string
-	TOKEN       string
-	PORT        string
-	PG_USER     string
-	PG_PASSWORD string
-	PG_DATABASE string
-	PG_HOST     string
+	Tg     tg_service.TgConfig
+	Server http.SerConfig
+	Db     pg.DBConfig
 }
 
 func Get() Config {
@@ -25,16 +23,17 @@ func Get() Config {
 	}
 	var c Config
 
-	// c.MY_URL      = os.Getenv("MY_URL")
-	c.TG_ENDPOINT = os.Getenv("TG_ENDPOINT")
-	c.TOKEN       = os.Getenv("BOT_TOKEN")
-	c.PORT        = os.Getenv("APP_PORT")
-	c.PG_USER     = os.Getenv("PG_USER")
-	c.PG_PASSWORD = os.Getenv("PG_PASSWORD")
-	c.PG_DATABASE = os.Getenv("PG_DATABASE")
-	c.PG_HOST     = os.Getenv("PG_HOST")
+	c.Tg.TgEndp = os.Getenv("TG_ENDPOINT")
+	c.Tg.Token  = os.Getenv("BOT_TOKEN")
 
-	// c.MY_URL      = ""
+	c.Server.Port = os.Getenv("APP_PORT")
+	c.Db.User     = os.Getenv("PG_USER")
+	c.Db.Password = os.Getenv("PG_PASSWORD")
+	c.Db.Database = os.Getenv("PG_DATABASE")
+	c.Db.Host     = os.Getenv("PG_HOST")
+	c.Db.Port     = os.Getenv("PG_PORT")
+
+/////////////////////////////////////////////////////////////////
 	// c.TG_ENDPOINT = "https://api.telegram.org/bot%s/%s"
 	// c.TOKEN       = ""
 	// c.PORT        = ""

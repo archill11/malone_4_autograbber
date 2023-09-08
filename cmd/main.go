@@ -10,8 +10,6 @@ import (
 	"os/signal"
 	"syscall"
 
-	jsoniter "github.com/json-iterator/go"
-	_ "go.uber.org/automaxprocs"
 	"go.uber.org/zap"
 )
 
@@ -26,24 +24,22 @@ func main() {
 	}
 	defer l.Sync()
 
-	json := jsoniter.ConfigFastest
-
-	db, err := pg.New(config, l, json) // БД
+	db, err := pg.New(config.Db, l) // БД
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer logFnError(db.CloseDb)
 
-	_, err = tg_service.New(config, db, l) // Tg Service для взаимодейсвия с api телеграм
+	_, err = tg_service.New(config.Tg, db, l) // Tg Service для взаимодейсвия с api телеграм
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	ser, err := api.New(config, l) // api server
+	ser, err := api.New(config.Server, l) // api server
 	if err != nil {
 		log.Fatal(err)
 	}
-	go log.Fatal(ser.Server.Listen(":" + config.PORT))
+	go log.Fatal(ser.Server.Listen(":" + config.Server.Port))
 	l.Info("===============Listenning Server===============")
 
 	defer func() {

@@ -206,7 +206,7 @@ func (srv *TgService) CQ_update_group_link(m models.Update) error {
 func (srv *TgService) CQ_accept_ch_post_by_admin(m models.Update) error {
 	// cq := m.CallbackQuery
 	// chatId := cq.From.Id
-	DonorBot, err := srv.db.GetBotInfoByToken(srv.Token)
+	DonorBot, err := srv.db.GetBotInfoByToken(srv.Cfg.Token)
 	if err != nil {
 		srv.l.Error("CQ_accept_ch_post_by_admin: srv.As.GetBotInfoByToken(srv.Token)", zap.Error(err))
 	}

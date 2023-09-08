@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"myapp/config"
 	"myapp/internal/models"
 	"myapp/internal/repository/pg"
 	u "myapp/internal/utils"
@@ -20,22 +19,24 @@ import (
 
 const StoreKey = "example"
 
-type TgService struct {
-	MyPort     string
-	TgEndp     string
-	Token      string
-	// As         *as.AppService
-	db         *pg.Database
-	l          *zap.Logger
-	MediaCh    chan Media
-	MediaStore MediaStore
-}
-
-type (
+type(
 	UpdateConfig struct {
 		Offset  int
 		Timeout int
 		Buffer  int
+	}
+
+	TgConfig struct {
+		TgEndp         string
+		Token          string
+	}
+	
+	TgService struct {
+		Cfg   TgConfig
+		db         *pg.Database
+		l          *zap.Logger
+		MediaCh    chan Media
+		MediaStore MediaStore
 	}
 )
 
@@ -57,11 +58,10 @@ type (
 	}
 )
 
-func New(conf config.Config, db *pg.Database, l *zap.Logger) (*TgService, error) {
+func New(conf TgConfig, db *pg.Database, l *zap.Logger) (*TgService, error) {
 	s := &TgService{
-		MyPort:     conf.PORT,
-		TgEndp:     conf.TG_ENDPOINT,
-		Token:      conf.TOKEN,
+		// MyPort:     conf.PORT,
+		Cfg:        conf,
 		db:         db,
 		l:          l,
 		MediaCh:    make(chan Media, 10),
@@ -102,7 +102,7 @@ func New(conf config.Config, db *pg.Database, l *zap.Logger) (*TgService, error)
 			Timeout: 30,
 			Buffer: 1000,
 		}
-		updates, _ := s.GetUpdatesChan(&updConf, s.Token)
+		updates, _ := s.GetUpdatesChan(&updConf, s.Cfg.Token)
 		for update := range updates {
 			s.Donor_Update_v2(update)
 		}
@@ -148,7 +148,7 @@ func New(conf config.Config, db *pg.Database, l *zap.Logger) (*TgService, error)
 					}
 				}
 		
-				DonorBot, err := s.db.GetBotInfoByToken(s.Token)
+				DonorBot, err := s.db.GetBotInfoByToken(s.Cfg.Token)
 				if err != nil {
 					s.l.Error("Channel: s.As.GetBotInfoByToken(s.Token)", zap.Error(err))
 				}
@@ -165,7 +165,7 @@ func New(conf config.Config, db *pg.Database, l *zap.Logger) (*TgService, error)
 					s.l.Error("Channel: json.Marshal(acceptMess)", zap.Error(err))
 				}
 				_, err = http.Post(
-					fmt.Sprintf(s.TgEndp, s.Token, "sendMediaGroup"),
+					fmt.Sprintf(s.Cfg.TgEndp, s.Cfg.Token, "sendMediaGroup"),
 					"application/json",
 					bytes.NewBuffer(MediaJson),
 				)
@@ -235,10 +235,10 @@ func (ts *TgService) GetUpdates(conf *UpdateConfig, token string) ([]models.Upda
 		return []models.Update{}, err
 	}
 	fmt.Println(
-		fmt.Sprintf(ts.TgEndp, token, "getUpdates"),
+		fmt.Sprintf(ts.Cfg.TgEndp, token, "getUpdates"),
 	)
 	resp, err := http.Post(
-		fmt.Sprintf(ts.TgEndp, token, "getUpdates"),
+		fmt.Sprintf(ts.Cfg.TgEndp, token, "getUpdates"),
 		"application/json",
 		bytes.NewBuffer(json_data),
 	)
