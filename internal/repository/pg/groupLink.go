@@ -1,16 +1,14 @@
 package pg
 
 import (
-	"database/sql"
-	"errors"
+	"encoding/json"
 	"fmt"
 	"myapp/internal/entity"
-	"myapp/internal/repository"
 )
 
 func (s *Database) AddNewGroupLink(title, link string) error {
 	q := `INSERT INTO group_link (title, link) 
-		VALUES ($1, $2) 
+			VALUES ($1, $2) 
 		ON CONFLICT DO NOTHING`
 	_, err := s.Exec(q, title, link)
 	if err != nil {
@@ -38,45 +36,40 @@ func (s *Database) UpdateGroupLink(id int, link string) error {
 }
 
 func (s *Database) GetAllGroupLinks() ([]entity.GroupLink, error) {
-	bots := make([]entity.GroupLink, 0)
-	q := `SELECT 
-			id,
-			title,
-			link
-		FROM group_link`
-	rows, err := s.Query(q)
+	q := `
+		SELECT coalesce((
+			SELECT json_agg(c)
+	  		FROM group_link as c
+		), '[]'::json)
+	`
+	u := make([]entity.GroupLink, 0)
+	var data []byte
+	err := s.QueryRow(q).Scan(&data)
 	if err != nil {
-		return nil, fmt.Errorf("db: GetAllGroupLinks: %w", err)
+		return u, fmt.Errorf("GetAllGroupLinks Scan: %v", err)
 	}
-	defer rows.Close()
-	for rows.Next() {
-		var b entity.GroupLink
-		if err := rows.Scan(&b.Id, &b.Title, &b.Link); err != nil {
-			return nil, fmt.Errorf("db: GetAllGroupLinks (2): %w", err)
-		}
-		bots = append(bots, b)
+	if err := json.Unmarshal(data, &u); err != nil {
+		return u, fmt.Errorf("GetAllGroupLinks Unmarshal: %v", err)
 	}
-	return bots, nil
+	return u, nil
 }
 
 func (s *Database) GetGroupLinkById(id int) (entity.GroupLink, error) {
-	var b entity.GroupLink
-	q := `SELECT 
-			id,
-			title,
-			link
-		FROM group_link
-		WHERE id = $1`
-	err := s.QueryRow(q, id).Scan(
-		&b.Id,
-		&b.Title,
-		&b.Link,
-	)
+	q := `
+		SELECT coalesce((
+			SELECT to_json(c)
+	  		FROM group_link as c
+	  		WHERE id = $1
+		), '{}'::json)
+	`
+	var u entity.GroupLink
+	var data []byte
+	err := s.QueryRow(q, id).Scan(&data)
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return b, repository.ErrNotFound
-		}
-		return b, fmt.Errorf("db: GetGroupLinkById: %w", err)
+		return u, fmt.Errorf("GetGroupLinkById Scan: %v", err)
 	}
-	return b, nil
+	if err := json.Unmarshal(data, &u); err != nil {
+		return u, fmt.Errorf("GetGroupLinkById Unmarshal: %v", err)
+	}
+	return u, nil
 }

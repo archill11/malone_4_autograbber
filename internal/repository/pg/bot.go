@@ -1,19 +1,16 @@
 package pg
 
 import (
-	"database/sql"
-	"errors"
+	"encoding/json"
 	"fmt"
 	"myapp/internal/entity"
-	"myapp/internal/repository"
 )
 
-func (s *Database) AddNewBot(id int, username, firstname, token string, idDonor int) error {
-	e := entity.NewBot(id, username, firstname, token, idDonor)
+func (s *Database) AddNewBot(id int, username, firstname, token string, isDonor int) error {
 	q := `INSERT INTO bots (id, username, first_name, token, is_donor) 
-		VALUES ($1, $2, $3, $4, $5) 
+			VALUES ($1, $2, $3, $4, $5) 
 		ON CONFLICT DO NOTHING`
-	_, err := s.Exec(q, e.Id, e.Username, e.Firstname, e.Token, e.IsDonor)
+	_, err := s.Exec(q, id, username, firstname, token, isDonor)
 	if err != nil {
 		return fmt.Errorf("db: AddNewBot: %w", err)
 	}
@@ -30,247 +27,142 @@ func (s *Database) DeleteBot(id int) error {
 }
 
 func (s *Database) GetBotByChannelId(channelId int) (entity.Bot, error) {
-	var b entity.Bot
-	q := `SELECT 
-			id,
-			username,
-			first_name,
-			token,
-			is_donor,
-			ch_id,
-			ch_link,
-			group_link_id
-		FROM bots
-		WHERE ch_id = $1`
-	err := s.QueryRow(q, channelId).Scan(
-		&b.Id,
-		&b.Username,
-		&b.Firstname,
-		&b.Token,
-		&b.IsDonor,
-		&b.ChId,
-		&b.ChLink,
-		&b.GroupLinkId,
-	)
+	q := `
+		SELECT coalesce((
+			SELECT to_json(c)
+			FROM bots as c
+			WHERE ch_id = $1 
+		), '{}'::json)
+	`
+	var u entity.Bot
+	var data []byte
+	err := s.QueryRow(q, channelId).Scan(&data)
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return b, fmt.Errorf("db: GetBotByChannelId: channelId: %d ErrNotFound", channelId)
-		}
-		return b, fmt.Errorf("db: GetBotByChannelId: channelId: %d err: %w", channelId, err)
+		return u, fmt.Errorf("GetBotByChannelId Scan: %v", err)
 	}
-	return b, nil
+	if err := json.Unmarshal(data, &u); err != nil {
+		return u, fmt.Errorf("GetBotByChannelId Unmarshal: %v", err)
+	}
+	return u, nil
 }
 
 func (s *Database) GetBotsByGrouLinkId(groupLinkId int) ([]entity.Bot, error) {
-	bots := make([]entity.Bot, 0)
-	q := `SELECT 
-			id,
-			username,
-			first_name,
-			token,
-			is_donor,
-			ch_id,
-			ch_link,
-			group_link_id
-		FROM bots
-		WHERE group_link_id = $1`
-	rows, err := s.Query(q, groupLinkId)
+	q := `
+		SELECT coalesce((
+			SELECT json_agg(c)
+			FROM bots as c
+			WHERE group_link_id = $1 
+		), '[]'::json)
+	`
+	u := make([]entity.Bot, 0)
+	var data []byte
+	err := s.QueryRow(q, groupLinkId).Scan(&data)
 	if err != nil {
-		return nil, fmt.Errorf("db: GetBotsByGrouLinkId: %w", err)
+		return u, fmt.Errorf("GetBotsByGrouLinkId Scan: %v", err)
 	}
-	defer rows.Close()
-	for rows.Next() {
-		var b entity.Bot
-		if err := rows.Scan(
-			&b.Id,
-			&b.Username,
-			&b.Firstname,
-			&b.Token,
-			&b.IsDonor,
-			&b.ChId,
-			&b.ChLink,
-			&b.GroupLinkId,
-		); err != nil {
-			return nil, fmt.Errorf("db: GetBotsByGrouLinkId (2): %w", err)
-		}
-		bots = append(bots, b)
+	if err := json.Unmarshal(data, &u); err != nil {
+		return u, fmt.Errorf("GetBotsByGrouLinkId Unmarshal: %v", err)
 	}
-	return bots, nil
+	return u, nil
 }
 
 func (s *Database) GetAllBots() ([]entity.Bot, error) {
-	bots := make([]entity.Bot, 0)
-	q := `SELECT 
-			id,
-			token,
-			username,
-			first_name,
-			is_donor,
-			ch_id,
-			ch_link,
-			group_link_id
-		FROM bots`
-	rows, err := s.Query(q)
+	q := `
+		SELECT coalesce((
+			SELECT json_agg(c)
+			FROM bots as c
+		), '[]'::json)
+	`
+	u := make([]entity.Bot, 0)
+	var data []byte
+	err := s.QueryRow(q).Scan(&data)
 	if err != nil {
-		return nil, fmt.Errorf("GetAllBots: %w", err)
+		return u, fmt.Errorf("GetAllBots Scan: %v", err)
 	}
-	defer rows.Close()
-	for rows.Next() {
-		var b entity.Bot
-		if err := rows.Scan(
-			&b.Id,
-			&b.Token,
-			&b.Username,
-			&b.Firstname,
-			&b.IsDonor,
-			&b.ChId,
-			&b.ChLink,
-			&b.GroupLinkId,
-		); err != nil {
-			return nil, fmt.Errorf("db: GetAllBots (2): %w", err)
-		}
-		bots = append(bots, b)
+	if err := json.Unmarshal(data, &u); err != nil {
+		return u, fmt.Errorf("GetAllBots Unmarshal: %v", err)
 	}
-	return bots, nil
+	return u, nil
 }
 
 func (s *Database) GetAllVampBots() ([]entity.Bot, error) {
-	bots := make([]entity.Bot, 0)
-	q := `SELECT 
-			id,
-			token,
-			username,
-			first_name,
-			is_donor,
-			ch_id,
-			ch_link,
-			group_link_id
-		FROM bots
-		WHERE is_donor = 0`
-	rows, err := s.Query(q)
+	q := `
+		SELECT coalesce((
+			SELECT json_agg(c)
+			FROM bots as c
+			WHERE is_donor = 0 
+		), '[]'::json)
+	`
+	u := make([]entity.Bot, 0)
+	var data []byte
+	err := s.QueryRow(q).Scan(&data)
 	if err != nil {
-		return nil, fmt.Errorf("db: GetAllVampBots: %w", err)
+		return u, fmt.Errorf("GetAllVampBots Scan: %v", err)
 	}
-	defer rows.Close()
-	for rows.Next() {
-		var b entity.Bot
-		if err := rows.Scan(
-			&b.Id,
-			&b.Token,
-			&b.Username,
-			&b.Firstname,
-			&b.IsDonor,
-			&b.ChId,
-			&b.ChLink,
-			&b.GroupLinkId,
-		); err != nil {
-			return nil, fmt.Errorf("db: GetAllVampBots (2): %w", err)
-		}
-		bots = append(bots, b)
+	if err := json.Unmarshal(data, &u); err != nil {
+		return u, fmt.Errorf("GetAllVampBots Unmarshal: %v", err)
 	}
-	return bots, nil
+	return u, nil
 }
 
 func (s *Database) GetAllNoChannelBots() ([]entity.Bot, error) {
-	bots := make([]entity.Bot, 0)
-	q := `SELECT 
-			id,
-			token,
-			username,
-			first_name,
-			is_donor,
-			ch_id,
-			ch_link,
-			group_link_id
-		FROM bots
-		WHERE ch_id = 0`
-	rows, err := s.Query(q)
+	q := `
+		SELECT coalesce((
+			SELECT json_agg(c)
+			FROM bots as c
+			WHERE ch_id = 0 
+		), '[]'::json)
+	`
+	u := make([]entity.Bot, 0)
+	var data []byte
+	err := s.QueryRow(q).Scan(&data)
 	if err != nil {
-		return nil, fmt.Errorf("db: GetAllNoChannelBots: %w", err)
+		return u, fmt.Errorf("GetAllNoChannelBots Scan: %v", err)
 	}
-	defer rows.Close()
-	for rows.Next() {
-		var b entity.Bot
-		if err := rows.Scan(
-			&b.Id,
-			&b.Token,
-			&b.Username,
-			&b.Firstname,
-			&b.IsDonor,
-			&b.ChId,
-			&b.ChLink,
-			&b.GroupLinkId,
-		); err != nil {
-			return nil, fmt.Errorf("db: GetAllNoChannelBots (2): %w", err)
-		}
-		bots = append(bots, b)
+	if err := json.Unmarshal(data, &u); err != nil {
+		return u, fmt.Errorf("GetAllNoChannelBots Unmarshal: %v", err)
 	}
-	return bots, nil
+	return u, nil
 }
 
 func (s *Database) GetBotInfoById(botId int) (entity.Bot, error) {
-	var b entity.Bot
-	q := `SELECT
-			id,
-			token,
-			username,
-			first_name,
-			is_donor,
-			ch_id,
-			ch_link,
-			group_link_id
-		FROM bots
-		WHERE id = $1`
-	err := s.QueryRow(q, botId).Scan(
-		&b.Id,
-		&b.Token,
-		&b.Username,
-		&b.Firstname,
-		&b.IsDonor,
-		&b.ChId,
-		&b.ChLink,
-		&b.GroupLinkId,
-	)
+	q := `
+		SELECT coalesce((
+			SELECT to_json(c)
+			FROM bots as c
+			WHERE id = $1 
+		), '{}'::json)
+	`
+	var u entity.Bot
+	var data []byte
+	err := s.QueryRow(q, botId).Scan(&data)
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return b, repository.ErrNotFound
-			
-		}
-		return b, fmt.Errorf("db: GetBotInfoById: botId: %d err: %w", botId, err)
+		return u, fmt.Errorf("GetBotInfoById Scan: %v", err)
 	}
-	return b, nil
+	if err := json.Unmarshal(data, &u); err != nil {
+		return u, fmt.Errorf("GetBotInfoById Unmarshal: %v", err)
+	}
+	return u, nil
 }
 
 func (s *Database) GetBotInfoByToken(token string) (entity.Bot, error) {
-	var b entity.Bot
-	q := `SELECT
-			id,
-			token,
-			username,
-			first_name,
-			is_donor,
-			ch_id,
-			ch_link,
-			group_link_id
-		FROM bots
-		WHERE token = $1`
-	err := s.QueryRow(q, token).Scan(
-		&b.Id,
-		&b.Token,
-		&b.Username,
-		&b.Firstname,
-		&b.IsDonor,
-		&b.ChId,
-		&b.ChLink,
-		&b.GroupLinkId,
-	)
+	q := `
+		SELECT coalesce((
+			SELECT to_json(c)
+			FROM bots as c
+			WHERE token = $1 
+		), '{}'::json)
+	`
+	var u entity.Bot
+	var data []byte
+	err := s.QueryRow(q, token).Scan(&data)
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return b, fmt.Errorf("db: GetBotInfoByToken: token: %s ErrNotFound", token)
-		}
-		return b, fmt.Errorf("db: GetBotInfoByToken: token: %s err: %w", token, err)
+		return u, fmt.Errorf("GetBotInfoByToken Scan: %v", err)
 	}
-	return b, nil
+	if err := json.Unmarshal(data, &u); err != nil {
+		return u, fmt.Errorf("GetBotInfoByToken Unmarshal: %v", err)
+	}
+	return u, nil
 }
 
 func (s *Database) EditBotField(botId int, field string, content any) error {

@@ -1,17 +1,14 @@
 package pg
 
 import (
-	"database/sql"
-	"errors"
+	"encoding/json"
 	"fmt"
 	"myapp/internal/entity"
-	"myapp/internal/repository"
 )
 
 func (s *Database) AddNewPost(chId, postId, donorChPostId int) error {
-	q := `INSERT INTO posts 
-		(ch_id, post_id, donor_ch_post_id) 
-		VALUES ($1, $2, $3)
+	q := `INSERT INTO posts (ch_id, post_id, donor_ch_post_id) 
+			VALUES ($1, $2, $3)
 		ON CONFLICT DO NOTHING`
 	_, err := s.Exec(q, chId, postId, donorChPostId)
 	if err != nil {
@@ -21,76 +18,45 @@ func (s *Database) AddNewPost(chId, postId, donorChPostId int) error {
 }
 
 func (s *Database) GetPostByDonorIdAndChId(donorChPostId, channelId int) (entity.Post, error) {
-	var p entity.Post
 	q := `
-		SELECT
-			ch_id,
-			post_id,
-			donor_ch_post_id
-		FROM posts
-		WHERE ch_id = $1 
-		AND donor_ch_post_id = $2`
-	err := s.QueryRow(q, channelId, donorChPostId).Scan(
-		&p.ChId,
-		&p.PostId,
-		&p.DonorChPostId,
-	)
+		SELECT coalesce((
+			SELECT to_json(c)
+			FROM posts as c
+			WHERE ch_id = $1 
+			AND donor_ch_post_id = $2
+		), '{}'::json)
+	`
+	var u entity.Post
+	var data []byte
+	err := s.QueryRow(q, channelId, donorChPostId).Scan(&data)
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return p, repository.ErrNotFound
-		}
-		return p, fmt.Errorf("db: GetPostByDonorIdAndChId: channelId: %d donorChPostId %d err: %w", channelId, donorChPostId, err)
+		return u, fmt.Errorf("GetPostByDonorIdAndChId Scan: %v", err)
 	}
-	return p, nil
+	if err := json.Unmarshal(data, &u); err != nil {
+		return u, fmt.Errorf("GetPostByDonorIdAndChId Unmarshal: %v", err)
+	}
+	return u, nil
 }
 
 func (s *Database) GetPostByChIdAndBotToken(channelId int, botToken string) (entity.Post, error) {
-	var p entity.Post
 	q := `
-		SELECT
-			p.ch_id,
-			p.post_id,
-			p.donor_ch_post_id,
-		FROM posts AS p
-		JOIN bots AS b
-			ON p.ch_id = b.ch_id
-		WHERE p.ch_id = $1 
-		AND b.token = $2`
-	err := s.QueryRow(q, channelId, botToken).Scan(
-		&p.ChId,
-		&p.PostId,
-		&p.DonorChPostId,
-	)
+		SELECT coalesce((
+			SELECT to_json(c)
+			FROM posts as p
+			JOIN bots AS b
+				ON p.ch_id = b.ch_id
+			WHERE p.ch_id = $1 
+			AND b.token = $2
+		), '{}'::json)
+	`
+	var u entity.Post
+	var data []byte
+	err := s.QueryRow(q, channelId, botToken).Scan(&data)
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return p, fmt.Errorf("db: GetPostByChIdAndBotToken: channelId: %d botToken %s ErrNoRows", channelId, botToken)
-		}
-		return p, fmt.Errorf("db: GetPostByChIdAndBotToken: channelId: %d botToken %s err: %w", channelId, botToken, err)
+		return u, fmt.Errorf("GetPostByDonorIdAndChId Scan: %v", err)
 	}
-	return p, nil
+	if err := json.Unmarshal(data, &u); err != nil {
+		return u, fmt.Errorf("GetPostByDonorIdAndChId Unmarshal: %v", err)
+	}
+	return u, nil
 }
-
-// func (s *Database) GetChByBotToken(botToken string) (entity.Post, error) {
-// 	var p entity.Post
-// 	q := `
-// 		SELECT
-// 			ch_id,
-// 			post_id,
-// 			donor_ch_post_id,
-// 			bot_token
-// 		FROM posts
-// 		WHERE bot_token = $1`
-// 	err := s.QueryRow(q, botToken).Scan(
-// 		&p.ChId,
-// 		&p.PostId,
-// 		&p.DonorChPostId,
-// 		&p.BotToken,
-// 	)
-// 	if err != nil {
-// 		if errors.Is(err, sql.ErrNoRows) {
-// 			return p, repository.ErrNotFound
-// 		}
-// 		return p, err
-// 	}
-// 	return p, nil
-// }
