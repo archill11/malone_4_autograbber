@@ -13,7 +13,7 @@ func (s *Database) AddNewPost(chId, postId, donorChPostId int) error {
 		(ch_id, post_id, donor_ch_post_id) 
 		VALUES ($1, $2, $3)
 		ON CONFLICT DO NOTHING`
-	_, err := s.db.Exec(q, chId, postId, donorChPostId)
+	_, err := s.Exec(q, chId, postId, donorChPostId)
 	if err != nil {
 		return fmt.Errorf("db: AddNewPost: ChId: %d PostId %d DonorChPostId %d err: %w", chId, postId, donorChPostId, err)
 	}
@@ -30,7 +30,7 @@ func (s *Database) GetPostByDonorIdAndChId(donorChPostId, channelId int) (entity
 		FROM posts
 		WHERE ch_id = $1 
 		AND donor_ch_post_id = $2`
-	err := s.db.QueryRow(q, channelId, donorChPostId).Scan(
+	err := s.QueryRow(q, channelId, donorChPostId).Scan(
 		&p.ChId,
 		&p.PostId,
 		&p.DonorChPostId,
@@ -56,7 +56,7 @@ func (s *Database) GetPostByChIdAndBotToken(channelId int, botToken string) (ent
 			ON p.ch_id = b.ch_id
 		WHERE p.ch_id = $1 
 		AND b.token = $2`
-	err := s.db.QueryRow(q, channelId, botToken).Scan(
+	err := s.QueryRow(q, channelId, botToken).Scan(
 		&p.ChId,
 		&p.PostId,
 		&p.DonorChPostId,
@@ -80,7 +80,7 @@ func (s *Database) GetPostByChIdAndBotToken(channelId int, botToken string) (ent
 // 			bot_token
 // 		FROM posts
 // 		WHERE bot_token = $1`
-// 	err := s.db.QueryRow(q, botToken).Scan(
+// 	err := s.QueryRow(q, botToken).Scan(
 // 		&p.ChId,
 // 		&p.PostId,
 // 		&p.DonorChPostId,

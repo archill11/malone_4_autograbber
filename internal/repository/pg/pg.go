@@ -1,11 +1,13 @@
 package pg
 
 import (
-	"database/sql"
+	"context"
 	_ "embed"
 	"fmt"
 
-	_ "github.com/jackc/pgx/v4/stdlib"
+	"github.com/jackc/pgconn"
+	"github.com/jackc/pgx/v4"
+	"github.com/jackc/pgx/v4/pgxpool"
 	"go.uber.org/zap"
 )
 
@@ -31,24 +33,22 @@ type(
 	}
 
 	Database struct {
-		db   *sql.DB
+		db   *pgxpool.Pool
 		l    *zap.Logger
 	}
 )
 
 func New(config DBConfig, l *zap.Logger) (*Database, error) {
-	// databaseURI += "sslmode=disable&default_query_exec_mode=cache_describe&pool_max_conns=10&pool_max_conn_lifetime=1m&pool_max_conn_idle_time=1m"
 	databaseURI := fmt.Sprintf(
-		"postgres://%s:%s@%s:%s/%s",
+		"postgresql://%s:%s@%s:%s/%s",
 		config.User, config.Password, config.Host, config.Port, config.Database,
 	)
-	db, err := sql.Open("pgx", databaseURI)
+	databaseURI += "?pool_max_conns=10&pool_max_conn_lifetime=1m&pool_max_conn_idle_time=1m"
+	db, err := pgxpool.Connect(context.Background(), databaseURI)
 	if err != nil {
 		return nil, err
 	}
-	if err := db.Ping(); err != nil {
-		return nil, err
-	}
+
 	queries := []string{
 		posts_schema,
 		bots_schema,
@@ -56,7 +56,8 @@ func New(config DBConfig, l *zap.Logger) (*Database, error) {
 		group_link_schema,
 	}
 	for _, v := range queries {
-		if _, err := db.Exec(v); err != nil {
+		if _, err := db.Exec(context.Background(), v); err != nil {
+			fmt.Println("err", v)
 			return nil, err
 		}
 	}
@@ -69,5 +70,19 @@ func New(config DBConfig, l *zap.Logger) (*Database, error) {
 
 // CloseDb Метод закрывает соединение с БД
 func (s *Database) CloseDb() error {
-	return s.db.Close()
+	s.db.Close()
+	return nil
 }
+
+func (s *Database) Exec(sql string, arguments ...any) (pgconn.CommandTag, error) {
+	return s.db.Exec(context.Background(), sql, arguments...)
+}
+
+func (s *Database) QueryRow(sql string, arguments ...any) pgx.Row {
+	return s.db.QueryRow(context.Background(), sql, arguments...)
+}
+
+func (s *Database) Query(sql string, arguments ...any) (pgx.Rows, error) {
+	return s.db.Query(context.Background(), sql, arguments...)
+}
+

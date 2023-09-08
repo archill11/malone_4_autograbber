@@ -13,7 +13,7 @@ func (s *Database) AddNewBot(id int, username, firstname, token string, idDonor 
 	q := `INSERT INTO bots (id, username, first_name, token, is_donor) 
 		VALUES ($1, $2, $3, $4, $5) 
 		ON CONFLICT DO NOTHING`
-	_, err := s.db.Exec(q, e.Id, e.Username, e.Firstname, e.Token, e.IsDonor)
+	_, err := s.Exec(q, e.Id, e.Username, e.Firstname, e.Token, e.IsDonor)
 	if err != nil {
 		return fmt.Errorf("db: AddNewBot: %w", err)
 	}
@@ -22,7 +22,7 @@ func (s *Database) AddNewBot(id int, username, firstname, token string, idDonor 
 
 func (s *Database) DeleteBot(id int) error {
 	q := `DELETE FROM bots WHERE id = $1`
-	_, err := s.db.Exec(q, id)
+	_, err := s.Exec(q, id)
 	if err != nil {
 		return fmt.Errorf("db: DeleteBot: %w", err)
 	}
@@ -42,7 +42,7 @@ func (s *Database) GetBotByChannelId(channelId int) (entity.Bot, error) {
 			group_link_id
 		FROM bots
 		WHERE ch_id = $1`
-	err := s.db.QueryRow(q, channelId).Scan(
+	err := s.QueryRow(q, channelId).Scan(
 		&b.Id,
 		&b.Username,
 		&b.Firstname,
@@ -74,7 +74,7 @@ func (s *Database) GetBotsByGrouLinkId(groupLinkId int) ([]entity.Bot, error) {
 			group_link_id
 		FROM bots
 		WHERE group_link_id = $1`
-	rows, err := s.db.Query(q, groupLinkId)
+	rows, err := s.Query(q, groupLinkId)
 	if err != nil {
 		return nil, fmt.Errorf("db: GetBotsByGrouLinkId: %w", err)
 	}
@@ -110,7 +110,7 @@ func (s *Database) GetAllBots() ([]entity.Bot, error) {
 			ch_link,
 			group_link_id
 		FROM bots`
-	rows, err := s.db.Query(q)
+	rows, err := s.Query(q)
 	if err != nil {
 		return nil, fmt.Errorf("GetAllBots: %w", err)
 	}
@@ -147,7 +147,7 @@ func (s *Database) GetAllVampBots() ([]entity.Bot, error) {
 			group_link_id
 		FROM bots
 		WHERE is_donor = 0`
-	rows, err := s.db.Query(q)
+	rows, err := s.Query(q)
 	if err != nil {
 		return nil, fmt.Errorf("db: GetAllVampBots: %w", err)
 	}
@@ -184,7 +184,7 @@ func (s *Database) GetAllNoChannelBots() ([]entity.Bot, error) {
 			group_link_id
 		FROM bots
 		WHERE ch_id = 0`
-	rows, err := s.db.Query(q)
+	rows, err := s.Query(q)
 	if err != nil {
 		return nil, fmt.Errorf("db: GetAllNoChannelBots: %w", err)
 	}
@@ -221,7 +221,7 @@ func (s *Database) GetBotInfoById(botId int) (entity.Bot, error) {
 			group_link_id
 		FROM bots
 		WHERE id = $1`
-	err := s.db.QueryRow(q, botId).Scan(
+	err := s.QueryRow(q, botId).Scan(
 		&b.Id,
 		&b.Token,
 		&b.Username,
@@ -254,7 +254,7 @@ func (s *Database) GetBotInfoByToken(token string) (entity.Bot, error) {
 			group_link_id
 		FROM bots
 		WHERE token = $1`
-	err := s.db.QueryRow(q, token).Scan(
+	err := s.QueryRow(q, token).Scan(
 		&b.Id,
 		&b.Token,
 		&b.Username,
@@ -275,7 +275,7 @@ func (s *Database) GetBotInfoByToken(token string) (entity.Bot, error) {
 
 func (s *Database) EditBotField(botId int, field string, content any) error {
 	q := fmt.Sprintf(`UPDATE bots SET %s = $1 WHERE id = $2`, field)
-	_, err := s.db.Exec(q, content, botId)
+	_, err := s.Exec(q, content, botId)
 	if err != nil {
 		return fmt.Errorf("db: EditBotField: botId: %d field: %s content: %v err: %w", botId, field, content, err)
 	}
@@ -284,7 +284,7 @@ func (s *Database) EditBotField(botId int, field string, content any) error {
 
 func (s *Database) EditBotGroupLinkIdToNull(groupLinkId int) error {
 	q := `UPDATE bots SET group_link_id = 0 WHERE group_link_id = $1`
-	_, err := s.db.Exec(q, groupLinkId)
+	_, err := s.Exec(q, groupLinkId)
 	if err != nil {
 		return fmt.Errorf("db: EditBotGroupLinkIdToNull: groupLinkId: %d err: %w", groupLinkId, err)
 	}
@@ -293,7 +293,7 @@ func (s *Database) EditBotGroupLinkIdToNull(groupLinkId int) error {
 
 func (s *Database) EditBotGroupLinkId(groupLinkId, botId int) error {
 	q := `UPDATE bots SET group_link_id = $1 WHERE id = $2`
-	_, err := s.db.Exec(q, groupLinkId, botId)
+	_, err := s.Exec(q, groupLinkId, botId)
 	if err != nil {
 		return fmt.Errorf("db: EditBotGroupLinkId: groupLinkId: %d botId: %d  err: %w", groupLinkId, botId, err)
 		
