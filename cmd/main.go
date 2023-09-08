@@ -13,44 +13,55 @@ import (
 	"go.uber.org/zap"
 )
 
+type application struct {
+	config *config.Config
+	server *api.APIServer
+	logger *zap.Logger
+	db     *pg.Database
+	tgs    *tg_service.TgService
+}
+
 func main() {
-	config := config.Get()
+	var err error
+	app := &application{}
+
+	app.config = config.Get()
 
 	zapCfg := zap.NewDevelopmentConfig()
 	zapCfg.OutputPaths = []string{"logs/info.log", "stderr"}
-	l, err := zapCfg.Build()
+	app.logger, err = zapCfg.Build()
 	if err != nil {
 		log.Fatal("can't init logger", err)
 	}
-	defer l.Sync()
+	defer app.logger.Sync()
 
-	db, err := pg.New(config.Db, l) // БД
+	app.db, err = pg.New(app.config.Db, app.logger) // БД
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer logFnError(db.CloseDb)
+	defer logFnError(app.db.CloseDb)
 
-	_, err = tg_service.New(config.Tg, db, l) // Tg Service для взаимодейсвия с api телеграм
+	app.tgs, err = tg_service.New(app.config.Tg, app.db, app.logger) // Tg Service
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	ser, err := api.New(config.Server, l) // api server
+	app.server, err = api.New(app.config.Server, app.logger) // api server
 	if err != nil {
 		log.Fatal(err)
 	}
-	go log.Fatal(ser.Server.Listen(":" + config.Server.Port))
-	l.Info("===============Listenning Server===============")
+	app.logger.Info("===============Listenning Server===============")
+	go log.Fatal(app.server.Server.Listen(":" + app.config.Server.Port))
 
 	defer func() {
-		if err := ser.Server.Shutdown(); err != nil {
-			l.Error("ser.Server.Shutdown()", zap.Error(err))
+		if err := app.server.Server.Shutdown(); err != nil {
+			app.logger.Error("ser.Server.Shutdown()", zap.Error(err))
 		}
 	}()
 	sigint := make(chan os.Signal, 1)
 	signal.Notify(sigint, syscall.SIGTERM, syscall.SIGINT, syscall.SIGQUIT)
 	<-sigint
-	l.Info("===============Server stopped===============")
+	app.logger.Info("===============Server stopped===============")
 }
 
 func logFnError(fn func() error) {

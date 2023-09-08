@@ -16,7 +16,7 @@ type Config struct {
 	Db     pg.DBConfig
 }
 
-func Get() Config {
+func Get() *Config {
 	err := godotenv.Load(".env")
 	if err != nil {
 		log.Fatal("Error loading .env file:", err)
@@ -42,5 +42,5 @@ func Get() Config {
 	// c.PG_DATABASE = ""
 	// c.PG_HOST     = ""
 
-	return c
+	return &c
 }
