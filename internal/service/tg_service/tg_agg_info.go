@@ -21,30 +21,16 @@ func (srv *TgService) showBotsAndChannels(chatId int) error {
 		mess.WriteString(fmt.Sprintf("\n	ch_link: %s\n", b.ChLink))
 
 		if i % 50 == 0 && i > 0 {
-			json_data, err := json.Marshal(map[string]any{
-				"chat_id": strconv.Itoa(chatId),
-				"text":    mess.String(),
-				"reply_markup": `{"inline_keyboard" : [
-					[{ "text": "Назад", "callback_data": "show_admin_panel" }]
-				]}`,
-			})
-			if err != nil {
-				return err
-			}
-			err = srv.sendData(json_data)
+			err = srv.SendMessage(chatId, mess.String())
 			if err != nil {
 				return err
 			}
 			mess.Reset()
 		}
-	}
-	txt := mess.String()
-	if len(txt) > 4000 {
-		txt = txt[:4000]
-	}
+	}	
 	json_data, err := json.Marshal(map[string]any{
 		"chat_id": strconv.Itoa(chatId),
-		"text":    txt,
+		"text":    mess.String(),
 		"reply_markup": `{"inline_keyboard" : [
 			[{ "text": "Назад", "callback_data": "show_admin_panel" }]
 		]}`,
@@ -73,16 +59,19 @@ func (srv *TgService) showAllGroupLinks(chatId int) error {
 		if err != nil {
 			return err
 		}
-		mess.WriteString(fmt.Sprintf("Количество Привязаных ботов: %d\n", len(bots)))
-		mess.WriteString("\n")
-	}
-	txt := mess.String()
-	if len(txt) > 4000 {
-		txt = txt[:4000]
+		mess.WriteString(fmt.Sprintf("Количество Привязаных ботов: %d\n\n", len(bots)))
+
+		if i % 50 == 0 && i > 0 {
+			err = srv.SendMessage(chatId, mess.String())
+			if err != nil {
+				return err
+			}
+			mess.Reset()
+		}
 	}
 	json_data, err := json.Marshal(map[string]any{
 		"chat_id": strconv.Itoa(chatId),
-		"text":    txt,
+		"text":    mess.String(),
 		"reply_markup": `{"inline_keyboard" : [ 
 			[{ "text": "Назад", "callback_data": "show_admin_panel" }]
 		]}`,
