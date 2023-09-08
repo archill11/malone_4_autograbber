@@ -73,7 +73,7 @@ func (srv *TgService) HandleReplyToMessage(m models.Update) error {
 	
 		grId, err := strconv.Atoi(replyMes)
 		if err != nil {
-			srv.ShowMessClient(chatId, u.ERR_MSG)
+			srv.SendMessage(chatId, u.ERR_MSG)
 			return err
 		}
 		err = srv.SendForceReply(chatId, fmt.Sprintf(u.GROUP_LINK_UPDATE_MSG, grId))
@@ -115,7 +115,7 @@ func (srv *TgService) RM_obtain_vampire_bot_token(m models.Update) error {
 	if err != nil {
 		return err
 	}
-	srv.ShowMessClient(chatId, u.SUCCESS_ADDED_BOT)
+	srv.SendMessage(chatId, u.SUCCESS_ADDED_BOT)
 
 	grl, _ := srv.db.GetAllGroupLinks()
 	if len(grl) == 0 {
@@ -134,27 +134,27 @@ func (srv *TgService) RM_delete_bot(m models.Update) error {
 
 	id, err := strconv.Atoi(strings.TrimSpace(replyMes))
 	if err != nil {
-		srv.ShowMessClient(chatId, "неправильный формат id !")
+		srv.SendMessage(chatId, "неправильный формат id !")
 		return err
 	}
 	bot, err := srv.db.GetBotInfoById(id)
 	if err != nil {
 		if errors.Is(err, repository.ErrNotFound) {
-			srv.ShowMessClient(chatId, "я не знаю такого бота !")
+			srv.SendMessage(chatId, "я не знаю такого бота !")
 			return err
 		}
-		srv.ShowMessClient(chatId, u.ERR_MSG)
+		srv.SendMessage(chatId, u.ERR_MSG)
 		return err
 	}
 	if bot.IsDonor == 1 {
-		srv.ShowMessClient(chatId, "главного бота нельзя удалить")
+		srv.SendMessage(chatId, "главного бота нельзя удалить")
 		return nil
 	}
 	err = srv.db.DeleteBot(id)
 	if err != nil {
 		return err
 	}
-	err = srv.ShowMessClient(chatId, u.SUCCESS_DELETE_BOT)
+	err = srv.SendMessage(chatId, u.SUCCESS_DELETE_BOT)
 
 	return err
 }
@@ -167,16 +167,16 @@ func (srv *TgService) RM_add_ch_to_bot(m models.Update) error {
 
 	id, err := strconv.Atoi(strings.TrimSpace(replyMes))
 	if err != nil {
-		srv.ShowMessClient(chatId, "неправильный формат id !")
+		srv.SendMessage(chatId, "неправильный формат id !")
 		return err
 	}
 	bot, err := srv.db.GetBotInfoById(id)
 	if err != nil {
 		if errors.Is(err, repository.ErrNotFound) {
-			srv.ShowMessClient(chatId, "я не знаю такого бота !")
+			srv.SendMessage(chatId, "я не знаю такого бота !")
 			return err
 		}
-		srv.ShowMessClient(chatId, u.ERR_MSG)
+		srv.SendMessage(chatId, u.ERR_MSG)
 		return err
 	}
 
@@ -194,16 +194,16 @@ func (srv *TgService) RM_add_ch_to_bot_spet2(m models.Update, botId int) error {
 
 	chId, err := strconv.Atoi("-100"+replyMes)
 	if err != nil {
-		srv.ShowMessClient(chatId, fmt.Sprintf("%s: %v", u.ERR_MSG, err))
+		srv.SendMessage(chatId, fmt.Sprintf("%s: %v", u.ERR_MSG, err))
 		return err
 	}
 	bot, err := srv.db.GetBotInfoById(botId)
 	if err != nil {
 		if errors.Is(err, repository.ErrNotFound) {
-			srv.ShowMessClient(chatId, "я не знаю такого бота !")
+			srv.SendMessage(chatId, "я не знаю такого бота !")
 			return err
 		}
-		srv.ShowMessClient(chatId, u.ERR_MSG)
+		srv.SendMessage(chatId, u.ERR_MSG)
 		return err
 	}
 
@@ -236,15 +236,15 @@ func (srv *TgService) RM_add_ch_to_bot_spet2(m models.Update, botId int) error {
 	bot.ChLink = j.Result.InviteLink
 	err = srv.db.EditBotField(bot.Id, "ch_id", bot.ChId)
 	if err != nil {
-		srv.ShowMessClient(chatId, u.ERR_MSG)
+		srv.SendMessage(chatId, u.ERR_MSG)
 		return err
 	}
 	err = srv.db.EditBotField(bot.Id, "ch_link", bot.ChLink)
 	if err != nil {
-		srv.ShowMessClient(chatId, u.ERR_MSG)
+		srv.SendMessage(chatId, u.ERR_MSG)
 		return err
 	}
-	err = srv.ShowMessClient(chatId, fmt.Sprintf("канал %d привязанна к боту %d", chId, botId))
+	err = srv.SendMessage(chatId, fmt.Sprintf("канал %d привязанна к боту %d", chId, botId))
 	return err
 }
 
@@ -257,18 +257,18 @@ func (srv *TgService) RM_add_admin(m models.Update) error {
 	usr, err := srv.db.GetUserByUsername(strings.TrimSpace(replyMes))
 	if err != nil {
 		if errors.Is(err, repository.ErrNotFound) {
-			srv.ShowMessClient(chatId, "я не знаю такого юзера , пусть напишет мне /start")
+			srv.SendMessage(chatId, "я не знаю такого юзера , пусть напишет мне /start")
 			return err
 		}
-		srv.ShowMessClient(chatId, u.ERR_MSG)
+		srv.SendMessage(chatId, u.ERR_MSG)
 		return fmt.Errorf("RM_add_admin: srv.db.GetUserByUsername(%s) : %v", strings.TrimSpace(replyMes), err)
 	}
 	err = srv.db.EditAdmin(usr.Username, 1)
 	if err != nil {
-		srv.ShowMessClient(chatId, u.ERR_MSG)
+		srv.SendMessage(chatId, u.ERR_MSG)
 		return fmt.Errorf("RM_add_admin: srv.db.EditAdmin(%s, 1) : %v", usr.Username, err)
 	}
-	err = srv.ShowMessClient(chatId, "Админ добавлен")
+	err = srv.SendMessage(chatId, "Админ добавлен")
 	return err
 }
 
@@ -296,10 +296,10 @@ func (srv *TgService) RM_add_group_link(m models.Update) error {
 
 	err := srv.db.AddNewGroupLink(groupLinkTitle, groupLinkLink)
 	if err != nil {
-		srv.ShowMessClient(chatId, u.ERR_MSG)
+		srv.SendMessage(chatId, u.ERR_MSG)
 		return fmt.Errorf("RM_add_admin: srv.db.AddNewGroupLink(%s, %s) : %v", groupLinkTitle, groupLinkLink, err)
 	}
-	err = srv.ShowMessClient(chatId, "группа-ссылка добавлен")
+	err = srv.SendMessage(chatId, "группа-ссылка добавлен")
 	return err
 }
 
@@ -343,7 +343,7 @@ func (srv *TgService) RM_edit_bot_group_link(m models.Update) error {
 		return fmt.Errorf("RM_edit_bot_group_link: EditBotGroupLinkId-%d grId-%d : %v", botId, groupLinkId, err)
 	}
 	
-	err = srv.ShowMessClient(chatId, fmt.Sprintf("для бота %d, ссылка успешно изменена %d -> %d", botId, oldGroupLink, groupLinkId))
+	err = srv.SendMessage(chatId, fmt.Sprintf("для бота %d, ссылка успешно изменена %d -> %d", botId, oldGroupLink, groupLinkId))
 	return err
 }
 
@@ -356,20 +356,20 @@ func (srv *TgService) RM_delete_group_link(m models.Update) error {
 	replyMes = strings.TrimSpace(replyMes)
 	grId, err := strconv.Atoi(replyMes)
 	if err != nil {
-		srv.ShowMessClient(chatId, u.ERR_MSG)
+		srv.SendMessage(chatId, u.ERR_MSG)
 		return err
 	}
 	err = srv.db.DeleteGroupLink(grId)
 	if err != nil {
-		srv.ShowMessClient(chatId, u.ERR_MSG)
+		srv.SendMessage(chatId, u.ERR_MSG)
 		return err
 	}
 	err = srv.db.EditBotGroupLinkIdToNull(grId)
 	if err != nil {
-		srv.ShowMessClient(chatId, u.ERR_MSG)
+		srv.SendMessage(chatId, u.ERR_MSG)
 		return err
 	}
-	err = srv.ShowMessClient(chatId, "группа-ссылка удалена")
+	err = srv.SendMessage(chatId, "группа-ссылка удалена")
 	return err
 }
 
@@ -382,15 +382,15 @@ func (srv *TgService) RM_update_bot_group_link(m models.Update, botId int) error
 
 	grId, err := strconv.Atoi(replyMes)
 	if err != nil {
-		srv.ShowMessClient(chatId, u.ERR_MSG)
+		srv.SendMessage(chatId, u.ERR_MSG)
 		return err
 	}
 	err = srv.db.EditBotGroupLinkId(grId, botId)
 	if err != nil {
-		srv.ShowMessClient(chatId, u.ERR_MSG)
+		srv.SendMessage(chatId, u.ERR_MSG)
 		return err
 	}
-	err = srv.ShowMessClient(chatId, fmt.Sprintf("группа-ссылка %d привязанна к боту %d", grId, botId))
+	err = srv.SendMessage(chatId, fmt.Sprintf("группа-ссылка %d привязанна к боту %d", grId, botId))
 	return err
 }
 
@@ -403,9 +403,9 @@ func (srv *TgService) RM_update_group_link(m models.Update, refId int) error {
 
 	err := srv.db.UpdateGroupLink(refId, replyMes)
 	if err != nil {
-		srv.ShowMessClient(chatId, u.ERR_MSG)
+		srv.SendMessage(chatId, u.ERR_MSG)
 		return err
 	}
-	err = srv.ShowMessClient(chatId, "группа-ссылка обновлена")
+	err = srv.SendMessage(chatId, "группа-ссылка обновлена")
 	return err
 }

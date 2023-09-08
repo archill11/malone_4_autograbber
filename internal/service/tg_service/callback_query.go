@@ -17,7 +17,7 @@ func (srv *TgService) HandleCallbackQuery(m models.Update) error {
 	if cq.Data == "create_vampere_bot" {
 		err := srv.CQ_vampire_register(m)
 		if err != nil {
-			srv.ShowMessClient(chatId, u.ERR_MSG)
+			srv.SendMessage(chatId, u.ERR_MSG)
 		}
 		return err
 	}
@@ -25,7 +25,7 @@ func (srv *TgService) HandleCallbackQuery(m models.Update) error {
 	if cq.Data == "delete_vampere_bot" {
 		err := srv.CQ_vampire_delete(m)
 		if err != nil {
-			srv.ShowMessClient(chatId, u.ERR_MSG)
+			srv.SendMessage(chatId, u.ERR_MSG)
 		}
 		return err
 	}
@@ -33,7 +33,7 @@ func (srv *TgService) HandleCallbackQuery(m models.Update) error {
 	if cq.Data == "add_ch_to_bot" {
 		err := srv.CQ_add_ch_to_bot(m)
 		if err != nil {
-			srv.ShowMessClient(chatId, u.ERR_MSG)
+			srv.SendMessage(chatId, u.ERR_MSG)
 		}
 		return err
 	}
@@ -41,7 +41,7 @@ func (srv *TgService) HandleCallbackQuery(m models.Update) error {
 	if cq.Data == "create_group_link" {
 		err := srv.CQ_create_group_link(m)
 		if err != nil {
-			srv.ShowMessClient(chatId, u.ERR_MSG)
+			srv.SendMessage(chatId, u.ERR_MSG)
 		}
 		return err
 	}
@@ -49,7 +49,7 @@ func (srv *TgService) HandleCallbackQuery(m models.Update) error {
 	if cq.Data == "update_group_link" {
 		err := srv.CQ_update_group_link(m)
 		if err != nil {
-			srv.ShowMessClient(chatId, u.ERR_MSG)
+			srv.SendMessage(chatId, u.ERR_MSG)
 		}
 		return err
 	}
@@ -57,7 +57,7 @@ func (srv *TgService) HandleCallbackQuery(m models.Update) error {
 	if cq.Data == "delete_group_link" {
 		err := srv.CQ_delete_group_link(m)
 		if err != nil {
-			srv.ShowMessClient(chatId, u.ERR_MSG)
+			srv.SendMessage(chatId, u.ERR_MSG)
 		}
 		return err
 	}
@@ -65,7 +65,7 @@ func (srv *TgService) HandleCallbackQuery(m models.Update) error {
 	if cq.Data == "add_admin_btn" {
 		err := srv.CQ_add_admin(m)
 		if err != nil {
-			srv.ShowMessClient(chatId, u.ERR_MSG)
+			srv.SendMessage(chatId, u.ERR_MSG)
 		}
 		return err
 	}
@@ -73,7 +73,7 @@ func (srv *TgService) HandleCallbackQuery(m models.Update) error {
 	if cq.Data == "show_bots_and_channels" {
 		err := srv.CQ_show_bots_and_channels(m)
 		if err != nil {
-			srv.ShowMessClient(chatId, u.ERR_MSG)
+			srv.SendMessage(chatId, u.ERR_MSG)
 		}
 		return err
 	}
@@ -81,7 +81,7 @@ func (srv *TgService) HandleCallbackQuery(m models.Update) error {
 	if cq.Data == "edit_bot_group_link" {
 		err := srv.CQ_edit_bot_group_link(m)
 		if err != nil {
-			srv.ShowMessClient(chatId, u.ERR_MSG)
+			srv.SendMessage(chatId, u.ERR_MSG)
 		}
 		return err
 	}
@@ -89,7 +89,7 @@ func (srv *TgService) HandleCallbackQuery(m models.Update) error {
 	if cq.Data == "show_all_group_links" {
 		err := srv.CQ_show_all_group_links(m)
 		if err != nil {
-			srv.ShowMessClient(chatId, u.ERR_MSG)
+			srv.SendMessage(chatId, u.ERR_MSG)
 		}
 		return err
 	}
@@ -97,7 +97,7 @@ func (srv *TgService) HandleCallbackQuery(m models.Update) error {
 	if cq.Data == "show_admin_panel" {
 		err := srv.CQ_show_admin_panel(m)
 		if err != nil {
-			srv.ShowMessClient(chatId, u.ERR_MSG)
+			srv.SendMessage(chatId, u.ERR_MSG)
 		}
 		return err
 	}
@@ -105,7 +105,7 @@ func (srv *TgService) HandleCallbackQuery(m models.Update) error {
 	if cq.Data == "accept_ch_post_by_admin" {
 		err := srv.CQ_accept_ch_post_by_admin(m)
 		if err != nil {
-			srv.ShowMessClient(chatId, u.ERR_MSG)
+			srv.SendMessage(chatId, u.ERR_MSG)
 		}
 		return err
 	}
@@ -113,7 +113,7 @@ func (srv *TgService) HandleCallbackQuery(m models.Update) error {
 	if cq.Data == "del_lost_bots" {
 		err := srv.CQ_del_lost_bots(m)
 		if err != nil {
-			srv.ShowMessClient(chatId, u.ERR_MSG)
+			srv.SendMessage(chatId, u.ERR_MSG)
 		}
 		return err
 	}
@@ -210,13 +210,13 @@ func (srv *TgService) CQ_accept_ch_post_by_admin(m models.Update) error {
 	if err != nil {
 		srv.l.Error("CQ_accept_ch_post_by_admin: srv.As.GetBotInfoByToken(srv.Token)", zap.Error(err))
 	}
-	srv.ShowMessClient(DonorBot.ChId, "ок, начинаю рассылку по остальным")
-	srv.DeleteMess(DonorBot.ChId, m.CallbackQuery.Message.MessageId)
+	srv.SendMessage(DonorBot.ChId, "ок, начинаю рассылку по остальным")
+	srv.DeleteMessage(DonorBot.ChId, m.CallbackQuery.Message.MessageId)
 
 	go func(){
 		err = srv.sendChPostAsVamp_Media_Group()
 		if err != nil {
-			srv.ShowMessClient(DonorBot.ChId, u.ERR_MSG +": " + err.Error())
+			srv.SendMessage(DonorBot.ChId, u.ERR_MSG +": " + err.Error())
 		}
 	}()
 
@@ -244,12 +244,12 @@ func (srv *TgService) CQ_del_lost_bots(m models.Update) error {
 			if err != nil {
 				srv.l.Error("CQ_del_lost_bots: DeleteBot", zap.Error(err), zap.Any("bot token", bot.Token))
 			}
-			srv.ShowMessClient(chatId, fmt.Sprintf("удален бот\nid: %d\nusername: %s\ntoken: %s\nканал id: %d\nканал link: %s", bot.Id, bot.Username, bot.Token, bot.ChId, bot.ChLink))
+			srv.SendMessage(chatId, fmt.Sprintf("удален бот\nid: %d\nusername: %s\ntoken: %s\nканал id: %d\nканал link: %s", bot.Id, bot.Username, bot.Token, bot.ChId, bot.ChLink))
 			time.Sleep(time.Second*3)
 		}
 	}
 
-	srv.ShowMessClient(chatId, "проверка закончена")
+	srv.SendMessage(chatId, "проверка закончена")
 
 	return nil
 }

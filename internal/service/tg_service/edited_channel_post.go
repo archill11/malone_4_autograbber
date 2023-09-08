@@ -28,7 +28,7 @@ func (srv *TgService) Donor_HandleEditedChannelPost(m models.Update) error {
 	err := srv.Donor_editEditedChannelPost(m)
 	if err != nil {
 		if err != nil {
-			srv.ShowMessClient(chatId, u.ERR_MSG_2+err.Error())
+			srv.SendMessage(chatId, u.ERR_MSG_2+err.Error())
 		}
 		return err
 	}
@@ -117,7 +117,7 @@ func (srv *TgService) editChPostAsVamp(vampBot entity.Bot, m models.Update) erro
 			return fmt.Errorf("sendChPostAsVamp (1): %v", err)
 		}
 		messageForDelete := currPost.PostId
-		err = srv.DeleteMess(vampBot.ChId, messageForDelete)
+		err = srv.DeleteMessage(vampBot.ChId, messageForDelete)
 		if err != nil {
 			return err
 		}

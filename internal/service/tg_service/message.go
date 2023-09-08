@@ -35,7 +35,7 @@ func (srv *TgService) M_start(m models.Update) error {
 	userUserName := m.Message.From.UserName
 	srv.l.Info("M_start:", zap.Any("userUserName", userUserName), zap.Any("msgText", msgText))
 
-	err := srv.ShowMessClient(chatId, fmt.Sprintf("Привет %s", userFirstName))
+	err := srv.SendMessage(chatId, fmt.Sprintf("Привет %s", userFirstName))
 	if err != nil {
 		return err
 	}
@@ -52,7 +52,7 @@ func (srv *TgService) M_admin(m models.Update) error {
 
 	u, err := srv.db.GetUserById(chatId)
 	if err != nil {
-		srv.ShowMessClient(chatId, "Нажмите сначала /start")
+		srv.SendMessage(chatId, "Нажмите сначала /start")
 		return err
 	}
 	if u.IsAdmin != 1 {
