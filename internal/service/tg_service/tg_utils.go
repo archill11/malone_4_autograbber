@@ -26,7 +26,7 @@ func (srv *TgService) getBotByToken(token string) (models.APIRBotresp, error) {
 }
 
 func (srv *TgService) showBotsAndChannels(chatId int) error {
-	bots, err := srv.As.GetAllBots()
+	bots, err := srv.db.GetAllBots()
 	if err != nil {
 		return err
 	}
@@ -78,7 +78,7 @@ func (srv *TgService) showBotsAndChannels(chatId int) error {
 }
 
 func (srv *TgService) showAllGroupLinks(chatId int) error {
-	grs, err := srv.As.GetAllGroupLinks()
+	grs, err := srv.db.GetAllGroupLinks()
 	if err != nil {
 		return err
 	}
@@ -87,7 +87,7 @@ func (srv *TgService) showAllGroupLinks(chatId int) error {
 		mess.WriteString(fmt.Sprintf("%d) id: %d\n", i+1, b.Id))
 		mess.WriteString(fmt.Sprintf("Название: %s\n", b.Title))
 		mess.WriteString(fmt.Sprintf("Ссылка: %s\n", b.Link))
-		bots, err := srv.As.GetBotsByGrouLinkId(b.Id)
+		bots, err := srv.db.GetBotsByGrouLinkId(b.Id)
 		if err != nil {
 			return err
 		}

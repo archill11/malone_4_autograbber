@@ -206,7 +206,7 @@ func (srv *TgService) CQ_update_group_link(m models.Update) error {
 func (srv *TgService) CQ_accept_ch_post_by_admin(m models.Update) error {
 	// cq := m.CallbackQuery
 	// chatId := cq.From.Id
-	DonorBot, err := srv.As.GetBotInfoByToken(srv.Token)
+	DonorBot, err := srv.db.GetBotInfoByToken(srv.Token)
 	if err != nil {
 		srv.l.Error("CQ_accept_ch_post_by_admin: srv.As.GetBotInfoByToken(srv.Token)", zap.Error(err))
 	}
@@ -226,7 +226,7 @@ func (srv *TgService) CQ_accept_ch_post_by_admin(m models.Update) error {
 func (srv *TgService) CQ_del_lost_bots(m models.Update) error {
 	cq := m.CallbackQuery
 	chatId := cq.From.Id
-	allBots, err := srv.As.GetAllBots()
+	allBots, err := srv.db.GetAllBots()
 	if err != nil {
 		srv.l.Error("CQ_del_lost_bots: GetAllBots", zap.Error(err))
 	}
@@ -240,7 +240,7 @@ func (srv *TgService) CQ_del_lost_bots(m models.Update) error {
 			srv.l.Error("CQ_del_lost_bots: getBotByToken", zap.Error(err), zap.Any("bot token", bot.Token))
 		}
 		if !resp.Ok && resp.ErrorCode == 401 && resp.Description == "Unauthorized" {
-			err := srv.As.DeleteBot(bot.Id)
+			err := srv.db.DeleteBot(bot.Id)
 			if err != nil {
 				srv.l.Error("CQ_del_lost_bots: DeleteBot", zap.Error(err), zap.Any("bot token", bot.Token))
 			}

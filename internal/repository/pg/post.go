@@ -8,14 +8,14 @@ import (
 	"myapp/internal/repository"
 )
 
-func (s *Database) AddNewPost(u entity.Post) error {
+func (s *Database) AddNewPost(chId, postId, donorChPostId int) error {
 	q := `INSERT INTO posts 
 		(ch_id, post_id, donor_ch_post_id) 
 		VALUES ($1, $2, $3)
 		ON CONFLICT DO NOTHING`
-	_, err := s.db.Exec(q, u.ChId, u.PostId, u.DonorChPostId)
+	_, err := s.db.Exec(q, chId, postId, donorChPostId)
 	if err != nil {
-		return fmt.Errorf("db: AddNewPost: ChId: %d PostId %d DonorChPostId %d err: %w", u.ChId, u.PostId, u.DonorChPostId, err)
+		return fmt.Errorf("db: AddNewPost: ChId: %d PostId %d DonorChPostId %d err: %w", chId, postId, donorChPostId, err)
 	}
 	return nil
 }

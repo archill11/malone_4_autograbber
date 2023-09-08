@@ -7,7 +7,7 @@ import (
 	"log"
 	"myapp/config"
 	"myapp/internal/models"
-	as "myapp/internal/service/app_service"
+	"myapp/internal/repository/pg"
 	u "myapp/internal/utils"
 	"myapp/pkg/files"
 	"net/http"
@@ -24,7 +24,8 @@ type TgService struct {
 	MyPort     string
 	TgEndp     string
 	Token      string
-	As         *as.AppService
+	// As         *as.AppService
+	db         *pg.Database
 	l          *zap.Logger
 	MediaCh    chan Media
 	MediaStore MediaStore
@@ -56,12 +57,12 @@ type (
 	}
 )
 
-func New(conf config.Config, as *as.AppService, l *zap.Logger) (*TgService, error) {
+func New(conf config.Config, db *pg.Database, l *zap.Logger) (*TgService, error) {
 	s := &TgService{
 		MyPort:     conf.PORT,
 		TgEndp:     conf.TG_ENDPOINT,
 		Token:      conf.TOKEN,
-		As:         as,
+		db:         db,
 		l:          l,
 		MediaCh:    make(chan Media, 10),
 		MediaStore: MediaStore{
@@ -147,7 +148,7 @@ func New(conf config.Config, as *as.AppService, l *zap.Logger) (*TgService, erro
 					}
 				}
 		
-				DonorBot, err := s.As.GetBotInfoByToken(s.Token)
+				DonorBot, err := s.db.GetBotInfoByToken(s.Token)
 				if err != nil {
 					s.l.Error("Channel: s.As.GetBotInfoByToken(s.Token)", zap.Error(err))
 				}

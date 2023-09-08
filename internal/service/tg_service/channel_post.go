@@ -51,7 +51,7 @@ func (srv *TgService) Donor_addChannelPost(m models.Update) error {
 
 	// Проверка что пост есть уже в базе нужна для того что бы телега не отрпавляла 
 	// кучу запросов повторно , тк ответ долгий из за рассылки
-	post, err := srv.As.GetPostByDonorIdAndChId(message_id, channel_id)
+	post, err := srv.db.GetPostByDonorIdAndChId(message_id, channel_id)
 	if err != nil && !errors.Is(err, repository.ErrNotFound) {
 		return fmt.Errorf("Donor_addChannelPost: %v", err)
 	}
@@ -61,7 +61,7 @@ func (srv *TgService) Donor_addChannelPost(m models.Update) error {
 	}
 
 	// добавили пост в БД
-	err = srv.As.AddNewPost(channel_id, message_id, message_id)
+	err = srv.db.AddNewPost(channel_id, message_id, message_id)
 	if err != nil {
 		return err
 	}
@@ -109,7 +109,7 @@ func (srv *TgService) Donor_addChannelPost(m models.Update) error {
 	}
 
 	// если не Media_Group
-	allVampBots, err := srv.As.GetAllVampBots()
+	allVampBots, err := srv.db.GetAllVampBots()
 	if err != nil {
 		return err
 	}
@@ -151,7 +151,7 @@ func (srv *TgService) sendChPostAsVamp(vampBot entity.Bot, m models.Update) erro
 		if m.ChannelPost.ReplyToMessage != nil {
 			// ReplToDonorChId := m.ChannelPost.ReplyToMessage.Chat.Id
 			replToDonorChPostId := m.ChannelPost.ReplyToMessage.MessageId
-			currPost, err := srv.As.GetPostByDonorIdAndChId(replToDonorChPostId, vampBot.ChId)
+			currPost, err := srv.db.GetPostByDonorIdAndChId(replToDonorChPostId, vampBot.ChId)
 			if err != nil {
 				return fmt.Errorf("sendChPostAsVamp (1): %v", err)
 			}
@@ -165,7 +165,7 @@ func (srv *TgService) sendChPostAsVamp(vampBot entity.Bot, m models.Update) erro
 			cutEntities := false
 			for i, v := range entities {
 				if strings.HasPrefix(v.Url, "http://fake-link") || strings.HasPrefix(v.Url, "fake-link") || strings.HasPrefix(v.Url, "https://fake-link") {
-					groupLink, err := srv.As.GetGroupLinkById(vampBot.GroupLinkId)
+					groupLink, err := srv.db.GetGroupLinkById(vampBot.GroupLinkId)
 					if err != nil && !errors.Is(err, repository.ErrNotFound) {
 						return err
 					}
@@ -191,7 +191,7 @@ func (srv *TgService) sendChPostAsVamp(vampBot entity.Bot, m models.Update) erro
 						if err != nil {
 							return err
 						}
-						currPost, err := srv.As.GetPostByDonorIdAndChId(refToDonorChPostId, vampBot.ChId)
+						currPost, err := srv.db.GetPostByDonorIdAndChId(refToDonorChPostId, vampBot.ChId)
 						if err != nil {
 							return fmt.Errorf("sendChPostAsVamp (2): %v", err)
 						}
@@ -243,7 +243,7 @@ func (srv *TgService) sendChPostAsVamp(vampBot entity.Bot, m models.Update) erro
 			return err
 		}
 		if cAny.Result.MessageId != 0 {
-			err = srv.As.AddNewPost(vampBot.ChId, cAny.Result.MessageId, donor_ch_mes_id)
+			err = srv.db.AddNewPost(vampBot.ChId, cAny.Result.MessageId, donor_ch_mes_id)
 			if err != nil {
 				return err
 			}
@@ -259,7 +259,7 @@ func (srv *TgService) sendChPostAsVamp_VideoNote(vampBot entity.Bot, m models.Up
 	}
 	if m.ChannelPost.ReplyToMessage != nil {
 		replToDonorChPostId := m.ChannelPost.ReplyToMessage.MessageId
-		currPost, err := srv.As.GetPostByDonorIdAndChId(replToDonorChPostId, vampBot.ChId)
+		currPost, err := srv.db.GetPostByDonorIdAndChId(replToDonorChPostId, vampBot.ChId)
 		if err != nil {
 			return fmt.Errorf("sendChPostAsVamp_VideoNote: %v", err)
 		}
@@ -321,7 +321,7 @@ func (srv *TgService) sendChPostAsVamp_VideoNote(vampBot entity.Bot, m models.Up
 		return err
 	}
 	if cAny2.Result.MessageId != 0 {
-		err = srv.As.AddNewPost(vampBot.ChId, cAny2.Result.MessageId, donor_ch_mes_id)
+		err = srv.db.AddNewPost(vampBot.ChId, cAny2.Result.MessageId, donor_ch_mes_id)
 		if err != nil {
 			return err
 		}
@@ -336,7 +336,7 @@ func (srv *TgService) sendChPostAsVamp_Video_or_Photo(vampBot entity.Bot, m mode
 	}
 	if m.ChannelPost.ReplyToMessage != nil {
 		replToDonorChPostId := m.ChannelPost.ReplyToMessage.MessageId
-		currPost, err := srv.As.GetPostByDonorIdAndChId(replToDonorChPostId, vampBot.ChId)
+		currPost, err := srv.db.GetPostByDonorIdAndChId(replToDonorChPostId, vampBot.ChId)
 		if err != nil {
 			return fmt.Errorf("sendChPostAsVamp_Video_or_Photo (1): %v", err)
 		}
@@ -350,7 +350,7 @@ func (srv *TgService) sendChPostAsVamp_Video_or_Photo(vampBot entity.Bot, m mode
 		mycopy.DeepCopy(m.ChannelPost.CaptionEntities, &entities)
 		for i, v := range entities {
 			if strings.HasPrefix(v.Url, "http://fake-link") || strings.HasPrefix(v.Url, "fake-link") || strings.HasPrefix(v.Url, "https://fake-link") {
-				groupLink, err := srv.As.GetGroupLinkById(vampBot.GroupLinkId)
+				groupLink, err := srv.db.GetGroupLinkById(vampBot.GroupLinkId)
 				if err != nil {
 					return err
 				}
@@ -367,7 +367,7 @@ func (srv *TgService) sendChPostAsVamp_Video_or_Photo(vampBot entity.Bot, m mode
 					if err != nil {
 						return err
 					}
-					currPost, err := srv.As.GetPostByDonorIdAndChId(refToDonorChPostId, vampBot.ChId)
+					currPost, err := srv.db.GetPostByDonorIdAndChId(refToDonorChPostId, vampBot.ChId)
 					if err != nil {
 						return fmt.Errorf("sendChPostAsVamp_Video_or_Photo (2): %v", err)
 					}
@@ -464,7 +464,7 @@ func (srv *TgService) sendChPostAsVamp_Video_or_Photo(vampBot entity.Bot, m mode
 		return err
 	}
 	if cAny2.Result.MessageId != 0 {
-		err = srv.As.AddNewPost(vampBot.ChId, cAny2.Result.MessageId, donor_ch_mes_id)
+		err = srv.db.AddNewPost(vampBot.ChId, cAny2.Result.MessageId, donor_ch_mes_id)
 		if err != nil {
 			return err
 		}
@@ -609,9 +609,9 @@ func (s *TgService) sendChPostAsVamp_Media_Group() error {
 		return fmt.Errorf("sendChPostAsVamp_Media_Group: not found in MediaStore")
 	}
 
-	allVampBots, err := s.As.GetAllVampBots()
+	allVampBots, err := s.db.GetAllVampBots()
 	if err != nil {
-		s.l.Error("sendChPostAsVamp_Media_Group: s.As.GetAllVampBots", zap.Error(err))
+		s.l.Error("sendChPostAsVamp_Media_Group: s.db.GetAllVampBots", zap.Error(err))
 	}
 	for _, vampBot := range allVampBots {
 		if vampBot.ChId == 0 {
@@ -627,7 +627,7 @@ func (s *TgService) sendChPostAsVamp_Media_Group() error {
 			// fn replaceReplyMessId
 			if media.Reply_to_donor_message_id != 0 {
 				replToDonorChPostId := media.Reply_to_donor_message_id
-				currPost, err := s.As.GetPostByDonorIdAndChId(replToDonorChPostId, vampBot.ChId)
+				currPost, err := s.db.GetPostByDonorIdAndChId(replToDonorChPostId, vampBot.ChId)
 				if err != nil {
 					s.l.Error("sendChPostAsVamp_Media_Group: service queue (1)", zap.Error(err))
 				}
@@ -639,7 +639,7 @@ func (s *TgService) sendChPostAsVamp_Media_Group() error {
 				mycopy.DeepCopy(media.Caption_entities, &entities)
 				for i, v := range entities {
 					if strings.HasPrefix(v.Url, "http://fake-link") || strings.HasPrefix(v.Url, "fake-link") || strings.HasPrefix(v.Url, "https://fake-link") {
-						groupLink, err := s.As.GetGroupLinkById(vampBot.GroupLinkId)
+						groupLink, err := s.db.GetGroupLinkById(vampBot.GroupLinkId)
 						if err != nil {
 							s.l.Error("sendChPostAsVamp_Media_Group: GetGroupLinkById", zap.Error(err))
 						}
@@ -657,7 +657,7 @@ func (s *TgService) sendChPostAsVamp_Media_Group() error {
 							if err != nil {
 								s.l.Error("sendChPostAsVamp_Media_Group: strconv.Atoi (1)", zap.Error(err))
 							}
-							currPost, err := s.As.GetPostByDonorIdAndChId(refToDonorChPostId, vampBot.ChId)
+							currPost, err := s.db.GetPostByDonorIdAndChId(refToDonorChPostId, vampBot.ChId)
 							if err != nil {
 								s.l.Error("sendChPostAsVamp_Media_Group: service queue (2)", zap.Error(err))
 							}
@@ -734,9 +734,9 @@ func (s *TgService) sendChPostAsVamp_Media_Group() error {
 			}
 			for _, med := range mediaArr {
 				time.Sleep(time.Millisecond * 500)
-				err = s.As.AddNewPost(vampBot.ChId, v.MessageId, med.Donor_message_id)
+				err = s.db.AddNewPost(vampBot.ChId, v.MessageId, med.Donor_message_id)
 				if err != nil {
-					s.l.Error("sendChPostAsVamp_Media_Group: s.As.AddNewPost", zap.Error(err))
+					s.l.Error("sendChPostAsVamp_Media_Group: s.db.AddNewPost", zap.Error(err))
 				}
 			}
 		}

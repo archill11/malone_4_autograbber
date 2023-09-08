@@ -16,7 +16,7 @@ func (srv *TgService) HandleNewChatMember(m models.Update) error {
 	if !m.MyChatMember.NewChatMember.User.IsBot {
 		return nil
 	}
-	allBots, err := srv.As.GetAllBots()
+	allBots, err := srv.db.GetAllBots()
 	if err != nil {
 		return err
 	}
@@ -48,7 +48,7 @@ func (srv *TgService) NCM_administrator(m models.Update) error {
 	chatId := chat.Id
 	// channelTitle := m.MyChatMember.Chat.Title
 
-	bot, err := srv.As.GetBotInfoById(newMemberId)
+	bot, err := srv.db.GetBotInfoById(newMemberId)
 	if err != nil {
 		return err
 	}
@@ -59,7 +59,11 @@ func (srv *TgService) NCM_administrator(m models.Update) error {
 	bot.ChId = cAny.Result.Id
 	bot.ChLink = cAny.Result.InviteLink
 
-	err = srv.As.EditBotChField(bot)
+	err = srv.db.EditBotField(bot.Id, "ch_id", bot.ChId)
+	if err != nil {
+		return err
+	}
+	err = srv.db.EditBotField(bot.Id, "ch_link", bot.ChLink)
 	if err != nil {
 		return err
 	}

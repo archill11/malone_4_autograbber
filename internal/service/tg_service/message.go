@@ -39,7 +39,7 @@ func (srv *TgService) M_start(m models.Update) error {
 	if err != nil {
 		return err
 	}
-	err = srv.As.AddNewUser(chatId, userUserName, userFirstName)
+	err = srv.db.AddNewUser(chatId, userUserName, userFirstName)
 
 	return err
 }
@@ -50,7 +50,7 @@ func (srv *TgService) M_admin(m models.Update) error {
 	userUserName := m.Message.From.UserName
 	srv.l.Info("M_admin:", zap.Any("userUserName", userUserName), zap.Any("msgText", msgText))
 
-	u, err := srv.As.GetUserById(chatId)
+	u, err := srv.db.GetUserById(chatId)
 	if err != nil {
 		srv.ShowMessClient(chatId, "Нажмите сначала /start")
 		return err

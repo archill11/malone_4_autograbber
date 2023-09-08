@@ -90,7 +90,7 @@ func (srv *TgService) Donor_editEditedChannelPost(m models.Update) error {
 	}
 
 	// если не Media_Group
-	allVampBots, err := srv.As.GetAllVampBots()
+	allVampBots, err := srv.db.GetAllVampBots()
 	if err != nil {
 		return err
 	}
@@ -112,7 +112,7 @@ func (srv *TgService) Donor_editEditedChannelPost(m models.Update) error {
 func (srv *TgService) editChPostAsVamp(vampBot entity.Bot, m models.Update) error {
 	donor_ch_mes_id := m.EditedChannelPost.MessageId
 	if strings.ToLower(m.EditedChannelPost.Text) == "deletepost" || strings.ToLower(m.EditedChannelPost.Text) == "delete post" {
-		currPost, err := srv.As.GetPostByDonorIdAndChId(donor_ch_mes_id, vampBot.ChId)
+		currPost, err := srv.db.GetPostByDonorIdAndChId(donor_ch_mes_id, vampBot.ChId)
 		if err != nil {
 			return fmt.Errorf("sendChPostAsVamp (1): %v", err)
 		}
@@ -137,7 +137,7 @@ func (srv *TgService) editChPostAsVamp(vampBot entity.Bot, m models.Update) erro
 		futureMesJson := map[string]any{
 			"chat_id": strconv.Itoa(vampBot.ChId),
 		}
-		currPost, err := srv.As.GetPostByDonorIdAndChId(donor_ch_mes_id, vampBot.ChId)
+		currPost, err := srv.db.GetPostByDonorIdAndChId(donor_ch_mes_id, vampBot.ChId)
 		if err != nil {
 			return fmt.Errorf("sendChPostAsVamp (1): %v", err)
 		}
@@ -150,7 +150,7 @@ func (srv *TgService) editChPostAsVamp(vampBot entity.Bot, m models.Update) erro
 			cutEntities := false
 			for i, v := range entities {
 				if strings.HasPrefix(v.Url, "http://fake-link") || strings.HasPrefix(v.Url, "fake-link") || strings.HasPrefix(v.Url, "https://fake-link") {
-					groupLink, err := srv.As.GetGroupLinkById(vampBot.GroupLinkId)
+					groupLink, err := srv.db.GetGroupLinkById(vampBot.GroupLinkId)
 					if err != nil && !errors.Is(err, repository.ErrNotFound) {
 						return err
 					}
@@ -176,7 +176,7 @@ func (srv *TgService) editChPostAsVamp(vampBot entity.Bot, m models.Update) erro
 						if err != nil {
 							return err
 						}
-						currPost, err := srv.As.GetPostByDonorIdAndChId(refToDonorChPostId, vampBot.ChId)
+						currPost, err := srv.db.GetPostByDonorIdAndChId(refToDonorChPostId, vampBot.ChId)
 						if err != nil {
 							return fmt.Errorf("sendChPostAsVamp (2): %v", err)
 						}
