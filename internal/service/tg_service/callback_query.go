@@ -213,10 +213,10 @@ func (srv *TgService) CQ_accept_ch_post_by_admin(m models.Update) error {
 	srv.SendMessage(DonorBot.ChId, "ок, начинаю рассылку по остальным")
 	srv.DeleteMessage(DonorBot.ChId, m.CallbackQuery.Message.MessageId)
 
-	go func(){
+	go func() {
 		err = srv.sendChPostAsVamp_Media_Group()
 		if err != nil {
-			srv.SendMessage(DonorBot.ChId, u.ERR_MSG +": " + err.Error())
+			srv.SendMessage(DonorBot.ChId, u.ERR_MSG+": "+err.Error())
 		}
 	}()
 
@@ -245,7 +245,7 @@ func (srv *TgService) CQ_del_lost_bots(m models.Update) error {
 				srv.l.Error("CQ_del_lost_bots: DeleteBot", zap.Error(err), zap.Any("bot token", bot.Token))
 			}
 			srv.SendMessage(chatId, fmt.Sprintf("удален бот\nid: %d\nusername: %s\ntoken: %s\nканал id: %d\nканал link: %s", bot.Id, bot.Username, bot.Token, bot.ChId, bot.ChLink))
-			time.Sleep(time.Second*3)
+			time.Sleep(time.Second * 3)
 		}
 	}
 
@@ -255,8 +255,8 @@ func (srv *TgService) CQ_del_lost_bots(m models.Update) error {
 }
 
 func (srv *TgService) CQ_restart_app() {
-	go func(){
-		time.Sleep(time.Second*3)
+	go func() {
+		time.Sleep(time.Second * 3)
 		panic("restart app")
 	}()
 }

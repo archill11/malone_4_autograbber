@@ -23,7 +23,7 @@ var users_schema string
 //go:embed schemes/group_link.sql
 var group_link_schema string
 
-type(
+type (
 	DBConfig struct {
 		User     string
 		Password string
@@ -33,8 +33,8 @@ type(
 	}
 
 	Database struct {
-		db   *pgxpool.Pool
-		l    *zap.Logger
+		db *pgxpool.Pool
+		l  *zap.Logger
 	}
 )
 
@@ -85,4 +85,3 @@ func (s *Database) QueryRow(sql string, arguments ...any) pgx.Row {
 func (s *Database) Query(sql string, arguments ...any) (pgx.Rows, error) {
 	return s.db.Query(context.Background(), sql, arguments...)
 }
-

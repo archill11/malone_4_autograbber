@@ -20,14 +20,14 @@ func (srv *TgService) showBotsAndChannels(chatId int) error {
 		}
 		mess.WriteString(fmt.Sprintf("\n	ch_link: %s\n", b.ChLink))
 
-		if i % 50 == 0 && i > 0 {
+		if i%50 == 0 && i > 0 {
 			err = srv.SendMessage(chatId, mess.String())
 			if err != nil {
 				return err
 			}
 			mess.Reset()
 		}
-	}	
+	}
 	json_data, err := json.Marshal(map[string]any{
 		"chat_id": strconv.Itoa(chatId),
 		"text":    mess.String(),
@@ -61,7 +61,7 @@ func (srv *TgService) showAllGroupLinks(chatId int) error {
 		}
 		mess.WriteString(fmt.Sprintf("Количество Привязаных ботов: %d\n\n", len(bots)))
 
-		if i % 50 == 0 && i > 0 {
+		if i%50 == 0 && i > 0 {
 			err = srv.SendMessage(chatId, mess.String())
 			if err != nil {
 				return err

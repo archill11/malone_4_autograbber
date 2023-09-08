@@ -180,7 +180,7 @@ func (s *Database) EditBotGroupLinkIdToNull(groupLinkId int) error {
 	if err != nil {
 		return fmt.Errorf("db: EditBotGroupLinkIdToNull: groupLinkId: %d err: %w", groupLinkId, err)
 	}
-	return nil 
+	return nil
 }
 
 func (s *Database) EditBotGroupLinkId(groupLinkId, botId int) error {
@@ -188,7 +188,7 @@ func (s *Database) EditBotGroupLinkId(groupLinkId, botId int) error {
 	_, err := s.Exec(q, groupLinkId, botId)
 	if err != nil {
 		return fmt.Errorf("db: EditBotGroupLinkId: groupLinkId: %d botId: %d  err: %w", groupLinkId, botId, err)
-		
+
 	}
 	return nil
 }

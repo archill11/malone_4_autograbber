@@ -8,7 +8,6 @@ import (
 	"io"
 	"myapp/internal/entity"
 	"myapp/internal/models"
-	"myapp/internal/repository"
 	u "myapp/internal/utils"
 	"myapp/pkg/files"
 	"myapp/pkg/mycopy"
@@ -31,29 +30,23 @@ func (srv *TgService) Donor_HandleChannelPost(m models.Update) error {
 	err := srv.Donor_addChannelPost(m)
 	if err != nil {
 		if err != nil {
-			srv.SendMessage(chatId, u.ERR_MSG_2 + err.Error())
+			srv.SendMessage(chatId, u.ERR_MSG_2+err.Error())
 		}
 		return err
 	}
 	return nil
 }
 
-
 func (srv *TgService) Donor_addChannelPost(m models.Update) error {
-	// chatId := m.Message.Chat.ID
-	// msgText := m.Message.Text
-	// userFirstName := m.Message.From.FirstName
-	// userUserName := m.Message.From.UserName
-	// srv.l.Info("tg_service::AddChannelPost::")
 
 	message_id := m.ChannelPost.MessageId
 	channel_id := m.ChannelPost.Chat.Id
 
-	// Проверка что пост есть уже в базе нужна для того что бы телега не отрпавляла 
+	// Проверка что пост есть уже в базе нужна для того что бы телега не отрпавляла
 	// кучу запросов повторно , тк ответ долгий из за рассылки
 	post, err := srv.db.GetPostByDonorIdAndChId(message_id, channel_id)
-	if err != nil && !errors.Is(err, repository.ErrNotFound) {
-		return fmt.Errorf("Donor_addChannelPost: %v", err)
+	if err != nil {
+		return fmt.Errorf("Donor_addChannelPost GetPostByDonorIdAndChId err: %v", err)
 	}
 	if post.PostId != 0 {
 		srv.l.Info("пост уже есть в БД, валим!")
@@ -149,76 +142,35 @@ func (srv *TgService) sendChPostAsVamp(vampBot entity.Bot, m models.Update) erro
 			"chat_id": strconv.Itoa(vampBot.ChId),
 		}
 		if m.ChannelPost.ReplyToMessage != nil {
-			// ReplToDonorChId := m.ChannelPost.ReplyToMessage.Chat.Id
 			replToDonorChPostId := m.ChannelPost.ReplyToMessage.MessageId
 			currPost, err := srv.db.GetPostByDonorIdAndChId(replToDonorChPostId, vampBot.ChId)
 			if err != nil {
-				return fmt.Errorf("sendChPostAsVamp (1): %v", err)
+				return fmt.Errorf("sendChPostAsVamp GetPostByDonorIdAndChId err: %v", err)
 			}
 			futureMesJson["reply_to_message_id"] = currPost.PostId
 		}
 
-		var messText string // строка в которую скопируем значение текста поста, тк структуры копируются по ебаной ссылке, и если срезаем часть текста то потом везде так будет
+		var messText string                            // строка в которую скопируем значение текста поста, тк структуры копируются по ебаной ссылке, и если срезаем часть текста то потом везде так будет
+		mycopy.DeepCopy(m.ChannelPost.Text, &messText) // какого хуя в Го структуры копируются по ссылке  ??
+
 		if len(m.ChannelPost.Entities) > 0 {
-			entities := make([]models.MessageEntity, len(m.ChannelPost.Entities))
+			entities := make([]models.MessageEntity, 0)
 			mycopy.DeepCopy(m.ChannelPost.Entities, &entities)
-			cutEntities := false
-			for i, v := range entities {
-				if strings.HasPrefix(v.Url, "http://fake-link") || strings.HasPrefix(v.Url, "fake-link") || strings.HasPrefix(v.Url, "https://fake-link") {
-					groupLink, err := srv.db.GetGroupLinkById(vampBot.GroupLinkId)
-					if err != nil && !errors.Is(err, repository.ErrNotFound) {
-						return err
-					}
-					srv.l.Info("sendChPostAsVamp -> если просто текст -> entities -> GetGroupLinkById", zap.Any("vampBot", vampBot), zap.Any("groupLink", groupLink))
-					if groupLink.Link == "" {
-						continue
-					}
-					if strings.HasPrefix(groupLink.Link, "http://cut-link") || strings.HasPrefix(groupLink.Link, "cut-link") || strings.HasPrefix(groupLink.Link, "https://cut-link") {
-						mycopy.DeepCopy(m.ChannelPost.Text, &messText)// какого хуя в Го структуры копируются по ссылке  ??
-						messText = strings.Replace(messText, "Переходим по ссылке - ССЫЛКА", "", -1)
-						messText = strings.Replace(messText, "👉 РЕГИСТРАЦИЯ ТУТ 👈", "", -1)
-						messText = strings.Replace(messText, "🔖 Написать мне 🔖", "", -1)
-						cutEntities = true
-						break
-					}
-					entities[i].Url = groupLink.Link
-					continue
-				}
-				urlArr := strings.Split(v.Url, "/")
-				for ii, vv := range urlArr {
-					if vv == "t.me" && urlArr[ii+1] == "c" {
-						refToDonorChPostId, err := strconv.Atoi(urlArr[ii+3])
-						if err != nil {
-							return err
-						}
-						currPost, err := srv.db.GetPostByDonorIdAndChId(refToDonorChPostId, vampBot.ChId)
-						if err != nil {
-							return fmt.Errorf("sendChPostAsVamp (2): %v", err)
-						}
-						if vampBot.ChId < 0 {
-							urlArr[ii+2] = strconv.Itoa(-vampBot.ChId)
-						} else {
-							urlArr[ii+2] = strconv.Itoa(vampBot.ChId)
-						}
-						if urlArr[ii+2][0] == '1' && urlArr[ii+2][1] == '0' && urlArr[ii+2][2] == '0' {
-							urlArr[ii+2] = urlArr[ii+2][3:]
-						}
-						urlArr[ii+3] = strconv.Itoa(currPost.PostId)
-						entities[i].Url = strings.Join(urlArr, "/")
-					}
-				}
+
+			var newEntities []models.MessageEntity
+			var err error
+
+			newEntities, messText, err = srv.PrepareEntities(entities, messText, vampBot)
+			if err != nil {
+				return fmt.Errorf("sendChPostAsVamp PrepareEntities err: %v", err)
 			}
-			if !cutEntities {
-				futureMesJson["entities"] = entities
+			if newEntities != nil {
+				futureMesJson["entities"] = newEntities
 			}
 		}
 
-		text_message := m.ChannelPost.Text
-		if messText != "" {
-			futureMesJson["text"] = messText
-		}else{
-			futureMesJson["text"] = text_message
-		}
+		futureMesJson["text"] = messText
+
 		json_data, err := json.Marshal(futureMesJson)
 		if err != nil {
 			return err
@@ -338,54 +290,30 @@ func (srv *TgService) sendChPostAsVamp_Video_or_Photo(vampBot entity.Bot, m mode
 		replToDonorChPostId := m.ChannelPost.ReplyToMessage.MessageId
 		currPost, err := srv.db.GetPostByDonorIdAndChId(replToDonorChPostId, vampBot.ChId)
 		if err != nil {
-			return fmt.Errorf("sendChPostAsVamp_Video_or_Photo (1): %v", err)
+			return fmt.Errorf("sendChPostAsVamp_Video_or_Photo GetPostByDonorIdAndChId err: %v", err)
 		}
 		futureVideoJson["reply_to_message_id"] = strconv.Itoa(currPost.PostId)
 	}
+
 	if m.ChannelPost.Caption != nil {
 		futureVideoJson["caption"] = *m.ChannelPost.Caption
 	}
+
 	if len(m.ChannelPost.CaptionEntities) > 0 {
 		entities := make([]models.MessageEntity, len(m.ChannelPost.CaptionEntities))
 		mycopy.DeepCopy(m.ChannelPost.CaptionEntities, &entities)
-		for i, v := range entities {
-			if strings.HasPrefix(v.Url, "http://fake-link") || strings.HasPrefix(v.Url, "fake-link") || strings.HasPrefix(v.Url, "https://fake-link") {
-				groupLink, err := srv.db.GetGroupLinkById(vampBot.GroupLinkId)
-				if err != nil {
-					return err
-				}
-				entities[i].Url = groupLink.Link
-				continue
-			}
-			urlArr := strings.Split(v.Url, "/")
-			for ii, vv := range urlArr {
-				if len(urlArr) < 4 {
-					break
-				}
-				if vv == "t.me" && urlArr[ii+1] == "c" {
-					refToDonorChPostId, err := strconv.Atoi(urlArr[ii+3])
-					if err != nil {
-						return err
-					}
-					currPost, err := srv.db.GetPostByDonorIdAndChId(refToDonorChPostId, vampBot.ChId)
-					if err != nil {
-						return fmt.Errorf("sendChPostAsVamp_Video_or_Photo (2): %v", err)
-					}
-					if vampBot.ChId < 0 {
-						urlArr[ii+2] = strconv.Itoa(-vampBot.ChId)
-					} else {
-						urlArr[ii+2] = strconv.Itoa(vampBot.ChId)
-					}
-					if urlArr[ii+2][0] == '1' && urlArr[ii+2][1] == '0' && urlArr[ii+2][2] == '0' {
-						urlArr[ii+2] = urlArr[ii+2][3:]
-					}
-					urlArr[ii+3] = strconv.Itoa(currPost.PostId)
-					entities[i].Url = strings.Join(urlArr, "/")
-				}
-			}
+
+		var newEntities []models.MessageEntity
+		var err error
+
+		newEntities, _, err = srv.PrepareEntities(entities, "", vampBot)
+		if err != nil {
+			return fmt.Errorf("sendChPostAsVamp PrepareEntities err: %v", err)
 		}
-		j, _ := json.Marshal(entities)
-		futureVideoJson["caption_entities"] = string(j)
+		if newEntities != nil {
+			j, _ := json.Marshal(entities)
+			futureVideoJson["caption_entities"] = string(j)
+		}
 	}
 
 	fileId := ""
@@ -414,7 +342,7 @@ func (srv *TgService) sendChPostAsVamp_Video_or_Photo(vampBot entity.Bot, m mode
 		return err
 	}
 	if !cAny.Ok {
-		return fmt.Errorf("NOT OK GET " + postType + " FILE PATH! _")
+		return fmt.Errorf("NOT OK GET %s FILE PATH! _", postType)
 	}
 	fileNameDir := strings.Split(cAny.Result.File_path, ".")
 	fileNameInServer := fmt.Sprintf("./files/%s.%s", cAny.Result.File_unique_id, fileNameDir[1])
@@ -546,12 +474,14 @@ func (srv *TgService) sendAndDeleteMedia(vampBot entity.Bot, fileNameInServer st
 		Ok     bool `json:"ok"`
 		Result struct {
 			MessageId int `json:"message_id"`
-			Chat      struct { Id int `json:"id"` } `json:"chat"`
-			Video     models.Video                  `json:"video"`
-			Photo     []models.PhotoSize            `json:"photo"`
+			Chat      struct {
+				Id int `json:"id"`
+			} `json:"chat"`
+			Video models.Video       `json:"video"`
+			Photo []models.PhotoSize `json:"photo"`
 		} `json:"result,omitempty"`
-		ErrorCode   any  `json:"error_code,omitempty"`
-		Description any  `json:"description,omitempty"`
+		ErrorCode   any `json:"error_code,omitempty"`
+		Description any `json:"description,omitempty"`
 	}
 	if err := json.NewDecoder(rrres.Body).Decode(&cAny2); err != nil && err != io.EOF {
 		return "", fmt.Errorf("sendAndDeleteMedia: json.NewDecoder(rrres.Body).Decode(&cAny2): %v", err)
@@ -624,7 +554,6 @@ func (s *TgService) sendChPostAsVamp_Media_Group() error {
 			}
 			mediaArr[i].File_id = fileId
 
-			// fn replaceReplyMessId
 			if media.Reply_to_donor_message_id != 0 {
 				replToDonorChPostId := media.Reply_to_donor_message_id
 				currPost, err := s.db.GetPostByDonorIdAndChId(replToDonorChPostId, vampBot.ChId)
@@ -633,48 +562,21 @@ func (s *TgService) sendChPostAsVamp_Media_Group() error {
 				}
 				mediaArr[i].Reply_to_message_id = currPost.PostId
 			}
-			// fn replaceCaptionEntities
+
 			if len(media.Caption_entities) > 0 {
-				entities := make([]models.MessageEntity, len(media.Caption_entities))
+				entities := make([]models.MessageEntity, 0)
 				mycopy.DeepCopy(media.Caption_entities, &entities)
-				for i, v := range entities {
-					if strings.HasPrefix(v.Url, "http://fake-link") || strings.HasPrefix(v.Url, "fake-link") || strings.HasPrefix(v.Url, "https://fake-link") {
-						groupLink, err := s.db.GetGroupLinkById(vampBot.GroupLinkId)
-						if err != nil {
-							s.l.Error("sendChPostAsVamp_Media_Group: GetGroupLinkById", zap.Error(err))
-						}
-						entities[i].Url = groupLink.Link
-						continue
-					}
-					urlArr := strings.Split(v.Url, "/")
-					for ii, vv := range urlArr {
-						if len(urlArr) < 4 {
-							break
-						}
-						if vv == "t.me" && urlArr[ii+1] == "c" {
-							fmt.Printf("\nэто ссылка на канал %s и пост %s\n", urlArr[ii+2], urlArr[ii+3])
-							refToDonorChPostId, err := strconv.Atoi(urlArr[ii+3])
-							if err != nil {
-								s.l.Error("sendChPostAsVamp_Media_Group: strconv.Atoi (1)", zap.Error(err))
-							}
-							currPost, err := s.db.GetPostByDonorIdAndChId(refToDonorChPostId, vampBot.ChId)
-							if err != nil {
-								s.l.Error("sendChPostAsVamp_Media_Group: service queue (2)", zap.Error(err))
-							}
-							if vampBot.ChId < 0 {
-								urlArr[ii+2] = strconv.Itoa(-vampBot.ChId)
-							} else {
-								urlArr[ii+2] = strconv.Itoa(vampBot.ChId)
-							}
-							if urlArr[ii+2][0] == '1' && urlArr[ii+2][1] == '0' && urlArr[ii+2][2] == '0' {
-								urlArr[ii+2] = urlArr[ii+2][3:]
-							}
-							urlArr[ii+3] = strconv.Itoa(currPost.PostId)
-							entities[i].Url = strings.Join(urlArr, "/")
-						}
-					}
+
+				var newEntities []models.MessageEntity
+				var err error
+
+				newEntities, _, err = s.PrepareEntities(entities, "", vampBot)
+				if err != nil {
+					return fmt.Errorf("sendChPostAsVamp PrepareEntities err: %v", err)
 				}
-				mediaArr[i].Caption_entities = entities
+				if newEntities != nil {
+					mediaArr[i].Caption_entities = newEntities
+				}
 			}
 		}
 
@@ -719,9 +621,11 @@ func (s *TgService) sendChPostAsVamp_Media_Group() error {
 			Description string `json:"description"`
 			Result      []struct {
 				MessageId int `json:"message_id,omitempty"`
-				Chat      struct { Id int `json:"id,omitempty"` } `json:"chat,omitempty"`
-				Video     models.Video                            `json:"video,omitempty"`
-				Photo     []models.PhotoSize                      `json:"photo,omitempty"`
+				Chat      struct {
+					Id int `json:"id,omitempty"`
+				} `json:"chat,omitempty"`
+				Video models.Video       `json:"video,omitempty"`
+				Photo []models.PhotoSize `json:"photo,omitempty"`
 			} `json:"result,omitempty"`
 		}
 		if err := json.NewDecoder(rrresfyhfy.Body).Decode(&cAny223); err != nil && err != io.EOF {
@@ -733,7 +637,7 @@ func (s *TgService) sendChPostAsVamp_Media_Group() error {
 				continue
 			}
 			for _, med := range mediaArr {
-				time.Sleep(time.Millisecond * 500)
+				time.Sleep(time.Millisecond * 300)
 				err = s.db.AddNewPost(vampBot.ChId, v.MessageId, med.Donor_message_id)
 				if err != nil {
 					s.l.Error("sendChPostAsVamp_Media_Group: s.db.AddNewPost", zap.Error(err))

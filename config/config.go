@@ -24,16 +24,16 @@ func Get() *Config {
 	var c Config
 
 	c.Tg.TgEndp = os.Getenv("TG_ENDPOINT")
-	c.Tg.Token  = os.Getenv("BOT_TOKEN")
+	c.Tg.Token = os.Getenv("BOT_TOKEN")
 
 	c.Server.Port = os.Getenv("APP_PORT")
-	c.Db.User     = os.Getenv("PG_USER")
+	c.Db.User = os.Getenv("PG_USER")
 	c.Db.Password = os.Getenv("PG_PASSWORD")
 	c.Db.Database = os.Getenv("PG_DATABASE")
-	c.Db.Host     = os.Getenv("PG_HOST")
-	c.Db.Port     = os.Getenv("PG_PORT")
+	c.Db.Host = os.Getenv("PG_HOST")
+	c.Db.Port = os.Getenv("PG_PORT")
 
-/////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////
 	// c.TG_ENDPOINT = "https://api.telegram.org/bot%s/%s"
 	// c.TOKEN       = ""
 	// c.PORT        = ""

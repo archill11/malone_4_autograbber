@@ -39,7 +39,6 @@ func (srv *TgService) HandleNewChatMember(m models.Update) error {
 	return nil
 }
 
-
 func (srv *TgService) NCM_administrator(m models.Update) error {
 	srv.l.Info("NCM_administrator:", zap.Any("models.Update", m))
 	// status := m.MyChatMember.NewChatMember.Status

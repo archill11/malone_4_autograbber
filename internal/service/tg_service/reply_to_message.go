@@ -70,7 +70,7 @@ func (srv *TgService) HandleReplyToMessage(m models.Update) error {
 		chatId := m.Message.From.Id
 		replyMes := m.Message.Text
 		replyMes = strings.TrimSpace(replyMes)
-	
+
 		grId, err := strconv.Atoi(replyMes)
 		if err != nil {
 			srv.SendMessage(chatId, u.ERR_MSG)
@@ -192,7 +192,7 @@ func (srv *TgService) RM_add_ch_to_bot_spet2(m models.Update, botId int) error {
 	srv.l.Info("tg_service: RM_add_ch_to_bot_spet2", zap.Any("rm.Text", rm.Text), zap.Any("replyMes", replyMes))
 	replyMes = strings.TrimSpace(replyMes)
 
-	chId, err := strconv.Atoi("-100"+replyMes)
+	chId, err := strconv.Atoi("-100" + replyMes)
 	if err != nil {
 		srv.SendMessage(chatId, fmt.Sprintf("%s: %v", u.ERR_MSG, err))
 		return err
@@ -342,7 +342,7 @@ func (srv *TgService) RM_edit_bot_group_link(m models.Update) error {
 	if err != nil {
 		return fmt.Errorf("RM_edit_bot_group_link: EditBotGroupLinkId-%d grId-%d : %v", botId, groupLinkId, err)
 	}
-	
+
 	err = srv.SendMessage(chatId, fmt.Sprintf("для бота %d, ссылка успешно изменена %d -> %d", botId, oldGroupLink, groupLinkId))
 	return err
 }

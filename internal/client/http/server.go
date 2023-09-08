@@ -7,24 +7,24 @@ import (
 	"go.uber.org/zap"
 )
 
-type(
+type (
 	SerConfig struct {
 		Port string
 	}
 
 	APIServer struct {
-		Server  *fiber.App
-		l       *zap.Logger
-		sem     chan struct{}
+		Server *fiber.App
+		l      *zap.Logger
+		sem    chan struct{}
 	}
-) 
+)
 
 func New(conf SerConfig, l *zap.Logger) (*APIServer, error) {
 	app := fiber.New()
 	ser := &APIServer{
-		Server:  app,
-		l:       l,
-		sem:     make(chan struct{}, runtime.NumCPU()),
+		Server: app,
+		l:      l,
+		sem:    make(chan struct{}, runtime.NumCPU()),
 	}
 
 	return ser, nil

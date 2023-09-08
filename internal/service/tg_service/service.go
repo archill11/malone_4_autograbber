@@ -19,7 +19,7 @@ import (
 
 const StoreKey = "example"
 
-type(
+type (
 	UpdateConfig struct {
 		Offset  int
 		Timeout int
@@ -27,12 +27,12 @@ type(
 	}
 
 	TgConfig struct {
-		TgEndp         string
-		Token          string
+		TgEndp string
+		Token  string
 	}
-	
+
 	TgService struct {
-		Cfg   TgConfig
+		Cfg        TgConfig
 		db         *pg.Database
 		l          *zap.Logger
 		MediaCh    chan Media
@@ -60,32 +60,20 @@ type (
 
 func New(conf TgConfig, db *pg.Database, l *zap.Logger) (*TgService, error) {
 	s := &TgService{
-		// MyPort:     conf.PORT,
-		Cfg:        conf,
-		db:         db,
-		l:          l,
-		MediaCh:    make(chan Media, 10),
+		Cfg:     conf,
+		db:      db,
+		l:       l,
+		MediaCh: make(chan Media, 10),
 		MediaStore: MediaStore{
 			MediaGroups: make(map[string][]Media),
 		},
 	}
 
-	// tgobotResp, err := s.getBotByToken(s.Token)
-	// if err != nil {
-	// 	return s, err
-	// }
-	// res := tgobotResp.Result
-	// bot := entity.NewBot(res.Id, res.UserName, res.FirstName, s.Token, 1)
-	// err = s.As.AddNewBot(bot.Id, bot.Username, bot.Firstname, bot.Token, bot.IsDonor)
-	// if err != nil {
-	// 	return s, err
-	// }
-
 	// удаление ненужных файлов
 	go func() {
 		mskLoc, _ := time.LoadLocation("Europe/Moscow")
 		cron := gocron.NewScheduler(mskLoc)
-		cron.Every(1).Day().At("02:30").Do(func(){
+		cron.Every(1).Day().At("02:30").Do(func() {
 			err := files.RemoveContentsFromDir("files")
 			if err != nil {
 				s.l.Error(fmt.Sprintf("files.RemoveContentsFromDir('files') err: %v", err))
@@ -98,9 +86,9 @@ func New(conf TgConfig, db *pg.Database, l *zap.Logger) (*TgService, error) {
 	// получение tg updates Donor
 	go func() {
 		updConf := UpdateConfig{
-			Offset: 0,
+			Offset:  0,
 			Timeout: 30,
-			Buffer: 1000,
+			Buffer:  1000,
 		}
 		updates, _ := s.GetUpdatesChan(&updConf, s.Cfg.Token)
 		for update := range updates {
@@ -147,7 +135,7 @@ func New(conf TgConfig, db *pg.Database, l *zap.Logger) (*TgService, error) {
 						arrsik = append(arrsik, nwmd)
 					}
 				}
-		
+
 				DonorBot, err := s.db.GetBotInfoByToken(s.Cfg.Token)
 				if err != nil {
 					s.l.Error("Channel: s.As.GetBotInfoByToken(s.Token)", zap.Error(err))
@@ -174,8 +162,8 @@ func New(conf TgConfig, db *pg.Database, l *zap.Logger) (*TgService, error) {
 				}
 
 				acceptMess = map[string]any{
-					"chat_id": strconv.Itoa(DonorBot.ChId),
-					"text":    "подтвердите сообщение сверху",
+					"chat_id":      strconv.Itoa(DonorBot.ChId),
+					"text":         "подтвердите сообщение сверху",
 					"reply_markup": `{ "inline_keyboard" : [[{ "text": "разослать по каналам", "callback_data": "accept_ch_post_by_admin" }]] }`,
 				}
 				MediaJson, err = json.Marshal(acceptMess)
@@ -213,7 +201,7 @@ func (ts *TgService) GetUpdatesChan(conf *UpdateConfig, token string) (chan mode
 					time.Sleep(time.Second * 3)
 					continue
 				}
-	
+
 				for _, update := range updates {
 					if update.UpdateId >= conf.Offset {
 						conf.Offset = update.UpdateId + 1
@@ -243,7 +231,7 @@ func (ts *TgService) GetUpdates(conf *UpdateConfig, token string) ([]models.Upda
 		bytes.NewBuffer(json_data),
 	)
 	if err != nil {
-		return  []models.Update{}, err
+		return []models.Update{}, err
 	}
 	defer resp.Body.Close()
 
@@ -298,10 +286,8 @@ func (srv *TgService) Donor_Update_v2(m models.Update) error {
 		return nil
 	}
 
-
 	return nil
 }
-
 
 func MediaInSlice(s []models.InputMedia, m models.InputMedia) bool {
 	for _, v := range s {
