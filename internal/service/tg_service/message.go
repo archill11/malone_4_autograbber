@@ -52,10 +52,13 @@ func (srv *TgService) M_admin(m models.Update) error {
 
 	u, err := srv.db.GetUserById(chatId)
 	if err != nil {
-		srv.SendMessage(chatId, "Нажмите сначала /start")
 		return err
 	}
-	if u.IsAdmin != 1 {
+	if u.Id == 0 {
+		srv.SendMessage(chatId, "Нажмите сначала /start")
+		return nil
+	}
+	if u.IsAdmin == 0 {
 		return nil
 	}
 	err = srv.showAdminPanel(chatId)
