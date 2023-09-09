@@ -7,7 +7,6 @@ import (
 	"log"
 	"myapp/internal/models"
 	"myapp/internal/repository/pg"
-	u "myapp/internal/utils"
 	"myapp/pkg/files"
 	"net/http"
 	"strconv"
@@ -269,7 +268,7 @@ func (srv *TgService) Donor_Update_v2(m models.Update) error {
 		err := srv.HandleReplyToMessage(m)
 		if err != nil {
 			srv.l.Error("donor_Update: HandleReplyToMessage(m)", zap.Error(err))
-			srv.SendMessage(chatId, fmt.Sprintf("%s: %v", u.ERR_MSG, err))
+			srv.SendMessage(chatId, fmt.Sprintf("%s: %v", ERR_MSG, err))
 		}
 		return nil
 	}

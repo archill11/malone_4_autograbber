@@ -8,7 +8,6 @@ import (
 	"io"
 	"myapp/internal/entity"
 	"myapp/internal/models"
-	u "myapp/internal/utils"
 	"myapp/pkg/files"
 	"myapp/pkg/mycopy"
 	"net/http"
@@ -30,7 +29,7 @@ func (srv *TgService) Donor_HandleChannelPost(m models.Update) error {
 	err := srv.Donor_addChannelPost(m)
 	if err != nil {
 		if err != nil {
-			srv.SendMessage(chatId, u.ERR_MSG_2+err.Error())
+			srv.SendMessage(chatId, ERR_MSG_2+err.Error())
 		}
 		return err
 	}
