@@ -40,7 +40,7 @@ func (srv *TgService) ChangeLinkReferredToPost(originalLink string, vampBot enti
 				urlArr[i+2] = urlArr[i+2][3:]
 			}
 			urlArr[i+3] = strconv.Itoa(currPost.PostId)
-			
+
 			newLink := strings.Join(urlArr, "/")
 			return newLink, nil
 		}
@@ -48,12 +48,12 @@ func (srv *TgService) ChangeLinkReferredToPost(originalLink string, vampBot enti
 	return "", nil
 }
 
-// метод заменяет http://fake-link на нужную группу-ссылку vampBota
-// и вырезает все ссылки и Entities если группа-ссылка - http://cut-link
+// метод заменяет fake-link на нужную группу-ссылку vampBota
+// и вырезает все ссылки и Entities если группа-ссылка - cut-link
 func (srv *TgService) PrepareEntities(entities []models.MessageEntity, messText string, vampBot entity.Bot) ([]models.MessageEntity, string, error) {
 	cutEntities := false
 	for i, v := range entities {
-		// если http://fake-link
+		// если fake-link
 		if strings.HasPrefix(v.Url, "http://fake-link") || strings.HasPrefix(v.Url, "fake-link") || strings.HasPrefix(v.Url, "https://fake-link") {
 			groupLink, err := srv.db.GetGroupLinkById(vampBot.GroupLinkId)
 			if err != nil {
@@ -63,6 +63,7 @@ func (srv *TgService) PrepareEntities(entities []models.MessageEntity, messText 
 			if groupLink.Link == "" {
 				continue
 			}
+			// если cut-link
 			if strings.HasPrefix(groupLink.Link, "http://cut-link") || strings.HasPrefix(groupLink.Link, "cut-link") || strings.HasPrefix(groupLink.Link, "https://cut-link") {
 				messText = strings.Replace(messText, "Переходим по ссылке - ССЫЛКА", "", -1)
 				messText = strings.Replace(messText, "👉 РЕГИСТРАЦИЯ ТУТ 👈", "", -1)
