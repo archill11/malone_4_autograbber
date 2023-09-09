@@ -13,13 +13,13 @@ import (
 // метод заменяет ссылку на канал и пост такого вида https://t.me/c/1949679854/4333, под конкретного vampBota
 func (srv *TgService) ChangeLinkReferredToPost(originalLink string, vampBot entity.Bot) (string, error) {
 	urlArr := strings.Split(originalLink, "/")
-	for ii, vv := range urlArr {
+	for i, v := range urlArr {
 		if len(urlArr) < 4 {
 			break
 		}
-		if vv == "t.me" && urlArr[ii+1] == "c" {
-			chId := urlArr[ii+2]
-			postId := urlArr[ii+3]
+		if v == "t.me" && urlArr[i+1] == "c" {
+			chId := urlArr[i+2]
+			postId := urlArr[i+3]
 			logMes := fmt.Sprintf("ChangeLinkReferredToPost: это ссылка на канал %s и пост %s", chId, postId)
 			srv.l.Info(logMes)
 
@@ -32,14 +32,14 @@ func (srv *TgService) ChangeLinkReferredToPost(originalLink string, vampBot enti
 				return "", fmt.Errorf("ChangeLinkToPost GetPostByDonorIdAndChId err: %v", err)
 			}
 			if vampBot.ChId < 0 {
-				urlArr[ii+2] = strconv.Itoa(-vampBot.ChId)
+				urlArr[i+2] = strconv.Itoa(-vampBot.ChId)
 			} else {
-				urlArr[ii+2] = strconv.Itoa(vampBot.ChId)
+				urlArr[i+2] = strconv.Itoa(vampBot.ChId)
 			}
-			if urlArr[ii+2][0] == '1' && urlArr[ii+2][1] == '0' && urlArr[ii+2][2] == '0' {
-				urlArr[ii+2] = urlArr[ii+2][3:]
+			if urlArr[i+2][0] == '1' && urlArr[i+2][1] == '0' && urlArr[i+2][2] == '0' {
+				urlArr[i+2] = urlArr[i+2][3:]
 			}
-			urlArr[ii+3] = strconv.Itoa(currPost.PostId)
+			urlArr[i+3] = strconv.Itoa(currPost.PostId)
 			return strings.Join(urlArr, "/"), nil
 		}
 	}
