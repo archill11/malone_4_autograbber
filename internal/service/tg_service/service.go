@@ -152,11 +152,7 @@ func New(conf TgConfig, db *pg.Database, l *zap.Logger) (*TgService, error) {
 				if err != nil {
 					s.l.Error("Channel: json.Marshal(acceptMess)", zap.Error(err))
 				}
-				_, err = http.Post(
-					fmt.Sprintf(s.Cfg.TgEndp, s.Cfg.Token, "sendMediaGroup"),
-					"application/json",
-					bytes.NewBuffer(MediaJson),
-				)
+				err = s.sendData(MediaJson, "sendMediaGroup")
 				if err != nil {
 					s.l.Error("Channel: http.Post(sendMediaGroup)", zap.Error(err))
 				}
@@ -170,7 +166,7 @@ func New(conf TgConfig, db *pg.Database, l *zap.Logger) (*TgService, error) {
 				if err != nil {
 					s.l.Error("Channel: json.Marshal(acceptMess) (2)", zap.Error(err))
 				}
-				err = s.sendData(MediaJson)
+				err = s.sendData(MediaJson, "sendMessage")
 				if err != nil {
 					s.l.Error("Channel: http.Post(sendMessage)", zap.Error(err))
 				}

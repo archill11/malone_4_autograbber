@@ -27,7 +27,7 @@ func (srv *TgService) showAdminPanel(chatId int) error {
 	if err != nil {
 		return err
 	}
-	err = srv.sendData(json_data)
+	err = srv.sendData(json_data, "sendMessage")
 	if err != nil {
 		return err
 	}

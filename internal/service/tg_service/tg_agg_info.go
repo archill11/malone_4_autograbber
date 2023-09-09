@@ -38,7 +38,7 @@ func (srv *TgService) showBotsAndChannels(chatId int) error {
 	if err != nil {
 		return err
 	}
-	err = srv.sendData(json_data)
+	err = srv.sendData(json_data, "sendMessage")
 	if err != nil {
 		return err
 	}
@@ -79,7 +79,7 @@ func (srv *TgService) showAllGroupLinks(chatId int) error {
 	if err != nil {
 		return err
 	}
-	err = srv.sendData(json_data)
+	err = srv.sendData(json_data, "sendMessage")
 	if err != nil {
 		return err
 	}

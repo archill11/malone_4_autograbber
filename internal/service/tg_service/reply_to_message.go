@@ -3,11 +3,9 @@ package tg_service
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"myapp/internal/entity"
 	"myapp/internal/models"
-	"myapp/internal/repository"
 	u "myapp/internal/utils"
 	"net/http"
 	"strconv"
@@ -139,12 +137,12 @@ func (srv *TgService) RM_delete_bot(m models.Update) error {
 	}
 	bot, err := srv.db.GetBotInfoById(id)
 	if err != nil {
-		if errors.Is(err, repository.ErrNotFound) {
-			srv.SendMessage(chatId, "я не знаю такого бота !")
-			return err
-		}
 		srv.SendMessage(chatId, u.ERR_MSG)
 		return err
+	}
+	if bot.Id == 0 {
+		srv.SendMessage(chatId, "я не знаю такого бота !")
+		return nil
 	}
 	if bot.IsDonor == 1 {
 		srv.SendMessage(chatId, "главного бота нельзя удалить")
@@ -172,12 +170,12 @@ func (srv *TgService) RM_add_ch_to_bot(m models.Update) error {
 	}
 	bot, err := srv.db.GetBotInfoById(id)
 	if err != nil {
-		if errors.Is(err, repository.ErrNotFound) {
-			srv.SendMessage(chatId, "я не знаю такого бота !")
-			return err
-		}
 		srv.SendMessage(chatId, u.ERR_MSG)
 		return err
+	}
+	if bot.Id == 0 {
+		srv.SendMessage(chatId, "я не знаю такого бота !")
+		return nil
 	}
 
 	err = srv.SendForceReply(chatId, fmt.Sprintf("укажите id канала в котором уже бот админ и к которому нужно привязать бота-%d", bot.Id))
@@ -199,12 +197,12 @@ func (srv *TgService) RM_add_ch_to_bot_spet2(m models.Update, botId int) error {
 	}
 	bot, err := srv.db.GetBotInfoById(botId)
 	if err != nil {
-		if errors.Is(err, repository.ErrNotFound) {
-			srv.SendMessage(chatId, "я не знаю такого бота !")
-			return err
-		}
 		srv.SendMessage(chatId, u.ERR_MSG)
 		return err
+	}
+	if bot.Id == 0 {
+		srv.SendMessage(chatId, "я не знаю такого бота !")
+		return nil
 	}
 
 	json_data, err := json.Marshal(map[string]any{
@@ -256,12 +254,12 @@ func (srv *TgService) RM_add_admin(m models.Update) error {
 
 	usr, err := srv.db.GetUserByUsername(strings.TrimSpace(replyMes))
 	if err != nil {
-		if errors.Is(err, repository.ErrNotFound) {
-			srv.SendMessage(chatId, "я не знаю такого юзера , пусть напишет мне /start")
-			return err
-		}
 		srv.SendMessage(chatId, u.ERR_MSG)
 		return fmt.Errorf("RM_add_admin: srv.db.GetUserByUsername(%s) : %v", strings.TrimSpace(replyMes), err)
+	}
+	if usr.Id == 0 {
+		srv.SendMessage(chatId, "я не знаю такого юзера , пусть напишет мне /start")
+		return nil
 	}
 	err = srv.db.EditAdmin(usr.Username, 1)
 	if err != nil {

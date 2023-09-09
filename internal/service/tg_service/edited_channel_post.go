@@ -1,16 +1,12 @@
 package tg_service
 
 import (
-	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"myapp/internal/entity"
 	"myapp/internal/models"
-	"myapp/internal/repository"
 	u "myapp/internal/utils"
 	"myapp/pkg/mycopy"
-	"net/http"
 	"strconv"
 	"strings"
 	"time"
@@ -36,12 +32,6 @@ func (srv *TgService) Donor_HandleEditedChannelPost(m models.Update) error {
 }
 
 func (srv *TgService) Donor_editEditedChannelPost(m models.Update) error {
-	// chatId := m.Message.Chat.ID
-	// msgText := m.Message.Text
-	// userFirstName := m.Message.From.FirstName
-	// userUserName := m.Message.From.UserName
-	// srv.l.Info("tg_service::AddEditedChannelPost::")
-
 	message_id := m.EditedChannelPost.MessageId
 
 	// Проверка что пост есть уже в базе нужна для того что бы телега не отрпавляла
@@ -111,18 +101,20 @@ func (srv *TgService) Donor_editEditedChannelPost(m models.Update) error {
 
 func (srv *TgService) editChPostAsVamp(vampBot entity.Bot, m models.Update) error {
 	donor_ch_mes_id := m.EditedChannelPost.MessageId
-	if strings.ToLower(m.EditedChannelPost.Text) == "deletepost" || strings.ToLower(m.EditedChannelPost.Text) == "delete post" {
+
+	if strings.ToLower(m.EditedChannelPost.Text) == "deletepost" || strings.ToLower(m.EditedChannelPost.Text) == "delete post" || strings.ToLower(m.EditedChannelPost.Text) == "delete"{
 		currPost, err := srv.db.GetPostByDonorIdAndChId(donor_ch_mes_id, vampBot.ChId)
 		if err != nil {
-			return fmt.Errorf("sendChPostAsVamp (1): %v", err)
+			return fmt.Errorf("editChPostAsVamp GetPostByDonorIdAndChId err: %v", err)
 		}
 		messageForDelete := currPost.PostId
-		err = srv.DeleteMessage(vampBot.ChId, messageForDelete)
+		err = srv.DeleteMessage(vampBot.ChId, messageForDelete, vampBot.Token)
 		if err != nil {
 			return err
 		}
 		return nil
 	}
+
 	if m.EditedChannelPost.VideoNote != nil {
 		//////////////// если кружочек видео
 		return nil
@@ -139,81 +131,37 @@ func (srv *TgService) editChPostAsVamp(vampBot entity.Bot, m models.Update) erro
 		}
 		currPost, err := srv.db.GetPostByDonorIdAndChId(donor_ch_mes_id, vampBot.ChId)
 		if err != nil {
-			return fmt.Errorf("sendChPostAsVamp (1): %v", err)
+			return fmt.Errorf("editChPostAsVamp GetPostByDonorIdAndChId err: %v", err)
 		}
 		futureMesJson["message_id"] = currPost.PostId
 
-		var messText string // строка в которую скопируем значение текста поста, тк структуры копируются по ебаной ссылке, и если срезаем часть текста то потом везде так будет
-		if len(m.EditedChannelPost.Entities) > 0 {
-			entities := make([]models.MessageEntity, len(m.EditedChannelPost.Entities))
-			mycopy.DeepCopy(m.EditedChannelPost.Entities, &entities)
-			cutEntities := false
-			for i, v := range entities {
-				if strings.HasPrefix(v.Url, "http://fake-link") || strings.HasPrefix(v.Url, "fake-link") || strings.HasPrefix(v.Url, "https://fake-link") {
-					groupLink, err := srv.db.GetGroupLinkById(vampBot.GroupLinkId)
-					if err != nil && !errors.Is(err, repository.ErrNotFound) {
-						return err
-					}
-					srv.l.Info("sendChPostAsVamp -> если просто текст -> entities -> GetGroupLinkById", zap.Any("vampBot", vampBot), zap.Any("groupLink", groupLink))
-					if groupLink.Link == "" {
-						continue
-					}
-					if strings.HasPrefix(groupLink.Link, "http://cut-link") || strings.HasPrefix(groupLink.Link, "cut-link") || strings.HasPrefix(groupLink.Link, "https://cut-link") {
-						mycopy.DeepCopy(m.EditedChannelPost.Text, &messText) // какого хуя в Го структуры копируются по ссылке ??
-						messText = strings.Replace(messText, "Переходим по ссылке - ССЫЛКА", "", -1)
-						messText = strings.Replace(messText, "👉 РЕГИСТРАЦИЯ ТУТ 👈", "", -1)
-						messText = strings.Replace(messText, "🔖 Написать мне 🔖", "", -1)
-						cutEntities = true
-						break
-					}
-					entities[i].Url = groupLink.Link
-					continue
-				}
-				urlArr := strings.Split(v.Url, "/")
-				for ii, vv := range urlArr {
-					if vv == "t.me" && urlArr[ii+1] == "c" {
-						refToDonorChPostId, err := strconv.Atoi(urlArr[ii+3])
-						if err != nil {
-							return err
-						}
-						currPost, err := srv.db.GetPostByDonorIdAndChId(refToDonorChPostId, vampBot.ChId)
-						if err != nil {
-							return fmt.Errorf("sendChPostAsVamp (2): %v", err)
-						}
-						if vampBot.ChId < 0 {
-							urlArr[ii+2] = strconv.Itoa(-vampBot.ChId)
-						} else {
-							urlArr[ii+2] = strconv.Itoa(vampBot.ChId)
-						}
-						if urlArr[ii+2][0] == '1' && urlArr[ii+2][1] == '0' && urlArr[ii+2][2] == '0' {
-							urlArr[ii+2] = urlArr[ii+2][3:]
-						}
-						urlArr[ii+3] = strconv.Itoa(currPost.PostId)
-						entities[i].Url = strings.Join(urlArr, "/")
-					}
-				}
+		var messText string
+		mycopy.DeepCopy(m.ChannelPost.Text, &messText)
+
+		if len(m.ChannelPost.Entities) > 0 {
+			entities := make([]models.MessageEntity, 0)
+			mycopy.DeepCopy(m.ChannelPost.Entities, &entities)
+
+			var newEntities []models.MessageEntity
+			var err error
+
+			newEntities, messText, err = srv.PrepareEntities(entities, messText, vampBot)
+			if err != nil {
+				return fmt.Errorf("editChPostAsVamp PrepareEntities err: %v", err)
 			}
-			if !cutEntities {
-				futureMesJson["entities"] = entities
+			if newEntities != nil {
+				futureMesJson["entities"] = newEntities
 			}
 		}
 
-		text_message := m.EditedChannelPost.Text
-		if messText != "" {
-			futureMesJson["text"] = messText
-		} else {
-			futureMesJson["text"] = text_message
-		}
+		futureMesJson["text"] = messText
+
 		json_data, err := json.Marshal(futureMesJson)
 		if err != nil {
 			return err
 		}
-		srv.l.Info("sendChPostAsVamp -> если просто текст -> http.Post", zap.Any("futureMesJson", futureMesJson), zap.Any("string(json_data)", string(json_data)))
-		_, err = http.Post(
-			fmt.Sprintf(srv.Cfg.TgEndp, vampBot.Token, "editMessageText"),
-			"application/json",
-			bytes.NewBuffer(json_data),
-		)
+		srv.l.Info("editChPostAsVamp -> если просто текст -> http.Post", zap.Any("futureMesJson", futureMesJson), zap.Any("string(json_data)", string(json_data)))
+		err = srv.EditMessageText(json_data, vampBot.Token)
 		if err != nil {
 			return err
 		}

@@ -55,7 +55,7 @@ func (srv *TgService) SendForceReply(chat int, mess string) error {
 	if err != nil {
 		return err
 	}
-	err = srv.sendData(json_data)
+	err = srv.sendData(json_data, "sendMessage")
 	if err != nil {
 		return err
 	}
@@ -70,14 +70,14 @@ func (srv *TgService) SendMessage(chat int, mess string) error {
 	if err != nil {
 		return err
 	}
-	err = srv.sendData(json_data)
+	err = srv.sendData(json_data, "sendMessage")
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (srv *TgService) DeleteMessage(chat, messId int) error {
+func (srv *TgService) DeleteMessage(chat, messId int, botToken string) error {
 	json_data, err := json.Marshal(map[string]any{
 		"chat_id":    strconv.Itoa(chat),
 		"message_id": strconv.Itoa(messId),
@@ -85,8 +85,32 @@ func (srv *TgService) DeleteMessage(chat, messId int) error {
 	if err != nil {
 		return err
 	}
-	_, err = http.Post(
-		fmt.Sprintf(srv.Cfg.TgEndp, srv.Cfg.Token, "deleteMessage"),
+	err = srv.sendData_v2(json_data, botToken, "deleteMessage")
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (srv *TgService) EditMessageText(json_data []byte, botToken string) error {
+	err := srv.sendData_v2(json_data, botToken, "editMessageText")
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (srv *TgService) EditMessageCaption(json_data []byte, botToken string) error {
+	err := srv.sendData_v2(json_data, botToken, "editMessageCaption")
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (srv *TgService) sendData(json_data []byte, method string) error {
+	_, err := http.Post(
+		fmt.Sprintf(srv.Cfg.TgEndp, srv.Cfg.Token, method),
 		"application/json",
 		bytes.NewBuffer(json_data),
 	)
@@ -96,9 +120,9 @@ func (srv *TgService) DeleteMessage(chat, messId int) error {
 	return nil
 }
 
-func (srv *TgService) sendData(json_data []byte) error {
+func (srv *TgService) sendData_v2(json_data []byte, botToken, method string) error {
 	_, err := http.Post(
-		fmt.Sprintf(srv.Cfg.TgEndp, srv.Cfg.Token, "sendMessage"),
+		fmt.Sprintf(srv.Cfg.TgEndp, botToken, method),
 		"application/json",
 		bytes.NewBuffer(json_data),
 	)
