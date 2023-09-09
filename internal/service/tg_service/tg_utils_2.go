@@ -40,6 +40,7 @@ func (srv *TgService) ChangeLinkReferredToPost(originalLink string, vampBot enti
 				urlArr[i+2] = urlArr[i+2][3:]
 			}
 			urlArr[i+3] = strconv.Itoa(currPost.PostId)
+			
 			newLink := strings.Join(urlArr, "/")
 			return newLink, nil
 		}
