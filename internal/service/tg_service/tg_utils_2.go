@@ -32,14 +32,14 @@ func (srv *TgService) ChangeLinkReferredToPost(originalLink string, vampBot enti
 				return "", fmt.Errorf("ChangeLinkToPost GetPostByDonorIdAndChId err: %v", err)
 			}
 			if vampBot.ChId < 0 {
-				chId = strconv.Itoa(-vampBot.ChId)
+				urlArr[ii+2] = strconv.Itoa(-vampBot.ChId)
 			} else {
-				chId = strconv.Itoa(vampBot.ChId)
+				urlArr[ii+2] = strconv.Itoa(vampBot.ChId)
 			}
-			if chId[0] == '1' && chId[1] == '0' && chId[2] == '0' {
-				chId = chId[3:]
+			if urlArr[ii+2][0] == '1' && urlArr[ii+2][1] == '0' && urlArr[ii+2][2] == '0' {
+				urlArr[ii+2] = urlArr[ii+2][3:]
 			}
-			postId = strconv.Itoa(currPost.PostId)
+			urlArr[ii+3] = strconv.Itoa(currPost.PostId)
 			return strings.Join(urlArr, "/"), nil
 		}
 	}
