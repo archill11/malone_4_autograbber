@@ -1,16 +1,7 @@
 package entity
 
 type Post struct {
-	ChId          int
-	PostId        int
-	DonorChPostId int
-}
-
-func NewPost(chId, postId, donorChPostId int) Post {
-	r := Post{
-		ChId:          chId,
-		PostId:        postId,
-		DonorChPostId: donorChPostId,
-	}
-	return r
+	ChId          int `json:"ch_id"`
+	PostId        int `json:"post_id"`
+	DonorChPostId int `json:"donor_ch_post_id"`
 }

@@ -45,7 +45,7 @@ func (srv *TgService) M_start(m models.Update) error {
 }
 
 func (srv *TgService) M_admin(m models.Update) error {
-	chatId := m.Message.Chat.Id
+	chatId := m.Message.From.Id
 	msgText := m.Message.Text
 	userUserName := m.Message.From.UserName
 	srv.l.Info("M_admin:", zap.Any("userUserName", userUserName), zap.Any("msgText", msgText))
@@ -59,6 +59,7 @@ func (srv *TgService) M_admin(m models.Update) error {
 		return nil
 	}
 	if u.IsAdmin == 0 {
+		srv.SendMessage(chatId, "___")
 		return nil
 	}
 	err = srv.showAdminPanel(chatId)

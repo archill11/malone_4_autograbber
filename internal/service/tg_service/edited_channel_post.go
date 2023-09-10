@@ -135,11 +135,11 @@ func (srv *TgService) editChPostAsVamp(vampBot entity.Bot, m models.Update) erro
 		futureMesJson["message_id"] = currPost.PostId
 
 		var messText string
-		mycopy.DeepCopy(m.ChannelPost.Text, &messText)
+		mycopy.DeepCopy(m.EditedChannelPost.Text, &messText)
 
-		if len(m.ChannelPost.Entities) > 0 {
+		if len(m.EditedChannelPost.Entities) > 0 {
 			entities := make([]models.MessageEntity, 0)
-			mycopy.DeepCopy(m.ChannelPost.Entities, &entities)
+			mycopy.DeepCopy(m.EditedChannelPost.Entities, &entities)
 
 			var newEntities []models.MessageEntity
 			var err error

@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"myapp/internal/entity"
 	"myapp/internal/models"
 	"net/http"
 	"strconv"
@@ -128,8 +127,7 @@ func (srv *TgService) RM_obtain_vampire_bot_token(m models.Update) error {
 		return err
 	}
 	res := tgobotResp.Result
-	bot := entity.NewBot(res.Id, res.UserName, res.FirstName, strings.TrimSpace(replyMes), 0)
-	err = srv.db.AddNewBot(bot.Id, bot.Username, bot.Firstname, bot.Token, bot.IsDonor)
+	err = srv.db.AddNewBot(res.Id, res.UserName, res.FirstName, replyMes, 0)
 	if err != nil {
 		return err
 	}
@@ -139,7 +137,7 @@ func (srv *TgService) RM_obtain_vampire_bot_token(m models.Update) error {
 	if len(grl) == 0 {
 		return nil
 	}
-	err = srv.SendForceReply(chatId, fmt.Sprintf(GROUP_LINK_FOR_BOT_MSG, bot.Id))
+	err = srv.SendForceReply(chatId, fmt.Sprintf(GROUP_LINK_FOR_BOT_MSG, res.Id))
 
 	return err
 }
