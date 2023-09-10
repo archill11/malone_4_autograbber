@@ -33,50 +33,7 @@ func (srv *TgService) Donor_HandleEditedChannelPost(m models.Update) error {
 func (srv *TgService) Donor_editEditedChannelPost(m models.Update) error {
 	// message_id := m.EditedChannelPost.MessageId
 
-	// Проверка что пост есть уже в базе нужна для того что бы телега не отрпавляла
-	// кучу запросов повторно , тк ответ долгий из за рассылки
 
-	// если Media_Group
-	// if m.EditedChannelPost.MediaGroupId != nil {
-	// 	var postType string
-	// 	if len(m.EditedChannelPost.Photo) > 0 {
-	// 		postType = "photo"
-	// 	} else if m.EditedChannelPost.Video.FileId != "" {
-	// 		postType = "video"
-	// 	} else {
-	// 		return fmt.Errorf("Media_Group без photo и video")
-	// 	}
-	// 	filePath, err := srv.downloadPostMedia(m, postType)
-	// 	if err != nil {
-	// 		return err
-	// 	}
-	// 	newmedia := Media{
-	// 		Media_group_id:            *m.EditedChannelPost.MediaGroupId,
-	// 		Type_media:                postType,
-	// 		fileNameInServer:          filePath,
-	// 		Donor_message_id:          message_id,
-	// 		Reply_to_donor_message_id: 0,
-	// 		Caption:                   "",
-	// 		Caption_entities:          m.EditedChannelPost.CaptionEntities,
-	// 		//File_id: // нужно для подтверждения в доноре, позже в вампирах заменяем
-	// 		//Reply_to_message_id:  // нужно для подтверждения в доноре, позже в вампирах заменяем
-	// 	}
-	// 	if postType == "photo" {
-	// 		newmedia.File_id = m.EditedChannelPost.Photo[len(m.EditedChannelPost.Photo)-1].FileId
-	// 	} else if postType == "video" {
-	// 		newmedia.File_id = m.EditedChannelPost.Video.FileId
-	// 	}
-	// 	if m.EditedChannelPost.ReplyToMessage != nil {
-	// 		newmedia.Reply_to_message_id = m.EditedChannelPost.ReplyToMessage.MessageId
-	// 		newmedia.Reply_to_donor_message_id = m.EditedChannelPost.ReplyToMessage.MessageId
-	// 	}
-	// 	if m.EditedChannelPost.Caption != nil {
-	// 		newmedia.Caption = *m.EditedChannelPost.Caption
-	// 	}
-
-	// 	srv.MediaCh <- newmedia
-	// 	return nil
-	// }
 
 	// если не Media_Group
 	allVampBots, err := srv.db.GetAllVampBots()
