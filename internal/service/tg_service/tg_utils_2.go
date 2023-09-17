@@ -88,3 +88,35 @@ func (srv *TgService) PrepareEntities(entities []models.MessageEntity, messText 
 	}
 	return nil, messText, nil
 }
+
+func (srv *TgService) PrepareReplyMarkup(entities models.InlineKeyboardMarkup, vampBot entity.Bot) (models.InlineKeyboardMarkup, error) {
+	for i, v := range entities.InlineKeyboard {
+		for ii, vv := range v {
+			if vv.Url == nil {
+				continue
+			}
+			// если fake-link
+			if strings.HasPrefix(*vv.Url, "http://fake-link") || strings.HasPrefix(*vv.Url, "fake-link") || strings.HasPrefix(*vv.Url, "https://fake-link") {
+				groupLink, err := srv.db.GetGroupLinkById(vampBot.GroupLinkId)
+				if err != nil {
+					return models.InlineKeyboardMarkup{}, err
+				}
+				srv.l.Info("PrepareEntities:", zap.Any("vampBot", vampBot), zap.Any("groupLink", groupLink))
+				if groupLink.Link == "" {
+					continue
+				}
+				entities.InlineKeyboard[i][ii].Url = &groupLink.Link
+				continue
+			}
+			// если Tg ссылка
+			newUrl, err := srv.ChangeLinkReferredToPost(*vv.Url, vampBot)
+			if err != nil {
+				return models.InlineKeyboardMarkup{}, fmt.Errorf("PrepareReplyMarkup ChangeLinkReferredToPost err: %v", err)
+			}
+			if newUrl != "" {
+				entities.InlineKeyboard[i][ii].Url = &newUrl
+			}
+		}
+	}
+	return entities, nil
+}

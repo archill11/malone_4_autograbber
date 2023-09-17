@@ -148,6 +148,16 @@ func (srv *TgService) sendChPostAsVamp(vampBot entity.Bot, m models.Update) erro
 			}
 			futureMesJson["reply_to_message_id"] = currPost.PostId
 		}
+		if m.ChannelPost.ReplyMarkup != nil {
+			var inlineKeyboardMarkup models.InlineKeyboardMarkup
+			mycopy.DeepCopy(m.ChannelPost.ReplyMarkup, &inlineKeyboardMarkup)
+
+			newInlineKeyboardMarkup, err := srv.PrepareReplyMarkup(inlineKeyboardMarkup, vampBot)
+			if err != nil {
+				return fmt.Errorf("sendChPostAsVamp PrepareReplyMarkup err: %v", err)
+			}
+			futureMesJson["reply_markup"] = newInlineKeyboardMarkup
+		}
 
 		var messText string                            // строка в которую скопируем значение текста поста, тк структуры копируются по ебаной ссылке, и если срезаем часть текста то потом везде так будет
 		mycopy.DeepCopy(m.ChannelPost.Text, &messText) // какого хуя в Го структуры копируются по ссылке  ??
@@ -292,6 +302,20 @@ func (srv *TgService) sendChPostAsVamp_Video_or_Photo(vampBot entity.Bot, m mode
 			return fmt.Errorf("sendChPostAsVamp_Video_or_Photo GetPostByDonorIdAndChId err: %v", err)
 		}
 		futureVideoJson["reply_to_message_id"] = strconv.Itoa(currPost.PostId)
+	}
+	if m.ChannelPost.ReplyMarkup != nil {
+		var inlineKeyboardMarkup models.InlineKeyboardMarkup
+		mycopy.DeepCopy(m.ChannelPost.ReplyMarkup, &inlineKeyboardMarkup)
+
+		newInlineKeyboardMarkup, err := srv.PrepareReplyMarkup(inlineKeyboardMarkup, vampBot)
+		if err != nil {
+			return fmt.Errorf("sendChPostAsVamp_Video_or_Photo PrepareReplyMarkup err: %v", err)
+		}
+		json_data, err := json.Marshal(newInlineKeyboardMarkup)
+		if err != nil {
+			srv.l.Error("sendChPostAsVamp_Video_or_Photo Marshal err", zap.Error(err), zap.Any("newInlineKeyboardMarkup", newInlineKeyboardMarkup))
+		}
+		futureVideoJson["reply_markup"] = string(json_data)
 	}
 
 	if m.ChannelPost.Caption != nil {

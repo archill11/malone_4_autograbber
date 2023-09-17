@@ -62,7 +62,7 @@ type Message struct {
 	Video                *Video          `json:"video"`
 	VideoNote            *VideoNote      `json:"video_note"`
 	IsTopicMessage       *bool           `json:"is_topic_message"`
-	// ReplyMarkup InlineKeyboardMarkup `json:"reply_markup"`
+	ReplyMarkup          *InlineKeyboardMarkup `json:"reply_markup"`
 }
 
 type ReplyToMessage struct {
@@ -216,11 +216,12 @@ type ChatInviteLink struct {
 	PendingJoinRequestCount int    `json:"pending_join_request_count"`
 }
 
-// type InlineKeyboardMarkup struct {
-// 	Inlinekeyboard []InlineKeyboardButton `json:"inline_keyboard"`
-// }
+type InlineKeyboardMarkup struct {
+	InlineKeyboard [][]InlineKeyboardButton `json:"inline_keyboard"`
+}
 
-// type InlineKeyboardButton struct {
-// 	Text string `json:"text"`
-// 	Url string `json:"url"`
-// }
+type InlineKeyboardButton struct {
+	Text         string  `json:"text"`
+	Url          *string `json:"url"`
+	CallbackData *string `json:"callback_data"`
+}
