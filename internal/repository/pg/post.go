@@ -6,11 +6,11 @@ import (
 	"myapp/internal/entity"
 )
 
-func (s *Database) AddNewPost(chId, postId, donorChPostId int) error {
-	q := `INSERT INTO posts (ch_id, post_id, donor_ch_post_id) 
-			VALUES ($1, $2, $3)
+func (s *Database) AddNewPost(chId, postId, donorChPostId int, caption string) error {
+	q := `INSERT INTO posts (ch_id, post_id, donor_ch_post_id, caption) 
+			VALUES ($1, $2, $3, $4)
 		ON CONFLICT DO NOTHING`
-	_, err := s.Exec(q, chId, postId, donorChPostId)
+	_, err := s.Exec(q, chId, postId, donorChPostId, caption)
 	if err != nil {
 		return fmt.Errorf("db: AddNewPost: ChId: %d PostId %d DonorChPostId %d err: %w", chId, postId, donorChPostId, err)
 	}

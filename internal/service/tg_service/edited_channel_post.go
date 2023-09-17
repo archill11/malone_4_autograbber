@@ -33,8 +33,6 @@ func (srv *TgService) Donor_HandleEditedChannelPost(m models.Update) error {
 func (srv *TgService) Donor_editEditedChannelPost(m models.Update) error {
 	// message_id := m.EditedChannelPost.MessageId
 
-
-
 	// если не Media_Group
 	allVampBots, err := srv.db.GetAllVampBots()
 	if err != nil {
@@ -65,14 +63,16 @@ func (srv *TgService) editChPostAsVamp(vampBot entity.Bot, m models.Update) erro
 		//////////////// если фото
 		if m.EditedChannelPost.Caption != nil {
 			if strings.ToLower(*m.EditedChannelPost.Caption) == "deletepost" || strings.ToLower(*m.EditedChannelPost.Caption) == "delete post" || strings.ToLower(*m.EditedChannelPost.Caption) == "delete"{
-				currPost, err := srv.db.GetPostByDonorIdAndChId(donor_ch_mes_id, vampBot.ChId)
+				currPosts, err := srv.db.GetPostsByDonorIdAndChId(donor_ch_mes_id, vampBot.ChId)
 				if err != nil {
-					return fmt.Errorf("editChPostAsVamp GetPostByDonorIdAndChId err: %v", err)
+					return fmt.Errorf("editChPostAsVamp GetPostsByDonorIdAndChId err: %v", err)
 				}
-				messageForDelete := currPost.PostId
-				err = srv.DeleteMessage(vampBot.ChId, messageForDelete, vampBot.Token)
-				if err != nil {
-					return err
+				for _, currPost := range currPosts {
+					messageForDelete := currPost.PostId
+					err = srv.DeleteMessage(vampBot.ChId, messageForDelete, vampBot.Token)
+					if err != nil {
+						return err
+					}
 				}
 				return nil
 			}
@@ -85,6 +85,9 @@ func (srv *TgService) editChPostAsVamp(vampBot entity.Bot, m models.Update) erro
 				return fmt.Errorf("editChPostAsVamp GetPostByDonorIdAndChId err: %v", err)
 			}
 			for _, currPost := range currPosts {
+				if currPost.Caption == "" {
+					continue
+				}
 				futureMesJson["message_id"] = currPost.PostId
 				var messText string
 				mycopy.DeepCopy(*m.EditedChannelPost.Caption, &messText)
@@ -112,7 +115,6 @@ func (srv *TgService) editChPostAsVamp(vampBot entity.Bot, m models.Update) erro
 				if err != nil {
 					return err
 				}
-
 			}
 		}
 		return nil
@@ -129,7 +131,7 @@ func (srv *TgService) editChPostAsVamp(vampBot entity.Bot, m models.Update) erro
 			messageForDelete := currPost.PostId
 			err = srv.DeleteMessage(vampBot.ChId, messageForDelete, vampBot.Token)
 			if err != nil {
-				return err
+				return fmt.Errorf("editChPostAsVamp DeleteMessage err: %v", err)
 			}
 			return nil
 		}
@@ -162,12 +164,12 @@ func (srv *TgService) editChPostAsVamp(vampBot entity.Bot, m models.Update) erro
 		futureMesJson["text"] = messText
 		json_data, err := json.Marshal(futureMesJson)
 		if err != nil {
-			return err
+			return fmt.Errorf("editChPostAsVamp Marshal err: %v", err)
 		}
 		srv.l.Info("editChPostAsVamp -> если просто текст -> http.Post", zap.Any("futureMesJson", futureMesJson), zap.Any("string(json_data)", string(json_data)))
 		err = srv.EditMessageText(json_data, vampBot.Token)
 		if err != nil {
-			return err
+			return fmt.Errorf("editChPostAsVamp EditMessageText err: %v", err)
 		}
 	}
 	return nil

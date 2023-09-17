@@ -53,7 +53,7 @@ func (srv *TgService) Donor_addChannelPost(m models.Update) error {
 	}
 
 	// добавили пост в БД
-	err = srv.db.AddNewPost(channel_id, message_id, message_id)
+	err = srv.db.AddNewPost(channel_id, message_id, message_id, "")
 	if err != nil {
 		return err
 	}
@@ -198,13 +198,14 @@ func (srv *TgService) sendChPostAsVamp(vampBot entity.Bot, m models.Update) erro
 			Ok     bool `json:"ok"`
 			Result struct {
 				MessageId int `json:"message_id"`
+				Caption   string `json:"caption"`
 			} `json:"result,omitempty"`
 		}
 		if err := json.NewDecoder(sendVampPostResp.Body).Decode(&cAny); err != nil {
 			return err
 		}
 		if cAny.Result.MessageId != 0 {
-			err = srv.db.AddNewPost(vampBot.ChId, cAny.Result.MessageId, donor_ch_mes_id)
+			err = srv.db.AddNewPost(vampBot.ChId, cAny.Result.MessageId, donor_ch_mes_id, cAny.Result.Caption)
 			if err != nil {
 				return err
 			}
@@ -276,13 +277,14 @@ func (srv *TgService) sendChPostAsVamp_VideoNote(vampBot entity.Bot, m models.Up
 		Ok     bool `json:"ok"`
 		Result struct {
 			MessageId int `json:"message_id"`
+			Caption   string `json:"caption"`
 		} `json:"result,omitempty"`
 	}
 	if err := json.NewDecoder(rrres.Body).Decode(&cAny2); err != nil && err != io.EOF {
 		return err
 	}
 	if cAny2.Result.MessageId != 0 {
-		err = srv.db.AddNewPost(vampBot.ChId, cAny2.Result.MessageId, donor_ch_mes_id)
+		err = srv.db.AddNewPost(vampBot.ChId, cAny2.Result.MessageId, donor_ch_mes_id, cAny2.Result.Caption)
 		if err != nil {
 			return err
 		}
@@ -405,8 +407,9 @@ func (srv *TgService) sendChPostAsVamp_Video_or_Photo(vampBot entity.Bot, m mode
 	var cAny2 struct {
 		Ok     bool `json:"ok"`
 		Result struct {
-			MessageId int `json:"message_id"`
-			Chat      struct {
+			MessageId int    `json:"message_id"`
+			Caption   string `json:"caption"`
+			Chat struct {
 				Id int `json:"id"`
 			} `json:"chat"`
 		} `json:"result,omitempty"`
@@ -415,7 +418,7 @@ func (srv *TgService) sendChPostAsVamp_Video_or_Photo(vampBot entity.Bot, m mode
 		return err
 	}
 	if cAny2.Result.MessageId != 0 {
-		err = srv.db.AddNewPost(vampBot.ChId, cAny2.Result.MessageId, donor_ch_mes_id)
+		err = srv.db.AddNewPost(vampBot.ChId, cAny2.Result.MessageId, donor_ch_mes_id, cAny2.Result.Caption)
 		if err != nil {
 			return err
 		}
@@ -644,6 +647,7 @@ func (s *TgService) sendChPostAsVamp_Media_Group() error {
 			Description string `json:"description"`
 			Result      []struct {
 				MessageId int `json:"message_id,omitempty"`
+				Caption   string `json:"caption"`
 				Chat      struct {
 					Id int `json:"id,omitempty"`
 				} `json:"chat,omitempty"`
@@ -661,7 +665,7 @@ func (s *TgService) sendChPostAsVamp_Media_Group() error {
 			}
 			for _, med := range mediaArr {
 				time.Sleep(time.Millisecond * 300)
-				err = s.db.AddNewPost(vampBot.ChId, v.MessageId, med.Donor_message_id)
+				err = s.db.AddNewPost(vampBot.ChId, v.MessageId, med.Donor_message_id, v.Caption)
 				if err != nil {
 					s.l.Error("sendChPostAsVamp_Media_Group: s.db.AddNewPost", zap.Error(err))
 				}
