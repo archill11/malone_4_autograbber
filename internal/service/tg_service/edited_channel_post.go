@@ -110,7 +110,7 @@ func (srv *TgService) editChPostAsVamp(vampBot entity.Bot, m models.Update) erro
 				if err != nil {
 					return err
 				}
-				srv.l.Info("editChPostAsVamp -> если просто текст -> http.Post", zap.Any("futureMesJson", futureMesJson), zap.Any("string(json_data)", string(json_data)))
+				srv.l.Info("editChPostAsVamp -> если фото -> http.Post", zap.Any("futureMesJson", futureMesJson), zap.Any("string(json_data)", string(json_data)))
 				err = srv.EditMessageCaption(json_data, vampBot.Token)
 				if err != nil {
 					return err
@@ -120,6 +120,62 @@ func (srv *TgService) editChPostAsVamp(vampBot entity.Bot, m models.Update) erro
 		return nil
 	} else if m.EditedChannelPost.Video != nil {
 		//////////////// если видео
+		if m.EditedChannelPost.Caption != nil {
+			if strings.ToLower(*m.EditedChannelPost.Caption) == "deletepost" || strings.ToLower(*m.EditedChannelPost.Caption) == "delete post" || strings.ToLower(*m.EditedChannelPost.Caption) == "delete"{
+				currPosts, err := srv.db.GetPostsByDonorIdAndChId(donor_ch_mes_id, vampBot.ChId)
+				if err != nil {
+					return fmt.Errorf("editChPostAsVamp GetPostsByDonorIdAndChId err: %v", err)
+				}
+				for _, currPost := range currPosts {
+					messageForDelete := currPost.PostId
+					err = srv.DeleteMessage(vampBot.ChId, messageForDelete, vampBot.Token)
+					if err != nil {
+						return err
+					}
+				}
+				return nil
+			}
+
+			futureMesJson := map[string]any{
+				"chat_id": strconv.Itoa(vampBot.ChId),
+			}
+			currPosts, err := srv.db.GetPostsByDonorIdAndChId(donor_ch_mes_id, vampBot.ChId)
+			if err != nil {
+				return fmt.Errorf("editChPostAsVamp GetPostByDonorIdAndChId err: %v", err)
+			}
+			for _, currPost := range currPosts {
+				if currPost.Caption == "" {
+					continue
+				}
+				futureMesJson["message_id"] = currPost.PostId
+				var messText string
+				mycopy.DeepCopy(*m.EditedChannelPost.Caption, &messText)
+		
+				if len(m.EditedChannelPost.Entities) > 0 {
+					entities := make([]models.MessageEntity, 0)
+					mycopy.DeepCopy(m.EditedChannelPost.Entities, &entities)
+					var newEntities []models.MessageEntity
+					var err error
+					newEntities, messText, err = srv.PrepareEntities(entities, messText, vampBot)
+					if err != nil {
+						return fmt.Errorf("editChPostAsVamp PrepareEntities err: %v", err)
+					}
+					if newEntities != nil {
+						futureMesJson["caption_entities"] = newEntities
+					}
+				}
+				futureMesJson["caption"] = messText
+				json_data, err := json.Marshal(futureMesJson)
+				if err != nil {
+					return err
+				}
+				srv.l.Info("editChPostAsVamp -> если видео -> http.Post", zap.Any("futureMesJson", futureMesJson), zap.Any("string(json_data)", string(json_data)))
+				err = srv.EditMessageCaption(json_data, vampBot.Token)
+				if err != nil {
+					return err
+				}
+			}
+		}
 		return nil
 	} else {
 		//////////////// если просто текст
