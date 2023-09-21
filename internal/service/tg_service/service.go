@@ -175,6 +175,7 @@ func New(conf TgConfig, db *pg.Database, l *zap.Logger) (*TgService, error) {
 		}
 	}()
 
+	// удаление поста из всех каналов по id поста донора
 	// go func() {
 	// 	time.Sleep(time.Second*2)
 	// 	m := models.Update{
