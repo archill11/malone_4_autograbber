@@ -30,6 +30,8 @@ const (
 	UPDATE_GROUP_LINK_MSG   = "Укажите id группы-ссылки которую нужно поменять:"
 	GROUP_LINK_FOR_BOT_MSG  = "укажите номер группы-ссылки для нового бота[%d"
 	GROUP_LINK_UPDATE_MSG   = "укажите новую ссылку для ref [%d"
+
+	DELETE_POST_MSG = "Укажите id поста в доноре"
 )
 
 
@@ -80,6 +82,11 @@ func (srv *TgService) HandleReplyToMessage(m models.Update) error {
 
 	if rm.Text == DELETE_GROUP_LINK_MSG {
 		err := srv.RM_delete_group_link(m)
+		return err
+	}
+
+	if rm.Text == DELETE_POST_MSG {
+		err := srv.RM_delete_post_in_chs(m)
 		return err
 	}
 
@@ -387,6 +394,56 @@ func (srv *TgService) RM_delete_group_link(m models.Update) error {
 	}
 	err = srv.SendMessage(chatId, "группа-ссылка удалена")
 	return err
+}
+
+func (srv *TgService) RM_delete_post_in_chs(m models.Update) error {
+	rm := m.Message.ReplyToMessage
+	replyMes := m.Message.Text
+	fromId := m.Message.From.Id
+	srv.l.Info("tg_service: RM_delete_post_in_chs", zap.Any("rm.Text", rm.Text), zap.Any("replyMes", replyMes))
+
+	linkToPostInCh := replyMes
+	chIdStrFromLink, postIdStrFromLink, err := srv.GetPostAndChFromLonk(linkToPostInCh)
+	if err != nil {
+		return fmt.Errorf("RM_delete_post_in_chs err: %v", err)
+	}
+	postIdFromLink, err := strconv.Atoi(postIdStrFromLink)
+	if err != nil {
+		return fmt.Errorf("RM_delete_post_in_chs Atoi postIdStrFromLink-%s err: %v", postIdStrFromLink, err)
+	}
+	chIdFromLink, err := strconv.Atoi(chIdStrFromLink)
+	if err != nil {
+		return fmt.Errorf("RM_delete_post_in_chs Atoi chIdStrFromLink-%s err: %v", chIdStrFromLink, err)
+	}
+
+	chwithmStr := fmt.Sprintf("-100%d", chIdFromLink)
+	chDonor, err := strconv.Atoi(chwithmStr)
+	if err != nil {
+		return fmt.Errorf("RM_delete_post_in_chs Atoi-%s err: %v", chwithmStr, err)
+	}
+
+	bot, err := srv.db.GetBotByChannelId(chDonor)
+	if err != nil {
+		return fmt.Errorf("RM_delete_post_in_chs GetBotByChannelId chDonor-%d err: %v", chDonor, err)
+	}
+	if bot.IsDonor == 0 {
+		return fmt.Errorf("RM_delete_post_in_chs канал не донор chDonor-%d err: bot.IsDonor == 0", chDonor)
+	}
+
+	newm := models.Update{
+		EditedChannelPost: &models.Message{
+			Chat: &models.Chat{},
+		},
+	}
+	m.EditedChannelPost.Chat.Id = fromId
+	m.EditedChannelPost.MessageId = postIdFromLink
+	m.EditedChannelPost.Text = "deletepost"
+	err = srv.Donor_HandleEditedChannelPost(newm)
+	if err != nil {
+		return fmt.Errorf("RM_delete_post_in_chsDonor_HandleEditedChannelPost newm-%+v err: %v", newm, err)
+	}
+	srv.SendMessage(fromId, "пост удален")
+	return nil
 }
 
 func (srv *TgService) RM_update_bot_group_link(m models.Update, botId int) error {

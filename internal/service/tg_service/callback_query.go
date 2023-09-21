@@ -117,6 +117,14 @@ func (srv *TgService) HandleCallbackQuery(m models.Update) error {
 		return err
 	}
 
+	if cq.Data == "del_post_in_chs_bots" {
+		err := srv.CQ_del_post_in_chs_bots(m)
+		if err != nil {
+			srv.SendMessage(chatId, ERR_MSG)
+		}
+		return err
+	}
+
 	if cq.Data == "restart_app" {
 		srv.CQ_restart_app()
 		return nil
@@ -250,6 +258,13 @@ func (srv *TgService) CQ_del_lost_bots(m models.Update) error {
 
 	srv.SendMessage(chatId, "проверка закончена")
 
+	return nil
+}
+
+func (srv *TgService) CQ_del_post_in_chs_bots(m models.Update) error {
+	cq := m.CallbackQuery
+	chatId := cq.From.Id
+	srv.SendForceReply(chatId, DELETE_POST_MSG)
 	return nil
 }
 

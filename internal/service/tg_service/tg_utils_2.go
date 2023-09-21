@@ -120,3 +120,20 @@ func (srv *TgService) PrepareReplyMarkup(entities models.InlineKeyboardMarkup, v
 	}
 	return entities, nil
 }
+
+func (srv *TgService) GetPostAndChFromLonk(link string) (string, string, error) {
+	urlArr := strings.Split(link, "/")
+	if len(urlArr) != 6 {
+		return "", "", fmt.Errorf("GetPostAndChFromLonk err: не правилная ссылка %s", link)
+	}
+	for i, v := range urlArr {
+		if v == "t.me" && urlArr[i+1] == "c" {
+			chId := urlArr[i+2]
+			postId := urlArr[i+3]
+			logMes := fmt.Sprintf("ChangeLinkReferredToPost: это ссылка на канал %s и пост %s", chId, postId)
+			srv.l.Info(logMes)
+			return chId, postId, nil
+		}
+	}
+	return "", "", nil
+}
