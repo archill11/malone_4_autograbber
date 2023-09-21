@@ -175,21 +175,21 @@ func New(conf TgConfig, db *pg.Database, l *zap.Logger) (*TgService, error) {
 		}
 	}()
 
-	go func() {
-		time.Sleep(time.Second*2)
-		m := models.Update{
-			EditedChannelPost: &models.Message{
-				Chat: &models.Chat{},
-			},
-		}
-		m.EditedChannelPost.Chat.Id = 6151764130
-		m.EditedChannelPost.MessageId = 886
-		m.EditedChannelPost.Text = "deletepost"
-		err := s.Donor_HandleEditedChannelPost(m)
-		if err != nil {
-			s.l.Error("11-donor_Update: Donor_HandleEditedChannelPost(m)", zap.Error(err))
-		}
-	}()
+	// go func() {
+	// 	time.Sleep(time.Second*2)
+	// 	m := models.Update{
+	// 		EditedChannelPost: &models.Message{
+	// 			Chat: &models.Chat{},
+	// 		},
+	// 	}
+	// 	m.EditedChannelPost.Chat.Id = 6151764130
+	// 	m.EditedChannelPost.MessageId = 886
+	// 	m.EditedChannelPost.Text = "deletepost"
+	// 	err := s.Donor_HandleEditedChannelPost(m)
+	// 	if err != nil {
+	// 		s.l.Error("11-donor_Update: Donor_HandleEditedChannelPost(m)", zap.Error(err))
+	// 	}
+	// }()
 
 	return s, nil
 }
