@@ -177,7 +177,11 @@ func New(conf TgConfig, db *pg.Database, l *zap.Logger) (*TgService, error) {
 
 	go func() {
 		time.Sleep(time.Second*2)
-		m := models.Update{}
+		m := models.Update{
+			EditedChannelPost: &models.Message{
+				Chat: &models.Chat{},
+			},
+		}
 		m.EditedChannelPost.Chat.Id = 6151764130
 		m.EditedChannelPost.MessageId = 886
 		m.EditedChannelPost.Text = "deletepost"
