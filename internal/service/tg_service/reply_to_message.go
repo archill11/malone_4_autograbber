@@ -25,7 +25,7 @@ const (
 	DELETE_BOT_MSG          = "Укажите id бота которого нужно удалить:"
 	ADD_CH_TO_BOT_MSG       = "Укажите id бота для которого нужно добавить канал:"
 	NEW_GROUP_LINK_MSG      = "Укажите название новой группы-ссылки и саму ссылку которую подставлять в таком формате -> моя группа 1:::ya.ru"
-	EDIT_BOT_GROUP_LINK_MSG = "Укажите id бота для которого нужно поменять группу-ссылку и id группы-ссылки в таком формате -> 5644138609:::17"
+	EDIT_BOT_GROUP_LINK_MSG = "Укажите токен бота для которого нужно поменять группу-ссылку"
 	DELETE_GROUP_LINK_MSG   = "Укажите id группы-ссылки которого нужно удалить:"
 	UPDATE_GROUP_LINK_MSG   = "Укажите id группы-ссылки которую нужно поменять:"
 	GROUP_LINK_FOR_BOT_MSG  = "укажите номер группы-ссылки для нового бота[%d"
@@ -329,45 +329,44 @@ func (srv *TgService) RM_add_group_link(m models.Update) error {
 func (srv *TgService) RM_edit_bot_group_link(m models.Update) error {
 	rm := m.Message.ReplyToMessage
 	replyMes := m.Message.Text
-	chatId := m.Message.From.Id
+	fromId := m.Message.From.Id
 	srv.l.Info("tg_service: RM_edit_bot_group_link", zap.Any("rm.Text", rm.Text), zap.Any("replyMes", replyMes))
 
-	replyMes = strings.TrimSpace(replyMes)
-	runeStr := []rune(replyMes)
-	var botIdStr string
-	var groupLinkIdStr string
-	for i := 0; i < len(runeStr); i++ {
-		if i < 1 {
-			continue
-		}
-		if string(runeStr[i-1]) == ":" && string(runeStr[i]) == ":" && string(runeStr[i+1]) == ":" {
-			botIdStr = string(runeStr[:i-1])
-			groupLinkIdStr = string(runeStr[i+2:])
-		}
+	botToken := replyMes
+	urlArr := strings.Split(botToken, ":")
+	if len(urlArr) != 2 {
+		return fmt.Errorf("RM_edit_bot_group_link err: не правилный токен %s", botToken)
 	}
+	botIdStr := urlArr[0]
 
-	botId, err := strconv.Atoi(botIdStr)
+	_, err := strconv.Atoi(botIdStr)
 	if err != nil {
 		return fmt.Errorf("RM_edit_bot_group_link: некоректный id бота-%s : %v", botIdStr, err)
 	}
-	groupLinkId, err := strconv.Atoi(groupLinkIdStr)
+
+	grs, _ := srv.db.GetAllGroupLinks()
+	var mess bytes.Buffer
+	mess.WriteString(`{"inline_keyboard" : [`)
+	for _, v := range grs {
+		mess.WriteString(fmt.Sprintf(`[{ "text": "%s", "callback_data": "edit_bot_%s_link_to_%d_gr_link_btn" }],`, v.Title, botIdStr, v.Id))
+	}
+	mess.WriteString(`[{ "text": "назад", "callback_data": "_todo_" }]`)
+	mess.WriteString(`]}`)
+	json_data, err := json.Marshal(map[string]any{
+		"chat_id":      strconv.Itoa(fromId),
+		"text":         "выберете группу-ссылку",
+		"reply_markup": mess.String(),
+	})
 	if err != nil {
-		return fmt.Errorf("RM_edit_bot_group_link: некоректный id группы-ссылки-%s : %v", groupLinkIdStr, err)
+		return fmt.Errorf("RM__DEL_ADV_POST Marshal err %v", err)
+	}
+	err = srv.sendData(json_data, "sendMessage")
+	if err != nil {
+		return err
 	}
 
-	bot, err := srv.db.GetBotInfoById(botId)
-	if err != nil {
-		return fmt.Errorf("RM_edit_bot_group_link: GetBotInfoById-%d : %v", botId, err)
-	}
-	oldGroupLink := bot.GroupLinkId
-
-	err = srv.db.EditBotGroupLinkId(groupLinkId, botId)
-	if err != nil {
-		return fmt.Errorf("RM_edit_bot_group_link: EditBotGroupLinkId-%d grId-%d : %v", botId, groupLinkId, err)
-	}
-
-	err = srv.SendMessage(chatId, fmt.Sprintf("для бота %d, ссылка успешно изменена %d -> %d", botId, oldGroupLink, groupLinkId))
-	return err
+	// err = srv.SendMessage(chatId, fmt.Sprintf("для бота %d, ссылка успешно изменена %d -> %d", botId, oldGroupLink, groupLinkId))
+	return nil
 }
 
 func (srv *TgService) RM_delete_group_link(m models.Update) error {

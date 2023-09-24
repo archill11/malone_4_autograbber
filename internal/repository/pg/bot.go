@@ -175,7 +175,11 @@ func (s *Database) EditBotField(botId int, field string, content any) error {
 }
 
 func (s *Database) EditBotGroupLinkIdToNull(groupLinkId int) error {
-	q := `UPDATE bots SET group_link_id = 0 WHERE group_link_id = $1`
+	q := `
+		UPDATE bots SET 
+		group_link_id = 0 
+		WHERE group_link_id = $1
+	`
 	_, err := s.Exec(q, groupLinkId)
 	if err != nil {
 		return fmt.Errorf("db: EditBotGroupLinkIdToNull: groupLinkId: %d err: %w", groupLinkId, err)
@@ -184,10 +188,14 @@ func (s *Database) EditBotGroupLinkIdToNull(groupLinkId int) error {
 }
 
 func (s *Database) EditBotGroupLinkId(groupLinkId, botId int) error {
-	q := `UPDATE bots SET group_link_id = $1 WHERE id = $2`
+	q := `
+		UPDATE bots SET
+		group_link_id = $1
+		WHERE id = $2
+	`
 	_, err := s.Exec(q, groupLinkId, botId)
 	if err != nil {
-		return fmt.Errorf("db: EditBotGroupLinkId: groupLinkId: %d botId: %d  err: %w", groupLinkId, botId, err)
+		return fmt.Errorf("db: EditBotGroupLinkId: groupLinkId: %d botId: %d err: %w", groupLinkId, botId, err)
 
 	}
 	return nil

@@ -3,6 +3,9 @@ package tg_service
 import (
 	"fmt"
 	"myapp/internal/models"
+	my_regex "myapp/pkg/regex"
+	"strconv"
+	"strings"
 	"time"
 
 	"go.uber.org/zap"
@@ -128,6 +131,15 @@ func (srv *TgService) HandleCallbackQuery(m models.Update) error {
 	if cq.Data == "restart_app" {
 		srv.CQ_restart_app()
 		return nil
+	}
+
+	if strings.HasPrefix(cq.Data, "edit_bot_") { // edit_bot_%s_link_to_%d_gr_link_btn
+		botId := my_regex.GetStringInBetween(cq.Data, "edit_bot_", "_link")
+		grLinkId := my_regex.GetStringInBetween(cq.Data, "to_", "_gr_link")
+		fmt.Println("botId:", botId)
+		fmt.Println("grLinkId:", grLinkId)
+		err := srv.CQ_edit_bot_group_link_stp2(m, botId, grLinkId)
+		return err
 	}
 
 	return nil
@@ -273,4 +285,25 @@ func (srv *TgService) CQ_restart_app() {
 		time.Sleep(time.Second * 3)
 		panic("restart app")
 	}()
+}
+
+func (srv *TgService) CQ_edit_bot_group_link_stp2(m models.Update, botIdStr, grLinkIdStr string) error {
+	cq := m.CallbackQuery
+	fromId := cq.From.Id
+	srv.l.Info("tg_service: CQ_edit_bot_group_link_stp2", zap.Any("cq.Data", cq.Data))
+
+	botId, err := strconv.Atoi(botIdStr)
+	if err != nil {
+		return fmt.Errorf("CQ_edit_bot_group_link_stp2: некоректный id бота-%s : %v", botIdStr, err)
+	}
+	groupLinkId, err := strconv.Atoi(grLinkIdStr)
+	if err != nil {
+		return fmt.Errorf("CQ_edit_bot_group_link_stp2: некоректный id ссылки-%s : %v", botIdStr, err)
+	}
+	err = srv.db.EditBotGroupLinkId(groupLinkId, botId)
+	if err != nil {
+		return fmt.Errorf("CQ_edit_bot_group_link_stp2: EditBotGroupLinkId err: %v", err)
+	}
+	srv.SendMessage(fromId, fmt.Sprintf("для бота %d, ссылка успешно изменена на %d", botId, groupLinkId))
+	return nil
 }
