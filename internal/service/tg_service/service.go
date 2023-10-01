@@ -69,18 +69,7 @@ func New(conf TgConfig, db *pg.Database, l *zap.Logger) (*TgService, error) {
 	}
 
 	// удаление ненужных файлов
-	go func() {
-		mskLoc, _ := time.LoadLocation("Europe/Moscow")
-		cron := gocron.NewScheduler(mskLoc)
-		cron.Every(1).Day().At("02:30").Do(func() {
-			err := files.RemoveContentsFromDir("files")
-			if err != nil {
-				s.l.Error(fmt.Sprintf("files.RemoveContentsFromDir('files') err: %v", err))
-			}
-			s.l.Info("cron.Every(1).Day().At(02:30)")
-		})
-		cron.StartAsync()
-	}()
+	go s.DeleteOldFiles()
 
 	// получение tg updates Donor
 	go func() {
@@ -300,4 +289,17 @@ func MediaInSlice2(s []Media, m Media) bool {
 		}
 	}
 	return false
+}
+
+func (ts *TgService) DeleteOldFiles() {
+	mskLoc, _ := time.LoadLocation("Europe/Moscow")
+	cron := gocron.NewScheduler(mskLoc)
+	cron.Every(1).Day().At("02:30").Do(func() {
+		err := files.RemoveContentsFromDir("files")
+		if err != nil {
+			ts.l.Error(fmt.Sprintf("DeleteOldFiles .RemoveContentsFromDir('files') err: %v", err))
+		}
+		ts.l.Info("DeleteOldFiles At(02:30): ok")
+	})
+	cron.StartAsync()
 }
