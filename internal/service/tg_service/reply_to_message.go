@@ -312,10 +312,11 @@ func (srv *TgService) RM_add_group_link(m models.Update) error {
 		if string(runeStr[i-1]) == ":" && string(runeStr[i]) == ":" && string(runeStr[i+1]) == ":" {
 			groupLinkTitle = string(runeStr[:i-1])
 			groupLinkLink = string(runeStr[i+2:])
+
+			groupLinkTitle = strings.TrimSpace(groupLinkTitle)
+			groupLinkLink = strings.TrimSpace(groupLinkLink)
 		}
 	}
-
-	// link := entity.NewGroupLink(groupLinkTitle, groupLinkLink)
 
 	err := srv.db.AddNewGroupLink(groupLinkTitle, groupLinkLink)
 	if err != nil {
