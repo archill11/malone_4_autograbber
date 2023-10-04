@@ -303,3 +303,52 @@ func (ts *TgService) DeleteOldFiles() {
 	})
 	cron.StartAsync()
 }
+
+func (srv *TgService) DeleteLostBots() {
+	for{
+		time.Sleep(time.Minute*300)
+
+		donorBot, err := srv.db.GetBotInfoByToken(srv.Cfg.Token)
+		if err != nil {
+			errMess := fmt.Sprintf("DeleteLostBots: GetBotInfoByToken err: %v", err)
+			srv.l.Error(errMess)
+		}
+		if donorBot.Id == 0 {
+			errMess := fmt.Sprintf("DeleteLostBots: GetBotInfoByToken err: donorBot.Id == 0")
+			srv.l.Error(errMess)
+		}
+
+		allBots, err := srv.db.GetAllBots()
+		if err != nil {
+			errMess := fmt.Sprintf("DeleteLostBots: GetAllBots err: %v", err)
+			srv.l.Error(errMess)
+		}
+		if len(allBots) == 0 {
+			errMess := fmt.Sprintf("DeleteLostBots: GetAllBots err: len(allBots) == 0")
+			srv.l.Error(errMess)
+		}
+
+		for _, bot := range allBots {
+			if bot.IsDonor == 1 {
+				continue
+			}
+			resp, err := srv.getBotByToken(bot.Token)
+			if err != nil {
+				errMess := fmt.Sprintf("DeleteLostBots: getBotByToken err: %v", err)
+				srv.l.Error(errMess, zap.Any("bot token", bot.Token))
+			}
+			if !resp.Ok && resp.ErrorCode == 401 && resp.Description == "Unauthorized" {
+				srv.db.DeleteBot(bot.Id)
+
+				var mess bytes.Buffer
+				mess.WriteString("удален бот без доступа\n")
+				mess.WriteString(fmt.Sprintf("бот: @%s | %s\n", bot.Username, bot.Token))
+				mess.WriteString(fmt.Sprintf("канал: %d | %s\n", bot.ChId, bot.ChLink))
+				logMess := mess.String()
+
+				srv.SendMessage(donorBot.ChId, logMess)
+				time.Sleep(time.Second * 3)
+			}
+		}
+	}
+}
