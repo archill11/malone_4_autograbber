@@ -26,8 +26,9 @@ type (
 	}
 
 	TgConfig struct {
-		TgEndp string
-		Token  string
+		TgEndp      string
+		Token       string
+		UserbotHost string
 	}
 
 	TgService struct {

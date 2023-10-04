@@ -25,6 +25,7 @@ func Get() *Config {
 
 	c.Tg.TgEndp = os.Getenv("TG_ENDPOINT")
 	c.Tg.Token = os.Getenv("BOT_TOKEN")
+	c.Tg.UserbotHost = os.Getenv("USERBOT_HOST")
 
 	c.Server.Port = os.Getenv("APP_PORT")
 	c.Db.User = os.Getenv("PG_USER")
