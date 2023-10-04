@@ -312,20 +312,24 @@ func (srv *TgService) DeleteLostBots() {
 		if err != nil {
 			errMess := fmt.Sprintf("DeleteLostBots: GetBotInfoByToken err: %v", err)
 			srv.l.Error(errMess)
+			srv.SendMessage(donorBot.ChId, errMess)
 		}
 		if donorBot.Id == 0 {
 			errMess := fmt.Sprintf("DeleteLostBots: GetBotInfoByToken err: donorBot.Id == 0")
 			srv.l.Error(errMess)
+			srv.SendMessage(donorBot.ChId, errMess)
 		}
 
 		allBots, err := srv.db.GetAllBots()
 		if err != nil {
 			errMess := fmt.Sprintf("DeleteLostBots: GetAllBots err: %v", err)
 			srv.l.Error(errMess)
+			srv.SendMessage(donorBot.ChId, errMess)
 		}
 		if len(allBots) == 0 {
 			errMess := fmt.Sprintf("DeleteLostBots: GetAllBots err: len(allBots) == 0")
 			srv.l.Error(errMess)
+			srv.SendMessage(donorBot.ChId, errMess)
 		}
 
 		for _, bot := range allBots {
@@ -334,8 +338,9 @@ func (srv *TgService) DeleteLostBots() {
 			}
 			resp, err := srv.getBotByToken(bot.Token)
 			if err != nil {
-				errMess := fmt.Sprintf("DeleteLostBots: getBotByToken err: %v", err)
-				srv.l.Error(errMess, zap.Any("bot token", bot.Token))
+				errMess := fmt.Sprintf("DeleteLostBots: getBotByToken token-%s err: %v", bot.Token, err)
+				srv.l.Error(errMess)
+				srv.SendMessage(donorBot.ChId, errMess)
 			}
 			if !resp.Ok && resp.ErrorCode == 401 && resp.Description == "Unauthorized" {
 				srv.db.DeleteBot(bot.Id)
@@ -350,5 +355,11 @@ func (srv *TgService) DeleteLostBots() {
 				time.Sleep(time.Second * 3)
 			}
 		}
+	}
+}
+
+func (srv *TgService) AlertScamBots() {
+	for{
+		time.Sleep(time.Minute*300)
 	}
 }
