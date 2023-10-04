@@ -1,6 +1,7 @@
 package tg_service
 
 import (
+	"bytes"
 	"fmt"
 	"myapp/internal/models"
 	my_regex "myapp/pkg/regex"
@@ -245,10 +246,15 @@ func (srv *TgService) CQ_accept_ch_post_by_admin(m models.Update) error {
 
 func (srv *TgService) CQ_del_lost_bots(m models.Update) error {
 	cq := m.CallbackQuery
-	chatId := cq.From.Id
+	fromId := cq.From.Id
 	allBots, err := srv.db.GetAllBots()
 	if err != nil {
-		srv.l.Error("CQ_del_lost_bots: GetAllBots", zap.Error(err))
+		errMess := fmt.Sprintf("CQ_del_lost_bots: GetAllBots err: %v", err)
+		srv.l.Error(errMess)
+	}
+	if len(allBots) == 0 {
+		errMess := fmt.Sprintf("CQ_del_lost_bots: GetAllBots err: len(allBots) == 0")
+		srv.l.Error(errMess)
 	}
 
 	for _, bot := range allBots {
@@ -257,20 +263,23 @@ func (srv *TgService) CQ_del_lost_bots(m models.Update) error {
 		}
 		resp, err := srv.getBotByToken(bot.Token)
 		if err != nil {
-			srv.l.Error("CQ_del_lost_bots: getBotByToken", zap.Error(err), zap.Any("bot token", bot.Token))
+			errMess := fmt.Sprintf("CQ_del_lost_bots: getBotByToken err: %v", err)
+			srv.l.Error(errMess, zap.Any("bot token", bot.Token))
 		}
 		if !resp.Ok && resp.ErrorCode == 401 && resp.Description == "Unauthorized" {
-			err := srv.db.DeleteBot(bot.Id)
-			if err != nil {
-				srv.l.Error("CQ_del_lost_bots: DeleteBot", zap.Error(err), zap.Any("bot token", bot.Token))
-			}
-			srv.SendMessage(chatId, fmt.Sprintf("удален бот\nid: %d\nusername: %s\ntoken: %s\nканал id: %d\nканал link: %s", bot.Id, bot.Username, bot.Token, bot.ChId, bot.ChLink))
+			srv.db.DeleteBot(bot.Id)
+
+			var mess bytes.Buffer
+			mess.WriteString("удален бот без доступа\n")
+			mess.WriteString(fmt.Sprintf("бот: @%s | %s\n", bot.Username, bot.Token))
+			mess.WriteString(fmt.Sprintf("канал: %d | %s\n", bot.ChId, bot.ChLink))
+			logMess := mess.String()
+
+			srv.SendMessage(fromId, logMess)
 			time.Sleep(time.Second * 3)
 		}
 	}
-
-	srv.SendMessage(chatId, "проверка закончена")
-
+	srv.SendMessage(fromId, "проверка закончена")
 	return nil
 }
 
