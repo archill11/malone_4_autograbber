@@ -142,7 +142,7 @@ func (srv *TgService) sendChPostAsVamp(vampBot entity.Bot, m models.Update) erro
 		}
 		if m.ChannelPost.ReplyToMessage != nil {
 			replToDonorChPostId := m.ChannelPost.ReplyToMessage.MessageId
-			currPost, err := srv.db.GetPostByDonorIdAndChId(replToDonorChPostId, vampBot.ChId) // тут
+			currPost, err := srv.db.GetPostsByDonorIdAndChId_Max(replToDonorChPostId, vampBot.ChId) // тут
 			if err != nil {
 				return fmt.Errorf("sendChPostAsVamp GetPostByDonorIdAndChId err: %v", err)
 			}
