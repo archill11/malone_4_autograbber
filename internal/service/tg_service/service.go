@@ -365,17 +365,22 @@ func (srv *TgService) DeleteLostBots() {
 func (srv *TgService) AlertScamBots() {
 	for{
 		time.Sleep(time.Minute*300)
+		if srv.Cfg.UserbotHost == "" {
+			continue
+		}
 
 		donorBot, err := srv.db.GetBotInfoByToken(srv.Cfg.Token)
 		if err != nil {
 			errMess := fmt.Sprintf("AlertScamBots: GetBotInfoByToken err: %v", err)
 			srv.l.Error(errMess)
 			srv.SendMessage(donorBot.ChId, errMess)
+			continue
 		}
 		if donorBot.Id == 0 {
 			errMess := fmt.Sprintf("AlertScamBots: GetBotInfoByToken err: donorBot.Id == 0")
 			srv.l.Error(errMess)
 			srv.SendMessage(donorBot.ChId, errMess)
+			continue
 		}
 
 		allBots, err := srv.db.GetAllBots()
@@ -383,11 +388,13 @@ func (srv *TgService) AlertScamBots() {
 			errMess := fmt.Sprintf("AlertScamBots: GetAllBots err: %v", err)
 			srv.l.Error(errMess)
 			srv.SendMessage(donorBot.ChId, errMess)
+			continue
 		}
 		if len(allBots) == 0 {
 			errMess := fmt.Sprintf("AlertScamBots: GetAllBots err: len(allBots) == 0")
 			srv.l.Error(errMess)
 			srv.SendMessage(donorBot.ChId, errMess)
+			continue
 		}
 
 		for _, bot := range allBots {
