@@ -366,6 +366,7 @@ func (srv *TgService) AlertScamBots() {
 	for{
 		time.Sleep(time.Minute*300)
 		if srv.Cfg.UserbotHost == "" {
+			srv.l.Error("AlertScamBots: srv.Cfg.UserbotHost == ''")
 			continue
 		}
 
