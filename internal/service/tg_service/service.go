@@ -72,6 +72,9 @@ func New(conf TgConfig, db *pg.Database, l *zap.Logger) (*TgService, error) {
 	// удаление ненужных файлов
 	go s.DeleteOldFiles()
 
+	go s.DeleteLostBots()
+	go s.AlertScamBots()
+
 	// получение tg updates Donor
 	go func() {
 		updConf := UpdateConfig{
@@ -404,7 +407,7 @@ func (srv *TgService) AlertScamBots() {
 					mess.WriteString(fmt.Sprintf("бот: @%s | %s\n", bot.Username, bot.Token))
 					mess.WriteString(fmt.Sprintf("канал: %d | %s\n", bot.ChId, bot.ChLink))
 					logMess := mess.String()
-					
+
 					srv.l.Info(logMess)
 					srv.SendMessage(donorBot.ChId, logMess)
 				}
