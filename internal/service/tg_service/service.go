@@ -399,6 +399,7 @@ func (srv *TgService) AlertScamBots() {
 				errMess := fmt.Sprintf("AlertScamBots: UB_add_channel_flood err: %v", err)
 				srv.l.Error(errMess)
 				srv.SendMessage(donorBot.ChId, errMess)
+				continue
 			}
 			if addChannelResp.Channel.Id != 0 {
 				if addChannelResp.Channel.IsScam {
@@ -412,6 +413,8 @@ func (srv *TgService) AlertScamBots() {
 					srv.SendMessage(donorBot.ChId, logMess)
 				}
 			}
+
+			time.Sleep(time.Second*300)
 		}
 	}
 }
