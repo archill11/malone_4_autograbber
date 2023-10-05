@@ -49,6 +49,7 @@ func (srv *TgService) Donor_editEditedChannelPost(m models.Update) error {
 		srv.l.Info("Donor_EditChannelPost", zap.Any("bot index in arr", i), zap.Any("bot ch link", vampBot.ChLink))
 		time.Sleep(time.Second * 2)
 	}
+	srv.l.Info("Donor_EditChannelPost: end")
 
 	return nil
 }
