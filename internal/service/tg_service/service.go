@@ -362,5 +362,53 @@ func (srv *TgService) DeleteLostBots() {
 func (srv *TgService) AlertScamBots() {
 	for{
 		time.Sleep(time.Minute*300)
+
+		donorBot, err := srv.db.GetBotInfoByToken(srv.Cfg.Token)
+		if err != nil {
+			errMess := fmt.Sprintf("AlertScamBots: GetBotInfoByToken err: %v", err)
+			srv.l.Error(errMess)
+			srv.SendMessage(donorBot.ChId, errMess)
+		}
+		if donorBot.Id == 0 {
+			errMess := fmt.Sprintf("AlertScamBots: GetBotInfoByToken err: donorBot.Id == 0")
+			srv.l.Error(errMess)
+			srv.SendMessage(donorBot.ChId, errMess)
+		}
+
+		allBots, err := srv.db.GetAllBots()
+		if err != nil {
+			errMess := fmt.Sprintf("AlertScamBots: GetAllBots err: %v", err)
+			srv.l.Error(errMess)
+			srv.SendMessage(donorBot.ChId, errMess)
+		}
+		if len(allBots) == 0 {
+			errMess := fmt.Sprintf("AlertScamBots: GetAllBots err: len(allBots) == 0")
+			srv.l.Error(errMess)
+			srv.SendMessage(donorBot.ChId, errMess)
+		}
+
+		for _, bot := range allBots {
+			if bot.IsDonor == 1 {
+				continue
+			}
+			addChannelResp, err := srv.UB_add_channel_flood(bot.ChLink, donorBot.ChId)
+			if err != nil {
+				errMess := fmt.Sprintf("AlertScamBots: UB_add_channel_flood err: %v", err)
+				srv.l.Error(errMess)
+				srv.SendMessage(donorBot.ChId, errMess)
+			}
+			if addChannelResp.Channel.Id != 0 {
+				if addChannelResp.Channel.IsScam {
+					var mess bytes.Buffer
+					mess.WriteString("обнаружен скам на канале\n")
+					mess.WriteString(fmt.Sprintf("бот: @%s | %s\n", bot.Username, bot.Token))
+					mess.WriteString(fmt.Sprintf("канал: %d | %s\n", bot.ChId, bot.ChLink))
+					logMess := mess.String()
+					
+					srv.l.Info(logMess)
+					srv.SendMessage(donorBot.ChId, logMess)
+				}
+			}
+		}
 	}
 }

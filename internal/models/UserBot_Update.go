@@ -7,8 +7,9 @@ type ErrResp struct {
 
 type UB_add_channel_resp struct {
 	Channel struct {
-		Id    int    `json:"id"`
-		Title string `json:"title"`
+		Id     int    `json:"id"`
+		Title  string `json:"title"`
+		IsScam bool   `json:"is_scam"`
 	} `json:"channel"`
 	ErrResp
 }
