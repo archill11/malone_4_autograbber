@@ -2,17 +2,17 @@ version: '3'
 
 services:
   app:
-    container_name: grabber-app
+    container_name: grabber-app_web
     build: ./
     restart: unless-stopped
     ports:
-      - 4000:4000
+      - 4001:4001
     environment:
-      APP_PORT: 4000
+      APP_PORT: 4001
       PG_USER: postgres
       PG_PASSWORD: secret
       PG_DATABASE: grabber
-      PG_HOST: grab_db
+      PG_HOST: grab_db_web
       PG_PORT: 5432
     volumes:
       - ./volumes/logs:/app/logs
@@ -22,10 +22,10 @@ services:
       - malone_7
 
   db:
-    container_name: grab_db
+    container_name: grab_db_web
     image: postgres:15-alpine
     ports:
-      - "5432:5432"
+      - "5435:5432"
     restart: unless-stopped
     environment:
       POSTGRES_USER: postgres
