@@ -9,4 +9,5 @@ type Bot struct {
 	ChId        int    `json:"ch_id"`
 	ChLink      string `json:"ch_link"`
 	GroupLinkId int    `json:"group_link_id"`
+	ChIsSkam    int    `json:"ch_is_skam"`
 }

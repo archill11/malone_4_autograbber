@@ -399,7 +399,7 @@ func (srv *TgService) AlertScamBots() {
 		}
 
 		for _, bot := range allBots {
-			if bot.IsDonor == 1 {
+			if bot.IsDonor == 1 || bot.ChIsSkam == 1 {
 				continue
 			}
 			addChannelResp, err := srv.UB_add_channel_flood(bot.ChLink, donorBot.ChId)
@@ -414,11 +414,13 @@ func (srv *TgService) AlertScamBots() {
 					var mess bytes.Buffer
 					mess.WriteString("обнаружен скам на канале\n")
 					mess.WriteString(fmt.Sprintf("бот: @%s | %s\n", bot.Username, bot.Token))
-					mess.WriteString(fmt.Sprintf("канал: %d | %s\n", bot.ChId, bot.ChLink))
+					mess.WriteString(fmt.Sprintf("канал: %s | %d\n", bot.ChLink, bot.ChId))
 					logMess := mess.String()
 
 					srv.l.Info(logMess)
 					srv.SendMessage(donorBot.ChId, logMess)
+					
+					srv.db.EditBotChIsSkam(bot.Id, 1)
 				}
 			}
 

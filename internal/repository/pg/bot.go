@@ -200,3 +200,17 @@ func (s *Database) EditBotGroupLinkId(groupLinkId, botId int) error {
 	}
 	return nil
 }
+
+func (s *Database) EditBotChIsSkam(botId, chIsSkam int) error {
+	q := `
+		UPDATE bots SET
+			ch_is_skam = $1
+		WHERE id = $2
+	`
+	_, err := s.Exec(q, chIsSkam, botId)
+	if err != nil {
+		return fmt.Errorf("db: EditBotChIsSkam: botId: %d err: %w", botId, err)
+
+	}
+	return nil
+}
