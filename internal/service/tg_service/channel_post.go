@@ -196,7 +196,9 @@ func (srv *TgService) sendChPostAsVamp(vampBot entity.Bot, m models.Update) erro
 		}
 		defer sendVampPostResp.Body.Close()
 		var cAny struct {
-			Ok     bool `json:"ok"`
+			Ok          bool   `json:"ok"`
+			ErrorCode   int    `json:"error_code"`
+			Description string `json:"description"`
 			Result struct {
 				MessageId int `json:"message_id"`
 				Caption   string `json:"caption"`
@@ -204,6 +206,10 @@ func (srv *TgService) sendChPostAsVamp(vampBot entity.Bot, m models.Update) erro
 		}
 		if err := json.NewDecoder(sendVampPostResp.Body).Decode(&cAny); err != nil {
 			return err
+		}
+		if cAny.ErrorCode != 0 {
+			errMess := fmt.Errorf("sendChPostAsVamp Post ErrorResp: %+v", cAny)
+			srv.l.Error(errMess.Error())
 		}
 		if cAny.Result.MessageId != 0 {
 			err = srv.db.AddNewPost(vampBot.ChId, cAny.Result.MessageId, donor_ch_mes_id, cAny.Result.Caption)
