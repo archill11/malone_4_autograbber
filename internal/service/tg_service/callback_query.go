@@ -316,7 +316,7 @@ func (srv *TgService) CQ_del_post_in_chs_bots(m models.Update) error {
 
 func (srv *TgService) CQ_restart_app() {
 	go func() {
-		time.Sleep(time.Second * 3)
+		time.Sleep(time.Second * 1)
 		panic("restart app")
 	}()
 }
