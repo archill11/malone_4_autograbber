@@ -14,14 +14,15 @@ import (
 
 func (srv *TgService) HandleCallbackQuery(m models.Update) error {
 	cq := m.CallbackQuery
-	chatId := cq.From.Id
-	srv.l.Info("tgClient: HandleCallbackQuery", zap.Any("cq", cq), zap.Any("chatId", chatId))
+	fromId := cq.From.Id
+	fromUsername := cq.From.UserName
+	srv.l.Info(fmt.Sprintf("HandleCallbackQuery: fromId-%d fromUsername-%s, cq.Data-%s", fromId, fromUsername, cq.Data))
 
 	if cq.Data == "create_vampere_bot" {
 		err := srv.CQ_vampire_register(m)
 		if err != nil {
-			srv.SendMessage(chatId, ERR_MSG)
-			srv.SendMessage(chatId, err.Error())
+			srv.SendMessage(fromId, ERR_MSG)
+			srv.SendMessage(fromId, err.Error())
 		}
 		return err
 	}
@@ -29,8 +30,8 @@ func (srv *TgService) HandleCallbackQuery(m models.Update) error {
 	if cq.Data == "delete_vampere_bot" {
 		err := srv.CQ_vampire_delete(m)
 		if err != nil {
-			srv.SendMessage(chatId, ERR_MSG)
-			srv.SendMessage(chatId, err.Error())
+			srv.SendMessage(fromId, ERR_MSG)
+			srv.SendMessage(fromId, err.Error())
 		}
 		return err
 	}
@@ -38,8 +39,8 @@ func (srv *TgService) HandleCallbackQuery(m models.Update) error {
 	if cq.Data == "add_ch_to_bot" {
 		err := srv.CQ_add_ch_to_bot(m)
 		if err != nil {
-			srv.SendMessage(chatId, ERR_MSG)
-			srv.SendMessage(chatId, err.Error())
+			srv.SendMessage(fromId, ERR_MSG)
+			srv.SendMessage(fromId, err.Error())
 		}
 		return err
 	}
@@ -47,8 +48,8 @@ func (srv *TgService) HandleCallbackQuery(m models.Update) error {
 	if cq.Data == "create_group_link" {
 		err := srv.CQ_create_group_link(m)
 		if err != nil {
-			srv.SendMessage(chatId, ERR_MSG)
-			srv.SendMessage(chatId, err.Error())
+			srv.SendMessage(fromId, ERR_MSG)
+			srv.SendMessage(fromId, err.Error())
 		}
 		return err
 	}
@@ -56,8 +57,8 @@ func (srv *TgService) HandleCallbackQuery(m models.Update) error {
 	if cq.Data == "update_group_link" {
 		err := srv.CQ_update_group_link(m)
 		if err != nil {
-			srv.SendMessage(chatId, ERR_MSG)
-			srv.SendMessage(chatId, err.Error())
+			srv.SendMessage(fromId, ERR_MSG)
+			srv.SendMessage(fromId, err.Error())
 		}
 		return err
 	}
@@ -65,8 +66,8 @@ func (srv *TgService) HandleCallbackQuery(m models.Update) error {
 	if cq.Data == "delete_group_link" {
 		err := srv.CQ_delete_group_link(m)
 		if err != nil {
-			srv.SendMessage(chatId, ERR_MSG)
-			srv.SendMessage(chatId, err.Error())
+			srv.SendMessage(fromId, ERR_MSG)
+			srv.SendMessage(fromId, err.Error())
 		}
 		return err
 	}
@@ -74,8 +75,8 @@ func (srv *TgService) HandleCallbackQuery(m models.Update) error {
 	if cq.Data == "add_admin_btn" {
 		err := srv.CQ_add_admin(m)
 		if err != nil {
-			srv.SendMessage(chatId, ERR_MSG)
-			srv.SendMessage(chatId, err.Error())
+			srv.SendMessage(fromId, ERR_MSG)
+			srv.SendMessage(fromId, err.Error())
 		}
 		return err
 	}
@@ -83,8 +84,8 @@ func (srv *TgService) HandleCallbackQuery(m models.Update) error {
 	if cq.Data == "show_bots_and_channels" {
 		err := srv.CQ_show_bots_and_channels(m)
 		if err != nil {
-			srv.SendMessage(chatId, ERR_MSG)
-			srv.SendMessage(chatId, err.Error())
+			srv.SendMessage(fromId, ERR_MSG)
+			srv.SendMessage(fromId, err.Error())
 		}
 		return err
 	}
@@ -92,8 +93,8 @@ func (srv *TgService) HandleCallbackQuery(m models.Update) error {
 	if cq.Data == "edit_bot_group_link" {
 		err := srv.CQ_edit_bot_group_link(m)
 		if err != nil {
-			srv.SendMessage(chatId, ERR_MSG)
-			srv.SendMessage(chatId, err.Error())
+			srv.SendMessage(fromId, ERR_MSG)
+			srv.SendMessage(fromId, err.Error())
 		}
 		return err
 	}
@@ -101,8 +102,8 @@ func (srv *TgService) HandleCallbackQuery(m models.Update) error {
 	if cq.Data == "show_all_group_links" {
 		err := srv.CQ_show_all_group_links(m)
 		if err != nil {
-			srv.SendMessage(chatId, ERR_MSG)
-			srv.SendMessage(chatId, err.Error())
+			srv.SendMessage(fromId, ERR_MSG)
+			srv.SendMessage(fromId, err.Error())
 		}
 		return err
 	}
@@ -110,8 +111,8 @@ func (srv *TgService) HandleCallbackQuery(m models.Update) error {
 	if cq.Data == "show_admin_panel" {
 		err := srv.CQ_show_admin_panel(m)
 		if err != nil {
-			srv.SendMessage(chatId, ERR_MSG)
-			srv.SendMessage(chatId, err.Error())
+			srv.SendMessage(fromId, ERR_MSG)
+			srv.SendMessage(fromId, err.Error())
 		}
 		return err
 	}
@@ -119,8 +120,8 @@ func (srv *TgService) HandleCallbackQuery(m models.Update) error {
 	if cq.Data == "accept_ch_post_by_admin" {
 		err := srv.CQ_accept_ch_post_by_admin(m)
 		if err != nil {
-			srv.SendMessage(chatId, ERR_MSG)
-			srv.SendMessage(chatId, err.Error())
+			srv.SendMessage(fromId, ERR_MSG)
+			srv.SendMessage(fromId, err.Error())
 		}
 		return err
 	}
@@ -128,8 +129,8 @@ func (srv *TgService) HandleCallbackQuery(m models.Update) error {
 	if cq.Data == "del_lost_bots" {
 		err := srv.CQ_del_lost_bots(m)
 		if err != nil {
-			srv.SendMessage(chatId, ERR_MSG)
-			srv.SendMessage(chatId, err.Error())
+			srv.SendMessage(fromId, ERR_MSG)
+			srv.SendMessage(fromId, err.Error())
 		}
 		return err
 	}
@@ -137,8 +138,8 @@ func (srv *TgService) HandleCallbackQuery(m models.Update) error {
 	if cq.Data == "del_post_in_chs_bots" {
 		err := srv.CQ_del_post_in_chs_bots(m)
 		if err != nil {
-			srv.SendMessage(chatId, ERR_MSG)
-			srv.SendMessage(chatId, err.Error())
+			srv.SendMessage(fromId, ERR_MSG)
+			srv.SendMessage(fromId, err.Error())
 		}
 		return err
 	}
@@ -153,8 +154,8 @@ func (srv *TgService) HandleCallbackQuery(m models.Update) error {
 		grLinkId := my_regex.GetStringInBetween(cq.Data, "to_", "_gr_link")
 		err := srv.CQ_edit_bot_group_link_stp2(m, botId, grLinkId)
 		if err != nil {
-			srv.SendMessage(chatId, ERR_MSG)
-			srv.SendMessage(chatId, err.Error())
+			srv.SendMessage(fromId, ERR_MSG)
+			srv.SendMessage(fromId, err.Error())
 		}
 		return err
 	}
@@ -164,71 +165,71 @@ func (srv *TgService) HandleCallbackQuery(m models.Update) error {
 
 func (srv *TgService) CQ_vampire_register(m models.Update) error {
 	cq := m.CallbackQuery
-	chatId := cq.From.Id
-	err := srv.SendForceReply(chatId, NEW_BOT_MSG)
+	fromId := cq.From.Id
+	err := srv.SendForceReply(fromId, NEW_BOT_MSG)
 	return err
 }
 
 func (srv *TgService) CQ_vampire_delete(m models.Update) error {
 	cq := m.CallbackQuery
-	chatId := cq.From.Id
-	err := srv.SendForceReply(chatId, DELETE_BOT_MSG)
+	fromId := cq.From.Id
+	err := srv.SendForceReply(fromId, DELETE_BOT_MSG)
 	return err
 }
 
 func (srv *TgService) CQ_add_ch_to_bot(m models.Update) error {
 	cq := m.CallbackQuery
-	chatId := cq.From.Id
-	err := srv.SendForceReply(chatId, ADD_CH_TO_BOT_MSG)
+	fromId := cq.From.Id
+	err := srv.SendForceReply(fromId, ADD_CH_TO_BOT_MSG)
 	return err
 }
 
 func (srv *TgService) CQ_add_admin(m models.Update) error {
 	cq := m.CallbackQuery
-	chatId := cq.From.Id
-	err := srv.SendForceReply(chatId, NEW_ADMIN_MSG)
+	fromId := cq.From.Id
+	err := srv.SendForceReply(fromId, NEW_ADMIN_MSG)
 	return err
 }
 
 func (srv *TgService) CQ_show_bots_and_channels(m models.Update) error {
 	cq := m.CallbackQuery
-	chatId := cq.From.Id
-	err := srv.showBotsAndChannels(chatId)
+	fromId := cq.From.Id
+	err := srv.showBotsAndChannels(fromId)
 	return err
 }
 
 func (srv *TgService) CQ_edit_bot_group_link(m models.Update) error {
 	cq := m.CallbackQuery
-	chatId := cq.From.Id
-	err := srv.SendForceReply(chatId, EDIT_BOT_GROUP_LINK_MSG)
+	fromId := cq.From.Id
+	err := srv.SendForceReply(fromId, EDIT_BOT_GROUP_LINK_MSG)
 	return err
 }
 
 func (srv *TgService) CQ_show_all_group_links(m models.Update) error {
 	cq := m.CallbackQuery
-	chatId := cq.From.Id
-	err := srv.showAllGroupLinks(chatId)
+	fromId := cq.From.Id
+	err := srv.showAllGroupLinks(fromId)
 	return err
 }
 
 func (srv *TgService) CQ_show_admin_panel(m models.Update) error {
 	cq := m.CallbackQuery
-	chatId := cq.From.Id
-	err := srv.showAdminPanel(chatId)
+	fromId := cq.From.Id
+	err := srv.showAdminPanel(fromId)
 	return err
 }
 
 func (srv *TgService) CQ_create_group_link(m models.Update) error {
 	cq := m.CallbackQuery
-	chatId := cq.From.Id
-	err := srv.SendForceReply(chatId, NEW_GROUP_LINK_MSG)
+	fromId := cq.From.Id
+	err := srv.SendForceReply(fromId, NEW_GROUP_LINK_MSG)
 	return err
 }
 
 func (srv *TgService) CQ_delete_group_link(m models.Update) error {
 	cq := m.CallbackQuery
-	chatId := cq.From.Id
-	err := srv.SendForceReply(chatId, DELETE_GROUP_LINK_MSG)
+	fromId := cq.From.Id
+	err := srv.SendForceReply(fromId, DELETE_GROUP_LINK_MSG)
 	return err
 }
 
@@ -308,8 +309,8 @@ func (srv *TgService) CQ_del_lost_bots(m models.Update) error {
 
 func (srv *TgService) CQ_del_post_in_chs_bots(m models.Update) error {
 	cq := m.CallbackQuery
-	chatId := cq.From.Id
-	srv.SendForceReply(chatId, DELETE_POST_MSG)
+	fromId := cq.From.Id
+	srv.SendForceReply(fromId, DELETE_POST_MSG)
 	return nil
 }
 
