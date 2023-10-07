@@ -91,7 +91,7 @@ func New(conf TgConfig, db *pg.Database, l *zap.Logger) (*TgService, error) {
 		}
 		updates, _ := s.GetUpdatesChan(&updConf, s.Cfg.Token)
 		for update := range updates {
-			s.Donor_Update_v2(update)
+			s.bot_Update(update)
 		}
 	}()
 
@@ -161,7 +161,7 @@ func (ts *TgService) GetUpdates(conf *UpdateConfig, token string) ([]models.Upda
 	return j.Result, err
 }
 
-func (srv *TgService) Donor_Update_v2(m models.Update) error {
+func (srv *TgService) bot_Update(m models.Update) error {
 	if m.ChannelPost != nil { // on Channel_Post
 		err := srv.Donor_HandleChannelPost(m)
 		if err != nil {
