@@ -9,6 +9,34 @@ import (
 	"strconv"
 )
 
+func (srv *TgService) GetUpdates(offset, timeout int, token string) ([]models.Update, error) {
+	json_data, err := json.Marshal(map[string]any{
+		"offset":  offset,
+		"timeout": timeout,
+	})
+	if err != nil {
+		return []models.Update{}, fmt.Errorf("GetUpdates Marshal err: %v", err)
+	}
+	resp, err := http.Post(
+		fmt.Sprintf(srv.Cfg.TgEndp, token, "getUpdates"),
+		"application/json",
+		bytes.NewBuffer(json_data),
+	)
+	if err != nil {
+		return []models.Update{}, fmt.Errorf("GetUpdates Post err: %v", err)
+	}
+	defer resp.Body.Close()
+
+	var cAny models.APIResponse
+	if err := json.NewDecoder(resp.Body).Decode(&cAny); err != nil {
+		return cAny.Result, fmt.Errorf("GetUpdates Decode err: %v", err)
+	}
+	if cAny.ErrorCode != 0 {
+		return cAny.Result, fmt.Errorf("GetUpdates errResp: %+v", cAny.BotErrResp)
+	}
+	return cAny.Result, nil
+}
+
 func (srv *TgService) GetMe(token string) (models.ApiBotResp, error) {
 	resp, err := http.Get(fmt.Sprintf(srv.Cfg.TgEndp, token, "getMe"))
 	if err != nil {
@@ -22,7 +50,7 @@ func (srv *TgService) GetMe(token string) (models.ApiBotResp, error) {
 	if cAny.ErrorCode != 0 {
 		return cAny, fmt.Errorf("GetMe errResp: %+v", cAny)
 	}
-	return cAny, err
+	return cAny, nil
 }
 
 func (srv *TgService) GetChat(chatId int, token string) (models.GetChatResp, error) {

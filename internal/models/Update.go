@@ -17,16 +17,14 @@ type ApiBotResp struct {
 }
 
 type APIResponse struct {
-	Ok          bool               `json:"ok"`
-	Result      []Update           `json:"result,omitempty"`
-	ErrorCode   int                `json:"error_code,omitempty"`
-	Description string             `json:"description,omitempty"`
-	Parameters  ResponseParameters `json:"parameters,omitempty"`
+	Result      []Update           `json:"result"`
+	Parameters  ResponseParameters `json:"parameters"`
+	BotErrResp
 }
 
 type ResponseParameters struct {
-	MigrateToChatID int `json:"migrate_to_chat_id,omitempty"`
-	RetryAfter      int `json:"retry_after,omitempty"`
+	MigrateToChatID int `json:"migrate_to_chat_id"`
+	RetryAfter      int `json:"retry_after"`
 }
 
 type Update struct {

@@ -4,11 +4,9 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"log"
 	"myapp/internal/models"
 	"myapp/internal/repository/pg"
 	"myapp/pkg/files"
-	"net/http"
 	"strconv"
 	"strings"
 	"time"
@@ -112,10 +110,12 @@ func (srv *TgService) GetUpdatesChan(conf *UpdateConfig, token string) (chan mod
 				close(UpdCh)
 				return
 			default:
-				updates, err := srv.GetUpdates(conf, token)
+				logMess := fmt.Sprintf(srv.Cfg.TgEndp, token, "getUpdates")
+				fmt.Println(logMess)
+				updates, err := srv.GetUpdates(conf.Offset, conf.Timeout, token)
 				if err != nil {
-					log.Println("err: ", err)
-					log.Println("Failed to get updates, retrying in 3 seconds...")
+					srv.l.Error(fmt.Sprintf("GetUpdatesChan GetUpdates err: %v", err))
+					srv.l.Error("Failed to get updates, retrying in 4 seconds...")
 					time.Sleep(time.Second * 4)
 					continue
 				}
@@ -130,35 +130,6 @@ func (srv *TgService) GetUpdatesChan(conf *UpdateConfig, token string) (chan mod
 		}
 	}()
 	return UpdCh, shutdownCh
-}
-
-func (srv *TgService) GetUpdates(conf *UpdateConfig, token string) ([]models.Update, error) {
-	json_data, err := json.Marshal(map[string]any{
-		"offset":  conf.Offset,
-		"timeout": conf.Timeout,
-	})
-	if err != nil {
-		return []models.Update{}, err
-	}
-	fmt.Println(
-		fmt.Sprintf(srv.Cfg.TgEndp, token, "getUpdates"),
-	)
-	resp, err := http.Post(
-		fmt.Sprintf(srv.Cfg.TgEndp, token, "getUpdates"),
-		"application/json",
-		bytes.NewBuffer(json_data),
-	)
-	if err != nil {
-		return []models.Update{}, err
-	}
-	defer resp.Body.Close()
-
-	var j models.APIResponse
-	if err := json.NewDecoder(resp.Body).Decode(&j); err != nil {
-		return []models.Update{}, err
-	}
-
-	return j.Result, err
 }
 
 func (srv *TgService) bot_Update(m models.Update) error {
