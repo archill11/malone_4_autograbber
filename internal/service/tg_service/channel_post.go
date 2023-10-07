@@ -565,7 +565,7 @@ func (s *TgService) sendChPostAsVamp_Media_Group() error {
 
 		s.l.Info("sendChPostAsVamp_Media_Group: sending media-group", zap.Any("bot ch link", vampBot.ChLink), zap.Any("map[string]any", ttttt))
 		
-		cAny223, err := s.SendMediaGroup(media_json)
+		cAny223, err := s.SendMediaGroup(media_json, vampBot.Token)
 		if err != nil {
 			s.l.Error(fmt.Sprintf("sendChPostAsVamp_Media_Group: SendMediaGroup err: %v", err))
 		}

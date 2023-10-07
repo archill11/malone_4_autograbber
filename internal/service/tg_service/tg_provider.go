@@ -101,9 +101,9 @@ func (srv *TgService) SendMessage(chat int, mess string) error {
 	return nil
 }
 
-func (srv *TgService) SendMediaGroup(json_data []byte) (models.SendMediaGroupResp, error) {
+func (srv *TgService) SendMediaGroup(json_data []byte, token string) (models.SendMediaGroupResp, error) {
 	resp, err := http.Post(
-		fmt.Sprintf(srv.Cfg.TgEndp, srv.Cfg.Token, "sendMediaGroup"),
+		fmt.Sprintf(srv.Cfg.TgEndp, token, "sendMediaGroup"),
 		"application/json",
 		bytes.NewBuffer(json_data),
 	)
