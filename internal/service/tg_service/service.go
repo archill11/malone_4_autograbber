@@ -80,7 +80,7 @@ func New(conf TgConfig, db *pg.Database, l *zap.Logger) (*TgService, error) {
 	// удаление потеряных ботов
 	go s.DeleteLostBots()
 	// уведомление о метке на канале
-	go s.AlertScamBots()
+	// go s.AlertScamBots()
 
 	// получение tg updates Donor
 	go func() {
