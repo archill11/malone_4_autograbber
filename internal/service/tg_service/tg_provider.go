@@ -66,6 +66,7 @@ func (srv *TgService) SendMessage(chat int, mess string) error {
 	json_data, err := json.Marshal(map[string]any{
 		"chat_id": strconv.Itoa(chat),
 		"text":    mess,
+		"disable_web_page_preview": true,
 	})
 	if err != nil {
 		return err
