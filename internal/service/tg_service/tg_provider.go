@@ -26,7 +26,6 @@ func (srv *TgService) GetUpdates(offset, timeout int, token string) ([]models.Up
 		return []models.Update{}, fmt.Errorf("GetUpdates Post err: %v", err)
 	}
 	defer resp.Body.Close()
-
 	var cAny models.APIResponse
 	if err := json.NewDecoder(resp.Body).Decode(&cAny); err != nil {
 		return cAny.Result, fmt.Errorf("GetUpdates Decode err: %v", err)
