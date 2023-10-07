@@ -51,7 +51,7 @@ func (srv *TgService) NCM_administrator(m models.Update) error {
 	if err != nil {
 		return err
 	}
-	cAny, err := srv.getChatByCurrBot(chatId, bot.Token)
+	cAny, err := srv.getChat(chatId, bot.Token)
 	if err != nil {
 		return err
 	}

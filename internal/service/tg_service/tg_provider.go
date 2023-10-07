@@ -22,7 +22,7 @@ func (srv *TgService) getBotByToken(token string) (models.ApiBotResp, error) {
 	return j, err
 }
 
-func (srv *TgService) getChatByCurrBot(chatId int, token string) (models.GetChatResp, error) {
+func (srv *TgService) GetChat(chatId int, token string) (models.GetChatResp, error) {
 	json_data, err := json.Marshal(map[string]any{
 		"chat_id": strconv.Itoa(chatId),
 	})
@@ -43,7 +43,7 @@ func (srv *TgService) getChatByCurrBot(chatId int, token string) (models.GetChat
 		return models.GetChatResp{}, err
 	}
 	if cAny.ErrorCode != 0 {
-		return models.GetChatResp{}, fmt.Errorf("getChatByCurrBot errResp: %+v", cAny)
+		return models.GetChatResp{}, fmt.Errorf("GetChat errResp: %+v", cAny)
 	}
 	return cAny, nil
 }
