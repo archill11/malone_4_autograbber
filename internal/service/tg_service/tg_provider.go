@@ -145,7 +145,6 @@ func (srv *TgService) SendMediaGroup(json_data []byte, token string) (models.Sen
 	if sendMGResp.ErrorCode != 0 {
 		return sendMGResp, fmt.Errorf("SendMediaGroup BotErrResp: %v", sendMGResp.BotErrResp)
 	}
-	
 	return sendMGResp, nil
 }
 
