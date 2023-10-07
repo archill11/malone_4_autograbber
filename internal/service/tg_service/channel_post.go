@@ -253,7 +253,8 @@ func (srv *TgService) sendChPostAsVamp_VideoNote(vampBot entity.Bot, m models.Up
 	}
 	fileNameDir := strings.Split(cAny.Result.File_path, ".")
 	fileNameInServer := fmt.Sprintf("./files/%s.%s", cAny.Result.File_unique_id, fileNameDir[1])
-	srv.l.Info("sendChPostAsVamp_VideoNote: fileNameInServer:", zap.Any("fileNameInServer", fileNameInServer))
+	srv.l.Info(fmt.Sprintf("sendChPostAsVamp_VideoNote: fileNameInServer: %s", fileNameInServer))
+
 	_, err = os.Stat(fileNameInServer)
 	if errors.Is(err, os.ErrNotExist) {
 		err = files.DownloadFile(
@@ -377,7 +378,8 @@ func (srv *TgService) sendChPostAsVamp_Video_or_Photo(vampBot entity.Bot, m mode
 	}
 	fileNameDir := strings.Split(cAny.Result.File_path, ".")
 	fileNameInServer := fmt.Sprintf("./files/%s.%s", cAny.Result.File_unique_id, fileNameDir[1])
-	srv.l.Info("sendChPostAsVamp_VideoNote: fileNameInServer:", zap.Any("fileNameInServer", fileNameInServer))
+	srv.l.Info(fmt.Sprintf("sendChPostAsVamp_VideoNote: fileNameInServer: %s", fileNameInServer))
+	
 	_, err = os.Stat(fileNameInServer)
 	if errors.Is(err, os.ErrNotExist) {
 		err = files.DownloadFile(
