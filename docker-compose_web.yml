@@ -19,7 +19,6 @@ services:
       - ./volumes/files:/app/files
     networks:
       - mynet
-      - malone_7
 
   db:
     container_name: grab_db_web
@@ -39,5 +38,3 @@ services:
 networks:
   mynet:
     driver: bridge
-  malone_7:
-    external: true
