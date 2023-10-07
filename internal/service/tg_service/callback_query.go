@@ -323,7 +323,7 @@ func (srv *TgService) CQ_restart_app() {
 func (srv *TgService) CQ_edit_bot_group_link_stp2(m models.Update, botIdStr, grLinkIdStr string) error {
 	cq := m.CallbackQuery
 	fromId := cq.From.Id
-	srv.l.Info("tg_service: CQ_edit_bot_group_link_stp2", zap.Any("cq.Data", cq.Data))
+	srv.l.Info("tg_service: CQ_edit_bot_group_link_stp2", zap.Any("fromId", fromId))
 
 	botId, err := strconv.Atoi(botIdStr)
 	if err != nil {
