@@ -161,7 +161,7 @@ func (srv *TgService) sendChPostAsVamp(vampBot entity.Bot, m models.Update) erro
 		}
 
 		var messText string                            // строка в которую скопируем значение текста поста, тк структуры копируются по ебаной ссылке, и если срезаем часть текста то потом везде так будет
-		mycopy.DeepCopy(m.ChannelPost.Text, &messText) // какого хуя в Го структуры копируются по ссылке  ??
+		mycopy.DeepCopy(m.ChannelPost.Text, &messText) // какого хуя в Го структуры копируются по ссылке ?
 
 		if len(m.ChannelPost.Entities) > 0 {
 			entities := make([]models.MessageEntity, 0)
@@ -505,22 +505,20 @@ func (srv *TgService) sendAndDeleteMedia(vampBot entity.Bot, fileNameInServer st
 	defer rrres.Body.Close()
 	var cAny2 struct {
 		Ok     bool `json:"ok"`
+		ErrorCode   any `json:"error_code"`
+		Description any `json:"description"`
 		Result struct {
 			MessageId int `json:"message_id"`
-			Chat      struct {
+			Chat struct {
 				Id int `json:"id"`
 			} `json:"chat"`
 			Video models.Video       `json:"video"`
 			Photo []models.PhotoSize `json:"photo"`
-		} `json:"result,omitempty"`
-		ErrorCode   any `json:"error_code,omitempty"`
-		Description any `json:"description,omitempty"`
+		} `json:"result"`
 	}
 	if err := json.NewDecoder(rrres.Body).Decode(&cAny2); err != nil && err != io.EOF {
 		return "", fmt.Errorf("sendAndDeleteMedia: json.NewDecoder(rrres.Body).Decode(&cAny2): %v", err)
 	}
-	// srv.l.Info(method, "----resp body:", cAny2)
-	// fmt.Println(method, "----resp body:", cAny2)
 	if !cAny2.Ok {
 		return "", fmt.Errorf("sendAndDeleteMedia: NOT OK %s: %+v", method, cAny2)
 	}
@@ -542,9 +540,9 @@ func (srv *TgService) sendAndDeleteMedia(vampBot entity.Bot, fileNameInServer st
 	defer rrres.Body.Close()
 	var cAny3 struct {
 		Ok          bool `json:"ok"`
-		Result      any  `json:"result,omitempty"`
-		ErrorCode   any  `json:"error_code,omitempty"`
-		Description any  `json:"description,omitempty"`
+		Result      any  `json:"result"`
+		ErrorCode   any  `json:"error_code"`
+		Description any  `json:"description"`
 	}
 	if err := json.NewDecoder(rrres.Body).Decode(&cAny3); err != nil && err != io.EOF {
 		return "", err
@@ -653,13 +651,13 @@ func (s *TgService) sendChPostAsVamp_Media_Group() error {
 			Ok          bool   `json:"ok"`
 			Description string `json:"description"`
 			Result      []struct {
-				MessageId int `json:"message_id,omitempty"`
+				MessageId int `json:"message_id"`
 				Caption   string `json:"caption"`
 				Chat      struct {
-					Id int `json:"id,omitempty"`
+					Id int `json:"id"`
 				} `json:"chat,omitempty"`
-				Video models.Video       `json:"video,omitempty"`
-				Photo []models.PhotoSize `json:"photo,omitempty"`
+				Video models.Video       `json:"video"`
+				Photo []models.PhotoSize `json:"photo"`
 			} `json:"result,omitempty"`
 		}
 		if err := json.NewDecoder(rrresfyhfy.Body).Decode(&cAny223); err != nil && err != io.EOF {
@@ -671,7 +669,6 @@ func (s *TgService) sendChPostAsVamp_Media_Group() error {
 				continue
 			}
 			for _, med := range mediaArr {
-				time.Sleep(time.Millisecond * 300)
 				err = s.db.AddNewPost(vampBot.ChId, v.MessageId, med.Donor_message_id, v.Caption)
 				if err != nil {
 					s.l.Error("sendChPostAsVamp_Media_Group: s.db.AddNewPost", zap.Error(err))
