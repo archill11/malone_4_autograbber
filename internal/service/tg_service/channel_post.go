@@ -558,14 +558,14 @@ func (s *TgService) sendChPostAsVamp_Media_Group() error {
 		if mediaArr[0].Reply_to_message_id != 0 {
 			ttttt["reply_to_message_id"] = mediaArr[0].Reply_to_message_id
 		}
-		MediaJson, err := json.Marshal(ttttt)
+		media_json, err := json.Marshal(ttttt)
 		if err != nil {
 			s.l.Error(fmt.Sprintf("sendChPostAsVamp_Media_Group: Marshal err: %v", err))
 		}
 
 		s.l.Info("sendChPostAsVamp_Media_Group: sending media-group", zap.Any("bot ch link", vampBot.ChLink), zap.Any("map[string]any", ttttt))
 		
-		cAny223, err := s.SendMediaGroup(MediaJson)
+		cAny223, err := s.SendMediaGroup(media_json)
 		if err != nil {
 			s.l.Error(fmt.Sprintf("sendChPostAsVamp_Media_Group: SendMediaGroup err: %v", err))
 		}
