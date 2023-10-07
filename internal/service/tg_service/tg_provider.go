@@ -42,6 +42,9 @@ func (srv *TgService) getChatByCurrBot(chatId int, token string) (models.GetChat
 	if err := json.NewDecoder(resp.Body).Decode(&cAny); err != nil {
 		return models.GetChatResp{}, err
 	}
+	if cAny.ErrorCode != 0 {
+		return models.GetChatResp{}, fmt.Errorf("getChatByCurrBot errResp: %+v", cAny)
+	}
 	return cAny, nil
 }
 
