@@ -29,40 +29,38 @@ func (srv *TgService) HandleMessage(m models.Update) error {
 }
 
 func (srv *TgService) M_start(m models.Update) error {
-	chatId := m.Message.Chat.Id
+	fromId := m.Message.Chat.Id
 	msgText := m.Message.Text
-	userFirstName := m.Message.From.FirstName
-	userUserName := m.Message.From.UserName
-	srv.l.Info("M_start:", zap.Any("userUserName", userUserName), zap.Any("msgText", msgText))
+	fromFirstName := m.Message.From.FirstName
+	fromUserName := m.Message.From.UserName
+	srv.l.Info("M_start:", zap.Any("fromUserName", fromUserName), zap.Any("msgText", msgText))
 
-	err := srv.SendMessage(chatId, fmt.Sprintf("Привет %s", userFirstName))
-	if err != nil {
-		return err
-	}
-	err = srv.db.AddNewUser(chatId, userUserName, userFirstName)
+	srv.SendMessage(fromId, fmt.Sprintf("Привет %s", fromFirstName))
+	
+	err := srv.db.AddNewUser(fromId, fromUserName, fromFirstName)
 
 	return err
 }
 
 func (srv *TgService) M_admin(m models.Update) error {
-	chatId := m.Message.From.Id
+	fromId := m.Message.From.Id
 	msgText := m.Message.Text
-	userUserName := m.Message.From.UserName
-	srv.l.Info("M_admin:", zap.Any("userUserName", userUserName), zap.Any("msgText", msgText))
+	fromUserName := m.Message.From.UserName
+	srv.l.Info("M_admin:", zap.Any("fromUserName", fromUserName), zap.Any("msgText", msgText))
 
-	u, err := srv.db.GetUserById(chatId)
+	u, err := srv.db.GetUserById(fromId)
 	if err != nil {
 		return err
 	}
 	if u.Id == 0 {
-		srv.SendMessage(chatId, "Нажмите сначала /start")
+		srv.SendMessage(fromId, "Нажмите сначала /start")
 		return nil
 	}
 	if u.IsAdmin == 0 {
-		srv.SendMessage(chatId, "___")
+		srv.SendMessage(fromId, "___")
 		return nil
 	}
-	err = srv.showAdminPanel(chatId)
+	err = srv.showAdminPanel(fromId)
 
 	return err
 }
