@@ -231,3 +231,12 @@ type InlineKeyboardButton struct {
 	Url          *string `json:"url"`
 	CallbackData *string `json:"callback_data"`
 }
+
+type GetFileResp struct {
+	Result struct {
+		File_id        string `json:"file_id"`
+		File_unique_id string `json:"file_unique_id"`
+		File_path      string `json:"file_path"`
+	} `json:"result"`
+	BotErrResp
+}

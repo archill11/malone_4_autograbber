@@ -46,6 +46,24 @@ func (srv *TgService) getChatByCurrBot(chatId int, token string) (models.GetChat
 	return cAny, nil
 }
 
+func (srv *TgService) GetFile(fileId string) (models.GetFileResp, error) {
+	resp, err := http.Get(
+		fmt.Sprintf(srv.Cfg.TgEndp, srv.Cfg.Token, fmt.Sprintf("getFile?file_id=%s", fileId)),
+	)
+	if err != nil {
+		return models.GetFileResp{}, fmt.Errorf("GetFile Get file_id-%s err: %v", fileId, err)
+	}
+	defer resp.Body.Close()
+	var cAny models.GetFileResp
+	if err := json.NewDecoder(resp.Body).Decode(&cAny); err != nil {
+		return models.GetFileResp{}, fmt.Errorf("GetFile Decode err: %v", err)
+	}
+	if cAny.ErrorCode != 0 {
+		return models.GetFileResp{}, fmt.Errorf("GetFile errResp: %+v", cAny)
+	}
+	return cAny, nil
+}
+
 func (srv *TgService) SendForceReply(chat int, mess string) error {
 	json_data, err := json.Marshal(map[string]any{
 		"chat_id":      strconv.Itoa(chat),
