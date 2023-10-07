@@ -21,9 +21,6 @@ import (
 
 func (srv *TgService) Donor_HandleChannelPost(m models.Update) error {
 	fromId := m.ChannelPost.Chat.Id
-	// msgText := m.Message.Text
-	// userFirstName := m.Message.From.FirstName
-	// userUserName := m.Message.From.UserName
 	srv.l.Info("Donor_HandleChannelPost", zap.Any("models.Update", m))
 
 	err := srv.Donor_addChannelPost(m)
@@ -52,10 +49,7 @@ func (srv *TgService) Donor_addChannelPost(m models.Update) error {
 		return nil
 	}
 	// добавили пост в БД
-	err = srv.db.AddNewPost(channel_id, message_id, message_id, "")
-	if err != nil {
-		return err
-	}
+	srv.db.AddNewPost(channel_id, message_id, message_id, "")
 
 	// если Media_Group
 	if m.ChannelPost.MediaGroupId != nil {
@@ -450,13 +444,12 @@ func (srv *TgService) downloadPostMedia(m models.Update, postType string) (strin
 	
 	fileNameDir := strings.Split(GetFileResp.Result.File_path, ".")
 	fileNameInServer := fmt.Sprintf("./files/%s.%s", GetFileResp.Result.File_unique_id, fileNameDir[1])
-	
 	err = files.DownloadFile(
 		fileNameInServer,
 		fmt.Sprintf("https://api.telegram.org/file/bot%s/%s", srv.Cfg.Token, GetFileResp.Result.File_path),
 	)
 	if err != nil {
-		return "", fmt.Errorf("in method downloadPostMedia[3] err: %s", err)
+		return "", fmt.Errorf("downloadPostMedia DownloadFile err: %v", err)
 	}
 	return fileNameInServer, nil
 }
@@ -485,23 +478,11 @@ func (srv *TgService) sendAndDeleteMedia(vampBot entity.Bot, fileNameInServer st
 		return "", fmt.Errorf("sendAndDeleteMedia Post err: %v", err)
 	}
 	defer rrres.Body.Close()
-	var cAny2 struct {
-		Ok     bool `json:"ok"`
-		ErrorCode   any `json:"error_code"`
-		Description any `json:"description"`
-		Result struct {
-			MessageId int `json:"message_id"`
-			Chat struct {
-				Id int `json:"id"`
-			} `json:"chat"`
-			Video models.Video       `json:"video"`
-			Photo []models.PhotoSize `json:"photo"`
-		} `json:"result"`
-	}
+	var cAny2 models.SendMediaResp
 	if err := json.NewDecoder(rrres.Body).Decode(&cAny2); err != nil && err != io.EOF {
-		return "", fmt.Errorf("sendAndDeleteMedia: Decode: %v", err)
+		return "", fmt.Errorf("sendAndDeleteMedia: Decode err: %v", err)
 	}
-	if !cAny2.Ok {
+	if cAny2.ErrorCode != 0 {
 		return "", fmt.Errorf("sendAndDeleteMedia: NOT OK %s: %+v", method, cAny2)
 	}
 	DelJson, err := json.Marshal(map[string]any{
@@ -509,7 +490,7 @@ func (srv *TgService) sendAndDeleteMedia(vampBot entity.Bot, fileNameInServer st
 		"message_id": strconv.Itoa(cAny2.Result.MessageId),
 	})
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("sendAndDeleteMedia: Marshal err: %v", err)
 	}
 	rrres, err = http.Post(
 		fmt.Sprintf(srv.Cfg.TgEndp, vampBot.Token, "deleteMessage"),
@@ -517,7 +498,7 @@ func (srv *TgService) sendAndDeleteMedia(vampBot entity.Bot, fileNameInServer st
 		bytes.NewBuffer(DelJson),
 	)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("sendAndDeleteMedia: Post err: %v", err)
 	}
 	defer rrres.Body.Close()
 	var cAny3 struct {
@@ -527,18 +508,22 @@ func (srv *TgService) sendAndDeleteMedia(vampBot entity.Bot, fileNameInServer st
 		Description any  `json:"description"`
 	}
 	if err := json.NewDecoder(rrres.Body).Decode(&cAny3); err != nil && err != io.EOF {
-		return "", err
+		return "", fmt.Errorf("sendAndDeleteMedia Decode err: %v", err)
 	}
-	if !cAny3.Ok {
-		return "", fmt.Errorf("sendAndDeleteMedia: NOT OK deleteMessage : %v", cAny3)
+	if cAny3.ErrorCode != 0 {
+		return "", fmt.Errorf("sendAndDeleteMedia ErrorResp: %+v", cAny3)
 	}
 	var fileId string
-	if postType == "photo" && len(cAny2.Result.Photo) > 0 {
-		fileId = cAny2.Result.Photo[len(cAny2.Result.Photo)-1].FileId
-	} else if postType == "video" && cAny2.Result.Video.FileId != "" {
-		fileId = cAny2.Result.Video.FileId
+	if postType == "photo" {
+		if len(cAny2.Result.Photo) > 0 {
+			fileId = cAny2.Result.Photo[len(cAny2.Result.Photo)-1].FileId
+		}
+	} else if postType == "video" {
+		if cAny2.Result.Video.FileId != "" {
+			fileId = cAny2.Result.Video.FileId
+		}
 	} else {
-		return "", fmt.Errorf("sendAndDeleteMedia: no photo no video ;-(")
+		return "", fmt.Errorf("sendAndDeleteMedia: no photo, no video :(")
 	}
 	return fileId, nil
 }
@@ -581,10 +566,7 @@ func (s *TgService) sendChPostAsVamp_Media_Group() error {
 				entities := make([]models.MessageEntity, 0)
 				mycopy.DeepCopy(media.Caption_entities, &entities)
 
-				var newEntities []models.MessageEntity
-				var err error
-
-				newEntities, _, err = s.PrepareEntities(entities, "", vampBot)
+				newEntities, _, err := s.PrepareEntities(entities, "", vampBot)
 				if err != nil {
 					return fmt.Errorf("sendChPostAsVamp PrepareEntities err: %v", err)
 				}
@@ -635,7 +617,7 @@ func (s *TgService) sendChPostAsVamp_Media_Group() error {
 			for _, med := range mediaArr {
 				err = s.db.AddNewPost(vampBot.ChId, v.MessageId, med.Donor_message_id, v.Caption)
 				if err != nil {
-					s.l.Error("sendChPostAsVamp_Media_Group: AddNewPost err", zap.Error(err))
+					s.l.Error(fmt.Sprintf("sendChPostAsVamp_Media_Group AddNewPost err: %v", err))
 				}
 			}
 		}

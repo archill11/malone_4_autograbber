@@ -241,14 +241,19 @@ type GetFileResp struct {
 }
 
 type SendMediaGroupResp struct {
-	Result []struct {
-		MessageId int `json:"message_id"`
-		Caption   string `json:"caption"`
-		Chat      struct {
-			Id int `json:"id"`
-		} `json:"chat"`
-		Video Video       `json:"video"`
-		Photo []PhotoSize `json:"photo"`
-	} `json:"result"`
+	Result []SendMediaRespResult `json:"result"`
 	BotErrResp
+}
+
+type SendMediaResp struct {
+	Result SendMediaRespResult `json:"result"`
+	BotErrResp
+}
+
+type SendMediaRespResult struct {
+	MessageId int         `json:"message_id"`
+	Caption   string      `json:"caption"`
+	Chat      Chat        `json:"chat"`
+	Video     Video       `json:"video"`
+	Photo     []PhotoSize `json:"photo"`
 }
