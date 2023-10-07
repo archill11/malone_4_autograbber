@@ -299,7 +299,7 @@ func (srv *TgService) RM_add_group_link(m models.Update) error {
 	rm := m.Message.ReplyToMessage
 	replyMes := m.Message.Text
 	chatId := m.Message.From.Id
-	srv.l.Info("tg_service: RM_add_group_link", zap.Any("rm.Text", rm.Text), zap.Any("replyMes", replyMes))
+	srv.l.Info("RM_add_group_link", zap.Any("rm.Text", rm.Text), zap.Any("replyMes", replyMes))
 
 	replyMes = strings.TrimSpace(replyMes)
 	runeStr := []rune(replyMes)
