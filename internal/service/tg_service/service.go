@@ -71,8 +71,9 @@ func New(conf TgConfig, db *pg.Database, l *zap.Logger) (*TgService, error) {
 
 	// удаление ненужных файлов
 	go s.DeleteOldFiles()
-
+	// удаление потеряных ботов
 	go s.DeleteLostBots()
+	// уведомление о метке на канале
 	go s.AlertScamBots()
 
 	// получение tg updates Donor
@@ -130,7 +131,7 @@ func New(conf TgConfig, db *pg.Database, l *zap.Logger) (*TgService, error) {
 
 				DonorBot, err := s.db.GetBotInfoByToken(s.Cfg.Token)
 				if err != nil {
-					s.l.Error("Channel: s.As.GetBotInfoByToken(s.Token)", zap.Error(err))
+					s.l.Error(fmt.Sprintf("Channel: GetBotInfoByToken token-%s", s.Cfg.Token), zap.Error(err))
 				}
 
 				acceptMess := map[string]any{
@@ -142,11 +143,11 @@ func New(conf TgConfig, db *pg.Database, l *zap.Logger) (*TgService, error) {
 				}
 				MediaJson, err := json.Marshal(acceptMess)
 				if err != nil {
-					s.l.Error("Channel: json.Marshal(acceptMess)", zap.Error(err))
+					s.l.Error("Channel: json.Marshal(acceptMess) err", zap.Error(err))
 				}
 				err = s.sendData(MediaJson, "sendMediaGroup")
 				if err != nil {
-					s.l.Error("Channel: http.Post(sendMediaGroup)", zap.Error(err))
+					s.l.Error("Channel: Post(sendMediaGroup) err", zap.Error(err))
 				}
 
 				acceptMess = map[string]any{
@@ -156,11 +157,11 @@ func New(conf TgConfig, db *pg.Database, l *zap.Logger) (*TgService, error) {
 				}
 				MediaJson, err = json.Marshal(acceptMess)
 				if err != nil {
-					s.l.Error("Channel: json.Marshal(acceptMess) (2)", zap.Error(err))
+					s.l.Error("Channel: Marshal(acceptMess) err", zap.Error(err))
 				}
 				err = s.sendData(MediaJson, "sendMessage")
 				if err != nil {
-					s.l.Error("Channel: http.Post(sendMessage)", zap.Error(err))
+					s.l.Error("Channel: sendData(sendMessage) err", zap.Error(err))
 				}
 
 				mediaArr = mediaArr[0:0]

@@ -95,6 +95,27 @@ func (srv *TgService) SendMessage(chat int, mess string) error {
 	return nil
 }
 
+func (srv *TgService) SendMediaGroup(json_data []byte) (models.SendMediaGroupResp, error) {
+	resp, err := http.Post(
+		fmt.Sprintf(srv.Cfg.TgEndp, srv.Cfg.Token, "sendMediaGroup"),
+		"application/json",
+		bytes.NewBuffer(json_data),
+	)
+	if err != nil {
+		return models.SendMediaGroupResp{}, fmt.Errorf("SendMediaGroup Post %v", err)
+	}
+	defer resp.Body.Close()
+	var sendMGResp models.SendMediaGroupResp
+	if err := json.NewDecoder(resp.Body).Decode(&sendMGResp); err != nil {
+		return models.SendMediaGroupResp{}, fmt.Errorf("SendMediaGroup Decode err: %v", err)
+	}
+	if !sendMGResp.Ok {
+		return models.SendMediaGroupResp{}, fmt.Errorf("SendMediaGroup BotErrResp: %v", sendMGResp.BotErrResp)
+	}
+	
+	return sendMGResp, nil
+}
+
 func (srv *TgService) DeleteMessage(chat, messId int, botToken string) error {
 	json_data, err := json.Marshal(map[string]any{
 		"chat_id":    strconv.Itoa(chat),

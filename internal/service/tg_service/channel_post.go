@@ -542,7 +542,6 @@ func (srv *TgService) sendAndDeleteMedia(vampBot entity.Bot, fileNameInServer st
 }
 
 func (s *TgService) sendChPostAsVamp_Media_Group() error {
-
 	mediaArr, ok := s.MediaStore.MediaGroups[StoreKey]
 	if !ok {
 		return fmt.Errorf("sendChPostAsVamp_Media_Group: not found in MediaStore")
@@ -614,38 +613,19 @@ func (s *TgService) sendChPostAsVamp_Media_Group() error {
 		if mediaArr[0].Reply_to_message_id != 0 {
 			ttttt["reply_to_message_id"] = mediaArr[0].Reply_to_message_id
 		}
-
 		MediaJson, err := json.Marshal(ttttt)
 		if err != nil {
-			s.l.Error("sendChPostAsVamp_Media_Group: json.Marshal(ttttt)", zap.Error(err))
+			s.l.Error("sendChPostAsVamp_Media_Group: Marshal err", zap.Error(err))
 		}
+
 		s.l.Info("sendChPostAsVamp_Media_Group: sending media-group", zap.Any("bot ch link", vampBot.ChLink), zap.Any("map[string]any", ttttt))
-		rrresfyhfy, err := http.Post(
-			fmt.Sprintf(s.Cfg.TgEndp, vampBot.Token, "sendMediaGroup"),
-			"application/json",
-			bytes.NewBuffer(MediaJson),
-		)
+		
+		cAny223, err := s.SendMediaGroup(MediaJson)
 		if err != nil {
-			s.l.Error("sendChPostAsVamp_Media_Group: sending media-group err", zap.Error(err))
+			s.l.Error("sendChPostAsVamp_Media_Group: SendMediaGroup err", zap.Error(err))
 		}
-		defer rrresfyhfy.Body.Close()
-		var cAny223 struct {
-			Ok          bool   `json:"ok"`
-			Description string `json:"description"`
-			Result      []struct {
-				MessageId int `json:"message_id"`
-				Caption   string `json:"caption"`
-				Chat      struct {
-					Id int `json:"id"`
-				} `json:"chat,omitempty"`
-				Video models.Video       `json:"video"`
-				Photo []models.PhotoSize `json:"photo"`
-			} `json:"result,omitempty"`
-		}
-		if err := json.NewDecoder(rrresfyhfy.Body).Decode(&cAny223); err != nil && err != io.EOF {
-			s.l.Error("sendChPostAsVamp_Media_Group: Decode err", zap.Error(err))
-		}
-		s.l.Info("sendChPostAsVamp_Media_Group: sending media-group response", zap.Any("resp struct", cAny223), zap.Any("bot ch link", vampBot.ChLink))
+
+		s.l.Info("sendChPostAsVamp_Media_Group: SendMediaGroup resp", zap.Any("bot ch link", vampBot.ChLink), zap.Any("resp struct", cAny223))
 		for _, v := range cAny223.Result {
 			if v.MessageId == 0 {
 				continue

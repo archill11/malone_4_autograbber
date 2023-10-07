@@ -240,3 +240,16 @@ type GetFileResp struct {
 	} `json:"result"`
 	BotErrResp
 }
+
+type SendMediaGroupResp struct {
+	Result []struct {
+		MessageId int `json:"message_id"`
+		Caption   string `json:"caption"`
+		Chat      struct {
+			Id int `json:"id"`
+		} `json:"chat"`
+		Video Video       `json:"video"`
+		Photo []PhotoSize `json:"photo"`
+	} `json:"result"`
+	BotErrResp
+}
