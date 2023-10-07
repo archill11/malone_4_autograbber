@@ -270,7 +270,7 @@ func (srv *TgService) DeleteLostBots() {
 			if bot.IsDonor == 1 {
 				continue
 			}
-			resp, err := srv.getBotByToken(bot.Token)
+			resp, err := srv.GetMe(bot.Token)
 			if err != nil {
 				errMess := fmt.Sprintf("DeleteLostBots: getBotByToken token-%s err: %v", bot.Token, err)
 				srv.l.Error(errMess)

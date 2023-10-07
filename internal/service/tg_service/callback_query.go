@@ -271,7 +271,7 @@ func (srv *TgService) CQ_accept_ch_post_by_admin(m models.Update) error {
 func (srv *TgService) CQ_del_lost_bots(m models.Update) error {
 	cq := m.CallbackQuery
 	fromId := cq.From.Id
-	
+
 	allBots, err := srv.db.GetAllBots()
 	if err != nil {
 		errMess := fmt.Sprintf("CQ_del_lost_bots: GetAllBots err: %v", err)
@@ -286,7 +286,7 @@ func (srv *TgService) CQ_del_lost_bots(m models.Update) error {
 		if bot.IsDonor == 1 {
 			continue
 		}
-		resp, err := srv.getBotByToken(bot.Token)
+		resp, err := srv.GetMe(bot.Token)
 		if err != nil {
 			errMess := fmt.Sprintf("CQ_del_lost_bots: getBotByToken err: %v", err)
 			srv.l.Error(errMess, zap.Any("bot token", bot.Token))

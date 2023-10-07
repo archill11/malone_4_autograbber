@@ -129,7 +129,7 @@ func (srv *TgService) RM_obtain_vampire_bot_token(m models.Update) error {
 	chatId := m.Message.From.Id
 	srv.l.Info("tg_service: RM_obtain_vampire_bot_token", zap.Any("rm.Text", rm.Text), zap.Any("replyMes", replyMes))
 
-	tgobotResp, err := srv.getBotByToken(strings.TrimSpace(replyMes))
+	tgobotResp, err := srv.GetMe(strings.TrimSpace(replyMes))
 	if err != nil {
 		return err
 	}

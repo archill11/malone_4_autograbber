@@ -9,10 +9,10 @@ import (
 	"strconv"
 )
 
-func (srv *TgService) getBotByToken(token string) (models.ApiBotResp, error) {
+func (srv *TgService) GetMe(token string) (models.ApiBotResp, error) {
 	resp, err := http.Get(fmt.Sprintf(srv.Cfg.TgEndp, token, "getMe"))
 	if err != nil {
-		return models.ApiBotResp{}, fmt.Errorf("getBotByToken Get err: %v", err)
+		return models.ApiBotResp{}, fmt.Errorf("GetMe Get err: %v", err)
 	}
 	defer resp.Body.Close()
 	var j models.ApiBotResp
