@@ -20,17 +20,17 @@ import (
 )
 
 func (srv *TgService) Donor_HandleChannelPost(m models.Update) error {
-	chatId := m.ChannelPost.Chat.Id
+	fromId := m.ChannelPost.Chat.Id
 	// msgText := m.Message.Text
 	// userFirstName := m.Message.From.FirstName
 	// userUserName := m.Message.From.UserName
-	srv.l.Info("tgClient: Donor_HandleChannelPost", zap.Any("models.Update", m))
+	srv.l.Info("Donor_HandleChannelPost", zap.Any("models.Update", m))
 
 	err := srv.Donor_addChannelPost(m)
 	if err != nil {
 		if err != nil {
-			srv.SendMessage(chatId, ERR_MSG + err.Error())
-			srv.SendMessage(chatId, err.Error())
+			srv.SendMessage(fromId, ERR_MSG + err.Error())
+			srv.SendMessage(fromId, err.Error())
 		}
 		return err
 	}
@@ -379,7 +379,7 @@ func (srv *TgService) sendChPostAsVamp_Video_or_Photo(vampBot entity.Bot, m mode
 	fileNameDir := strings.Split(cAny.Result.File_path, ".")
 	fileNameInServer := fmt.Sprintf("./files/%s.%s", cAny.Result.File_unique_id, fileNameDir[1])
 	srv.l.Info(fmt.Sprintf("sendChPostAsVamp_VideoNote: fileNameInServer: %s", fileNameInServer))
-	
+
 	_, err = os.Stat(fileNameInServer)
 	if errors.Is(err, os.ErrNotExist) {
 		err = files.DownloadFile(
