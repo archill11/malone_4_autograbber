@@ -301,7 +301,7 @@ func (srv *TgService) CQ_del_lost_bots(m models.Update) error {
 			logMess := mess.String()
 
 			srv.SendMessage(fromId, logMess)
-			time.Sleep(time.Second * 3)
+			time.Sleep(time.Second)
 		}
 	}
 	srv.SendMessage(fromId, "проверка закончена")
@@ -317,7 +317,7 @@ func (srv *TgService) CQ_del_post_in_chs_bots(m models.Update) error {
 
 func (srv *TgService) CQ_restart_app() {
 	go func() {
-		time.Sleep(time.Second * 1)
+		time.Sleep(time.Second)
 		panic("restart app")
 	}()
 }

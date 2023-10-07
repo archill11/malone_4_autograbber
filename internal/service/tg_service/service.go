@@ -116,7 +116,7 @@ func (ts *TgService) GetUpdatesChan(conf *UpdateConfig, token string) (chan mode
 				if err != nil {
 					log.Println("err: ", err)
 					log.Println("Failed to get updates, retrying in 3 seconds...")
-					time.Sleep(time.Second * 3)
+					time.Sleep(time.Second * 4)
 					continue
 				}
 
@@ -286,7 +286,7 @@ func (srv *TgService) DeleteLostBots() {
 				logMess := mess.String()
 
 				srv.SendMessage(donorBot.ChId, logMess)
-				time.Sleep(time.Second * 3)
+				time.Sleep(time.Second)
 			}
 		}
 	}

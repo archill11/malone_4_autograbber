@@ -107,7 +107,7 @@ func (srv *TgService) Donor_addChannelPost(m models.Update) error {
 			srv.l.Error("Donor_addChannelPost: sendChPostAsVamp", zap.Error(err))
 		}
 		srv.l.Info("Donor_addChannelPost", zap.Any("bot index in arr", i), zap.Any("bot ch link", vampBot.ChLink))
-		time.Sleep(time.Second * 2)
+		time.Sleep(time.Second)
 	}
 	srv.l.Info("Donor_addChannelPost: end")
 
