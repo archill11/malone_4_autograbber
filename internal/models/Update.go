@@ -4,11 +4,17 @@ type GetChatResult struct {
 	Result Chat `json:"result"`
 }
 
+type BotErrResp struct {
+	Ok          bool   `json:"ok"`
+	ErrorCode   int    `json:"error_code"`
+	Description string `json:"description"`
+}
+
 type APIRBotresp struct {
 	Ok          bool   `json:"ok"`
-	Result      User   `json:"result,omitempty"`
-	ErrorCode   int    `json:"error_code,omitempty"`
-	Description string `json:"description,omitempty"`
+	Result      User   `json:"result"`
+	ErrorCode   int    `json:"error_code"`
+	Description string `json:"description"`
 }
 
 type APIResponse struct {

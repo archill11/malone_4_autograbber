@@ -109,13 +109,21 @@ func (srv *TgService) EditMessageCaption(json_data []byte, botToken string) erro
 }
 
 func (srv *TgService) sendData(json_data []byte, method string) error {
-	_, err := http.Post(
+	resp, err := http.Post(
 		fmt.Sprintf(srv.Cfg.TgEndp, srv.Cfg.Token, method),
 		"application/json",
 		bytes.NewBuffer(json_data),
 	)
 	if err != nil {
-		return err
+		return fmt.Errorf("sendData Post err: %v", err)
+	}
+	defer resp.Body.Close()
+	var cAny models.BotErrResp
+	if err := json.NewDecoder(resp.Body).Decode(&cAny); err != nil {
+		return fmt.Errorf("sendData Decode err: %v", err)
+	}
+	if cAny.ErrorCode != 0 {
+		return fmt.Errorf("sendData ErrResp: %+v", cAny)
 	}
 	return nil
 }
