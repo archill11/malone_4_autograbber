@@ -1,141 +1,139 @@
 package tg_service
 
 import (
-	"bytes"
-	"encoding/json"
 	"fmt"
+	"myapp/internal/entity"
 	"myapp/internal/models"
-	"net/http"
 	"strconv"
+	"strings"
+
+	"go.uber.org/zap"
 )
 
-func (srv *TgService) getBotByToken(token string) (models.APIRBotresp, error) {
-	resp, err := http.Get(fmt.Sprintf(srv.Cfg.TgEndp, token, "getMe"))
-	if err != nil {
-		return models.APIRBotresp{}, err
-	}
-	defer resp.Body.Close()
+// метод заменяет ссылку на канал и пост такого вида https://t.me/c/1949679854/4333, под конкретного vampBota
+func (srv *TgService) ChangeLinkReferredToPost(originalLink string, vampBot entity.Bot) (string, error) {
+	urlArr := strings.Split(originalLink, "/")
+	for i, v := range urlArr {
+		if len(urlArr) < 4 {
+			break
+		}
+		if v == "t.me" && urlArr[i+1] == "c" {
+			chId := urlArr[i+2]
+			postId := urlArr[i+3]
+			logMes := fmt.Sprintf("ChangeLinkReferredToPost: это ссылка на канал %s и пост %s", chId, postId)
+			srv.l.Info(logMes)
 
-	var j models.APIRBotresp
-	if err := json.NewDecoder(resp.Body).Decode(&j); err != nil {
-		return models.APIRBotresp{}, err
+			refToDonorChPostId, err := strconv.Atoi(postId)
+			if err != nil {
+				return "", fmt.Errorf("ChangeLinkToPost Atoi err: %v", err)
+			}
+			currPost, err := srv.db.GetPostByDonorIdAndChId(refToDonorChPostId, vampBot.ChId)
+			if err != nil {
+				return "", fmt.Errorf("ChangeLinkToPost GetPostByDonorIdAndChId err: %v", err)
+			}
+			if vampBot.ChId < 0 {
+				urlArr[i+2] = strconv.Itoa(-vampBot.ChId)
+			} else {
+				urlArr[i+2] = strconv.Itoa(vampBot.ChId)
+			}
+			if urlArr[i+2][0] == '1' && urlArr[i+2][1] == '0' && urlArr[i+2][2] == '0' {
+				urlArr[i+2] = urlArr[i+2][3:]
+			}
+			urlArr[i+3] = strconv.Itoa(currPost.PostId)
+
+			newLink := strings.Join(urlArr, "/")
+			return newLink, nil
+		}
 	}
-	return j, err
+	return "", nil
 }
 
-func (srv *TgService) getChatByCurrBot(chatId int, token string) (models.GetChatResult, error) {
-	json_data, err := json.Marshal(map[string]any{
-		"chat_id": strconv.Itoa(chatId),
-	})
-	if err != nil {
-		return models.GetChatResult{}, err
+// метод заменяет fake-link на нужную группу-ссылку vampBota
+// и вырезает все ссылки и Entities если группа-ссылка - cut-link
+func (srv *TgService) PrepareEntities(entities []models.MessageEntity, messText string, vampBot entity.Bot) ([]models.MessageEntity, string, error) {
+	cutEntities := false
+	for i, v := range entities {
+		// если fake-link
+		if strings.HasPrefix(v.Url, "http://fake-link") || strings.HasPrefix(v.Url, "fake-link") || strings.HasPrefix(v.Url, "https://fake-link") {
+			groupLink, err := srv.db.GetGroupLinkById(vampBot.GroupLinkId)
+			if err != nil {
+				return nil, messText, err
+			}
+			srv.l.Info("PrepareEntities:", zap.Any("vampBot", vampBot), zap.Any("groupLink", groupLink))
+			if groupLink.Link == "" {
+				continue
+			}
+			// если cut-link
+			if strings.HasPrefix(groupLink.Link, "http://cut-link") || strings.HasPrefix(groupLink.Link, "cut-link") || strings.HasPrefix(groupLink.Link, "https://cut-link") {
+				messText = strings.Replace(messText, "Переходим по ссылке - ССЫЛКА", "", -1)
+				messText = strings.Replace(messText, "👉 РЕГИСТРАЦИЯ ТУТ 👈", "", -1)
+				messText = strings.Replace(messText, "🔖 Написать мне 🔖", "", -1)
+				cutEntities = true
+				break
+			}
+			entities[i].Url = groupLink.Link
+			continue
+		}
+		// если Tg ссылка
+		newUrl, err := srv.ChangeLinkReferredToPost(v.Url, vampBot)
+		if err != nil {
+			return nil, messText, fmt.Errorf("PrepareEntities ChangeLinkReferredToPost err: %v", err)
+		}
+		if newUrl != "" {
+			entities[i].Url = newUrl
+		}
 	}
-	resp, err := http.Post(
-		fmt.Sprintf(srv.Cfg.TgEndp, token, "getChat"),
-		"application/json",
-		bytes.NewBuffer(json_data),
-	)
-	if err != nil {
-		return models.GetChatResult{}, err
+	if !cutEntities {
+		return entities, messText, nil
 	}
-	defer resp.Body.Close()
-	var cAny models.GetChatResult
-	if err := json.NewDecoder(resp.Body).Decode(&cAny); err != nil {
-		return models.GetChatResult{}, err
-	}
-	return cAny, nil
+	return nil, messText, nil
 }
 
-func (srv *TgService) SendForceReply(chat int, mess string) error {
-	json_data, err := json.Marshal(map[string]any{
-		"chat_id":      strconv.Itoa(chat),
-		"text":         mess,
-		"reply_markup": `{"force_reply": true}`,
-	})
-	if err != nil {
-		return err
+func (srv *TgService) PrepareReplyMarkup(entities models.InlineKeyboardMarkup, vampBot entity.Bot) (models.InlineKeyboardMarkup, error) {
+	for i, v := range entities.InlineKeyboard {
+		for ii, vv := range v {
+			if vv.Url == nil {
+				continue
+			}
+			// если fake-link
+			if strings.HasPrefix(*vv.Url, "http://fake-link") || strings.HasPrefix(*vv.Url, "fake-link") || strings.HasPrefix(*vv.Url, "https://fake-link") {
+				groupLink, err := srv.db.GetGroupLinkById(vampBot.GroupLinkId)
+				if err != nil {
+					return models.InlineKeyboardMarkup{}, err
+				}
+				srv.l.Info("PrepareEntities:", zap.Any("vampBot", vampBot), zap.Any("groupLink", groupLink))
+				if groupLink.Link == "" {
+					continue
+				}
+				entities.InlineKeyboard[i][ii].Url = &groupLink.Link
+				continue
+			}
+			// если Tg ссылка
+			newUrl, err := srv.ChangeLinkReferredToPost(*vv.Url, vampBot)
+			if err != nil {
+				return models.InlineKeyboardMarkup{}, fmt.Errorf("PrepareReplyMarkup ChangeLinkReferredToPost err: %v", err)
+			}
+			if newUrl != "" {
+				entities.InlineKeyboard[i][ii].Url = &newUrl
+			}
+		}
 	}
-	err = srv.sendData(json_data, "sendMessage")
-	if err != nil {
-		return err
-	}
-	return nil
+	return entities, nil
 }
 
-func (srv *TgService) SendMessage(chat int, mess string) error {
-	json_data, err := json.Marshal(map[string]any{
-		"chat_id": strconv.Itoa(chat),
-		"text":    mess,
-	})
-	if err != nil {
-		return err
+func (srv *TgService) GetPostAndChFromLonk(link string) (string, string, error) {
+	urlArr := strings.Split(link, "/")
+	if len(urlArr) != 6 {
+		return "", "", fmt.Errorf("GetPostAndChFromLonk err: не правилная ссылка %s", link)
 	}
-	err = srv.sendData(json_data, "sendMessage")
-	if err != nil {
-		return err
+	for i, v := range urlArr {
+		if v == "t.me" && urlArr[i+1] == "c" {
+			chId := urlArr[i+2]
+			postId := urlArr[i+3]
+			logMes := fmt.Sprintf("ChangeLinkReferredToPost: это ссылка на канал %s и пост %s", chId, postId)
+			srv.l.Info(logMes)
+			return chId, postId, nil
+		}
 	}
-	return nil
-}
-
-func (srv *TgService) DeleteMessage(chat, messId int, botToken string) error {
-	json_data, err := json.Marshal(map[string]any{
-		"chat_id":    strconv.Itoa(chat),
-		"message_id": strconv.Itoa(messId),
-	})
-	if err != nil {
-		return err
-	}
-	err = srv.sendData_v2(json_data, botToken, "deleteMessage")
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func (srv *TgService) EditMessageText(json_data []byte, botToken string) error {
-	err := srv.sendData_v2(json_data, botToken, "editMessageText")
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func (srv *TgService) EditMessageCaption(json_data []byte, botToken string) error {
-	err := srv.sendData_v2(json_data, botToken, "editMessageCaption")
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func (srv *TgService) sendData(json_data []byte, method string) error {
-	resp, err := http.Post(
-		fmt.Sprintf(srv.Cfg.TgEndp, srv.Cfg.Token, method),
-		"application/json",
-		bytes.NewBuffer(json_data),
-	)
-	if err != nil {
-		return fmt.Errorf("sendData Post err: %v", err)
-	}
-	defer resp.Body.Close()
-	var cAny models.BotErrResp
-	if err := json.NewDecoder(resp.Body).Decode(&cAny); err != nil {
-		return fmt.Errorf("sendData Decode err: %v", err)
-	}
-	if cAny.ErrorCode != 0 {
-		return fmt.Errorf("sendData ErrResp: %+v", cAny)
-	}
-	return nil
-}
-
-func (srv *TgService) sendData_v2(json_data []byte, botToken, method string) error {
-	_, err := http.Post(
-		fmt.Sprintf(srv.Cfg.TgEndp, botToken, method),
-		"application/json",
-		bytes.NewBuffer(json_data),
-	)
-	if err != nil {
-		return err
-	}
-	return nil
+	return "", "", nil
 }
