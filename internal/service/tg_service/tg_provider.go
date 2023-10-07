@@ -15,11 +15,14 @@ func (srv *TgService) GetMe(token string) (models.ApiBotResp, error) {
 		return models.ApiBotResp{}, fmt.Errorf("GetMe Get err: %v", err)
 	}
 	defer resp.Body.Close()
-	var j models.ApiBotResp
-	if err := json.NewDecoder(resp.Body).Decode(&j); err != nil {
+	var cAny models.ApiBotResp
+	if err := json.NewDecoder(resp.Body).Decode(&cAny); err != nil {
 		return models.ApiBotResp{}, err
 	}
-	return j, err
+	if cAny.ErrorCode != 0 {
+		return cAny, fmt.Errorf("GetMe errResp: %+v", cAny)
+	}
+	return cAny, err
 }
 
 func (srv *TgService) GetChat(chatId int, token string) (models.GetChatResp, error) {
@@ -43,7 +46,7 @@ func (srv *TgService) GetChat(chatId int, token string) (models.GetChatResp, err
 		return models.GetChatResp{}, err
 	}
 	if cAny.ErrorCode != 0 {
-		return models.GetChatResp{}, fmt.Errorf("GetChat errResp: %+v", cAny)
+		return cAny, fmt.Errorf("GetChat errResp: %+v", cAny)
 	}
 	return cAny, nil
 }
@@ -61,7 +64,7 @@ func (srv *TgService) GetFile(fileId string) (models.GetFileResp, error) {
 		return models.GetFileResp{}, fmt.Errorf("GetFile Decode err: %v", err)
 	}
 	if cAny.ErrorCode != 0 {
-		return models.GetFileResp{}, fmt.Errorf("GetFile errResp: %+v", cAny)
+		return cAny, fmt.Errorf("GetFile errResp: %+v", cAny)
 	}
 	return cAny, nil
 }
@@ -112,8 +115,8 @@ func (srv *TgService) SendMediaGroup(json_data []byte) (models.SendMediaGroupRes
 	if err := json.NewDecoder(resp.Body).Decode(&sendMGResp); err != nil {
 		return models.SendMediaGroupResp{}, fmt.Errorf("SendMediaGroup Decode err: %v", err)
 	}
-	if !sendMGResp.Ok {
-		return models.SendMediaGroupResp{}, fmt.Errorf("SendMediaGroup BotErrResp: %v", sendMGResp.BotErrResp)
+	if sendMGResp.ErrorCode != 0 {
+		return sendMGResp, fmt.Errorf("SendMediaGroup BotErrResp: %v", sendMGResp.BotErrResp)
 	}
 	
 	return sendMGResp, nil
