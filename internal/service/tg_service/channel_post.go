@@ -464,23 +464,23 @@ func (srv *TgService) sendAndDeleteMedia(vampBot entity.Bot, fileNameInServer st
 		"chat_id": strconv.Itoa(vampBot.ChId),
 	}
 	futureJson[postType] = fmt.Sprintf("@%s", fileNameInServer)
-	// futureJson["disable_notification"] = "true"
+	
 	cf, body, err := files.CreateForm(futureJson)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("sendAndDeleteMedia CreateForm err: %v", err)
 	}
 	method := "sendVideo"
 	if postType == "photo" {
 		method = "sendPhoto"
 	}
-	// srv.l.Info("sending method: ", fmt.Sprintf(srv.TgEndp, vampBot.Token, method))
+
 	rrres, err := http.Post(
 		fmt.Sprintf(srv.Cfg.TgEndp, vampBot.Token, method),
 		cf,
 		body,
 	)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("sendAndDeleteMedia Post err: %v", err)
 	}
 	defer rrres.Body.Close()
 	var cAny2 struct {
@@ -497,7 +497,7 @@ func (srv *TgService) sendAndDeleteMedia(vampBot entity.Bot, fileNameInServer st
 		} `json:"result"`
 	}
 	if err := json.NewDecoder(rrres.Body).Decode(&cAny2); err != nil && err != io.EOF {
-		return "", fmt.Errorf("sendAndDeleteMedia: json.NewDecoder(rrres.Body).Decode(&cAny2): %v", err)
+		return "", fmt.Errorf("sendAndDeleteMedia: Decode: %v", err)
 	}
 	if !cAny2.Ok {
 		return "", fmt.Errorf("sendAndDeleteMedia: NOT OK %s: %+v", method, cAny2)
@@ -550,8 +550,12 @@ func (s *TgService) sendChPostAsVamp_Media_Group() error {
 
 	allVampBots, err := s.db.GetAllVampBots()
 	if err != nil {
-		s.l.Error("sendChPostAsVamp_Media_Group: s.db.GetAllVampBots", zap.Error(err))
+		return fmt.Errorf("sendChPostAsVamp_Media_Group GetAllVampBots err: %v", err)
 	}
+	if len(allVampBots) == 0 {
+		return fmt.Errorf("sendChPostAsVamp_Media_Group GetAllVampBots err: len(allVampBots) == 0")
+	}
+
 	for _, vampBot := range allVampBots {
 		if vampBot.ChId == 0 {
 			continue
@@ -559,7 +563,7 @@ func (s *TgService) sendChPostAsVamp_Media_Group() error {
 		for i, media := range mediaArr {
 			fileId, err := s.sendAndDeleteMedia(vampBot, media.fileNameInServer, media.Type_media)
 			if err != nil {
-				s.l.Error("sendChPostAsVamp_Media_Group: s.sendAndDeleteMedia", zap.Any("bot ch link", vampBot.ChLink), zap.Error(err))
+				s.l.Error("sendChPostAsVamp_Media_Group: sendAndDeleteMedia err", zap.Any("bot ch link", vampBot.ChLink), zap.Error(err))
 			}
 			mediaArr[i].File_id = fileId
 
@@ -567,7 +571,7 @@ func (s *TgService) sendChPostAsVamp_Media_Group() error {
 				replToDonorChPostId := media.Reply_to_donor_message_id
 				currPost, err := s.db.GetPostByDonorIdAndChId(replToDonorChPostId, vampBot.ChId)
 				if err != nil {
-					s.l.Error("sendChPostAsVamp_Media_Group: service queue (1)", zap.Error(err))
+					s.l.Error("sendChPostAsVamp_Media_Group: GetPostByDonorIdAndChId err", zap.Error(err))
 				}
 				mediaArr[i].Reply_to_message_id = currPost.PostId
 			}
@@ -639,7 +643,7 @@ func (s *TgService) sendChPostAsVamp_Media_Group() error {
 			} `json:"result,omitempty"`
 		}
 		if err := json.NewDecoder(rrresfyhfy.Body).Decode(&cAny223); err != nil && err != io.EOF {
-			s.l.Error("sendChPostAsVamp_Media_Group: json.NewDecoder(rrresfyhfy.Body)", zap.Error(err))
+			s.l.Error("sendChPostAsVamp_Media_Group: Decode err", zap.Error(err))
 		}
 		s.l.Info("sendChPostAsVamp_Media_Group: sending media-group response", zap.Any("resp struct", cAny223), zap.Any("bot ch link", vampBot.ChLink))
 		for _, v := range cAny223.Result {
@@ -649,7 +653,7 @@ func (s *TgService) sendChPostAsVamp_Media_Group() error {
 			for _, med := range mediaArr {
 				err = s.db.AddNewPost(vampBot.ChId, v.MessageId, med.Donor_message_id, v.Caption)
 				if err != nil {
-					s.l.Error("sendChPostAsVamp_Media_Group: s.db.AddNewPost", zap.Error(err))
+					s.l.Error("sendChPostAsVamp_Media_Group: AddNewPost err", zap.Error(err))
 				}
 			}
 		}

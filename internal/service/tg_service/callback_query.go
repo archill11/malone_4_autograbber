@@ -218,18 +218,24 @@ func (srv *TgService) CQ_delete_group_link(m models.Update) error {
 
 func (srv *TgService) CQ_update_group_link(m models.Update) error {
 	cq := m.CallbackQuery
-	chatId := cq.From.Id
+	fromId := cq.From.Id
+	fromUsername := cq.From.UserName
+	srv.l.Info(fmt.Sprintf("CQ_update_group_link: fromId-%d fromUsername-%s", fromId, fromUsername))
 
-	srv.SendForceReply(chatId, UPDATE_GROUP_LINK_MSG)
+	srv.SendForceReply(fromId, UPDATE_GROUP_LINK_MSG)
 	return nil
 }
 
 func (srv *TgService) CQ_accept_ch_post_by_admin(m models.Update) error {
-	// cq := m.CallbackQuery
-	// chatId := cq.From.Id
+	cq := m.CallbackQuery
+	fromId := cq.From.Id
+	fromUsername := cq.From.UserName
+	srv.l.Info(fmt.Sprintf("CQ_accept_ch_post_by_admin: fromId-%d fromUsername-%s", fromId, fromUsername))
+
 	DonorBot, err := srv.db.GetBotInfoByToken(srv.Cfg.Token)
 	if err != nil {
-		srv.l.Error("CQ_accept_ch_post_by_admin: srv.As.GetBotInfoByToken(srv.Token)", zap.Error(err))
+		return fmt.Errorf("CQ_accept_ch_post_by_admin GetBotInfoByToken token-%s err: %v", srv.Cfg.Token, err)
+		
 	}
 	srv.SendMessage(DonorBot.ChId, "ок, начинаю рассылку по остальным")
 	srv.DeleteMessage(DonorBot.ChId, m.CallbackQuery.Message.MessageId, srv.Cfg.Token)
@@ -237,7 +243,8 @@ func (srv *TgService) CQ_accept_ch_post_by_admin(m models.Update) error {
 	go func() {
 		err = srv.sendChPostAsVamp_Media_Group()
 		if err != nil {
-			srv.SendMessage(DonorBot.ChId, ERR_MSG+": "+err.Error())
+			srv.SendMessage(DonorBot.ChId, ERR_MSG)
+			srv.SendMessage(DonorBot.ChId, err.Error())
 		}
 	}()
 

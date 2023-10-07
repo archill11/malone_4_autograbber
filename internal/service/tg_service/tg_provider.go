@@ -15,7 +15,6 @@ func (srv *TgService) getBotByToken(token string) (models.APIRBotresp, error) {
 		return models.APIRBotresp{}, err
 	}
 	defer resp.Body.Close()
-
 	var j models.APIRBotresp
 	if err := json.NewDecoder(resp.Body).Decode(&j); err != nil {
 		return models.APIRBotresp{}, err
