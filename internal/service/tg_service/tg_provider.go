@@ -22,12 +22,12 @@ func (srv *TgService) getBotByToken(token string) (models.ApiBotResp, error) {
 	return j, err
 }
 
-func (srv *TgService) getChatByCurrBot(chatId int, token string) (models.GetChatResult, error) {
+func (srv *TgService) getChatByCurrBot(chatId int, token string) (models.GetChatResp, error) {
 	json_data, err := json.Marshal(map[string]any{
 		"chat_id": strconv.Itoa(chatId),
 	})
 	if err != nil {
-		return models.GetChatResult{}, err
+		return models.GetChatResp{}, err
 	}
 	resp, err := http.Post(
 		fmt.Sprintf(srv.Cfg.TgEndp, token, "getChat"),
@@ -35,12 +35,12 @@ func (srv *TgService) getChatByCurrBot(chatId int, token string) (models.GetChat
 		bytes.NewBuffer(json_data),
 	)
 	if err != nil {
-		return models.GetChatResult{}, err
+		return models.GetChatResp{}, err
 	}
 	defer resp.Body.Close()
-	var cAny models.GetChatResult
+	var cAny models.GetChatResp
 	if err := json.NewDecoder(resp.Body).Decode(&cAny); err != nil {
-		return models.GetChatResult{}, err
+		return models.GetChatResp{}, err
 	}
 	return cAny, nil
 }

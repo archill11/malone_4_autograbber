@@ -1,7 +1,8 @@
 package models
 
-type GetChatResult struct {
+type GetChatResp struct {
 	Result Chat `json:"result"`
+	BotErrResp
 }
 
 type BotErrResp struct {
@@ -11,10 +12,8 @@ type BotErrResp struct {
 }
 
 type ApiBotResp struct {
-	Ok          bool   `json:"ok"`
-	Result      User   `json:"result"`
-	ErrorCode   int    `json:"error_code"`
-	Description string `json:"description"`
+	Result User `json:"result"`
+	BotErrResp
 }
 
 type APIResponse struct {
