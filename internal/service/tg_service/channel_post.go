@@ -117,100 +117,95 @@ func (srv *TgService) Donor_addChannelPost(m models.Update) error {
 func (srv *TgService) sendChPostAsVamp(vampBot entity.Bot, m models.Update) error {
 	donor_ch_mes_id := m.ChannelPost.MessageId
 
+	//////////////// если кружочек
 	if m.ChannelPost.VideoNote != nil {
-		//////////////// если кружочек видео
-		err := srv.sendChPostAsVamp_VideoNote(vampBot, m)
-		return err
-	} else if len(m.ChannelPost.Photo) > 0 {
-		//////////////// если фото
-		err := srv.sendChPostAsVamp_Video_or_Photo(vampBot, m, "photo")
-		return err
-	} else if m.ChannelPost.Video != nil {
-		//////////////// если видео
-		err := srv.sendChPostAsVamp_Video_or_Photo(vampBot, m, "video")
-		return err
-	} else {
-		//////////////// если просто текст
-		futureMesJson := map[string]any{
-			"chat_id": strconv.Itoa(vampBot.ChId),
-		}
-		if m.ChannelPost.ReplyToMessage != nil {
-			replToDonorChPostId := m.ChannelPost.ReplyToMessage.MessageId
-			currPost, err := srv.db.GetPostsByDonorIdAndChId_Max(replToDonorChPostId, vampBot.ChId) // тут
-			if err != nil {
-				return fmt.Errorf("sendChPostAsVamp GetPostByDonorIdAndChId err: %v", err)
-			}
-			futureMesJson["reply_to_message_id"] = currPost.PostId
-		}
-		if m.ChannelPost.ReplyMarkup != nil {
-			var inlineKeyboardMarkup models.InlineKeyboardMarkup
-			mycopy.DeepCopy(m.ChannelPost.ReplyMarkup, &inlineKeyboardMarkup)
+		return srv.sendChPostAsVamp_VideoNote(vampBot, m)
+	}
+	//////////////// если фото
+	if len(m.ChannelPost.Photo) > 0 {
+		return srv.sendChPostAsVamp_Video_or_Photo(vampBot, m, "photo")
+	}
+	//////////////// если видео
+	if m.ChannelPost.Video != nil {
+		return srv.sendChPostAsVamp_Video_or_Photo(vampBot, m, "video")
+	}
 
-			newInlineKeyboardMarkup, err := srv.PrepareReplyMarkup(inlineKeyboardMarkup, vampBot)
-			if err != nil {
-				return fmt.Errorf("sendChPostAsVamp PrepareReplyMarkup err: %v", err)
-			}
-			futureMesJson["reply_markup"] = newInlineKeyboardMarkup
-		}
-
-		var messText string                            // строка в которую скопируем значение текста поста, тк структуры копируются по ебаной ссылке, и если срезаем часть текста то потом везде так будет
-		mycopy.DeepCopy(m.ChannelPost.Text, &messText) // какого хуя в Го структуры копируются по ссылке ?
-
-		if len(m.ChannelPost.Entities) > 0 {
-			entities := make([]models.MessageEntity, 0)
-			mycopy.DeepCopy(m.ChannelPost.Entities, &entities)
-
-			var newEntities []models.MessageEntity
-			var err error
-
-			newEntities, messText, err = srv.PrepareEntities(entities, messText, vampBot)
-			if err != nil {
-				return fmt.Errorf("sendChPostAsVamp PrepareEntities err: %v", err)
-			}
-			if newEntities != nil {
-				futureMesJson["entities"] = newEntities
-			}
-		}
-
-		futureMesJson["text"] = messText
-
-		json_data, err := json.Marshal(futureMesJson)
+	//////////////// если просто текст
+	futureMesJson := map[string]any{
+		"chat_id": strconv.Itoa(vampBot.ChId),
+	}
+	if m.ChannelPost.ReplyToMessage != nil {
+		replToDonorChPostId := m.ChannelPost.ReplyToMessage.MessageId
+		currPost, err := srv.db.GetPostsByDonorIdAndChId_Max(replToDonorChPostId, vampBot.ChId) // тут
 		if err != nil {
-			return err
+			return fmt.Errorf("sendChPostAsVamp GetPostsByDonorIdAndChId_Max err: %v", err)
 		}
-		srv.l.Info("sendChPostAsVamp -> если просто текст -> http.Post", zap.Any("futureMesJson", futureMesJson), zap.Any("string(json_data)", string(json_data)))
-		sendVampPostResp, err := http.Post(
-			fmt.Sprintf(srv.Cfg.TgEndp, vampBot.Token, "sendMessage"),
-			"application/json",
-			bytes.NewBuffer(json_data),
-		)
+		futureMesJson["reply_to_message_id"] = currPost.PostId
+	}
+	if m.ChannelPost.ReplyMarkup != nil {
+		var inlineKeyboardMarkup models.InlineKeyboardMarkup
+		mycopy.DeepCopy(m.ChannelPost.ReplyMarkup, &inlineKeyboardMarkup)
+
+		newInlineKeyboardMarkup, err := srv.PrepareReplyMarkup(inlineKeyboardMarkup, vampBot)
 		if err != nil {
-			return err
+			return fmt.Errorf("sendChPostAsVamp PrepareReplyMarkup err: %v", err)
 		}
-		defer sendVampPostResp.Body.Close()
-		var cAny struct {
-			Ok          bool   `json:"ok"`
-			ErrorCode   int    `json:"error_code"`
-			Description string `json:"description"`
-			Result struct {
-				MessageId int `json:"message_id"`
-				Caption   string `json:"caption"`
-			} `json:"result"`
+		futureMesJson["reply_markup"] = newInlineKeyboardMarkup
+	}
+
+	var messText string                            // строка в которую скопируем значение текста поста, тк структуры копируются по ебаной ссылке, и если срезаем часть текста то потом везде так будет
+	mycopy.DeepCopy(m.ChannelPost.Text, &messText) // какого хуя в Го структуры копируются по ссылке ?
+
+	if len(m.ChannelPost.Entities) > 0 {
+		entities := make([]models.MessageEntity, 0)
+		mycopy.DeepCopy(m.ChannelPost.Entities, &entities)
+
+		newEntities, messTextt, err := srv.PrepareEntities(entities, messText, vampBot)
+		if err != nil {
+			return fmt.Errorf("sendChPostAsVamp PrepareEntities err: %v", err)
 		}
-		if err := json.NewDecoder(sendVampPostResp.Body).Decode(&cAny); err != nil {
-			return err
-		}
-		if cAny.ErrorCode != 0 {
-			errMess := fmt.Errorf("sendChPostAsVamp Post ErrorResp: %+v", cAny)
-			srv.l.Error(errMess.Error())
-		}
-		if cAny.Result.MessageId != 0 {
-			err = srv.db.AddNewPost(vampBot.ChId, cAny.Result.MessageId, donor_ch_mes_id, cAny.Result.Caption)
-			if err != nil {
-				return err
-			}
+		messText = messTextt
+		if newEntities != nil {
+			futureMesJson["entities"] = newEntities
 		}
 	}
+	futureMesJson["text"] = messText
+
+	json_data, err := json.Marshal(futureMesJson)
+	if err != nil {
+		return fmt.Errorf("sendChPostAsVamp Marshal futureMesJson err: %v", err)
+	}
+	srv.l.Info("sendChPostAsVamp -> если просто текст -> http.Post", zap.Any("futureMesJson", futureMesJson), zap.Any("string(json_data)", string(json_data)))
+	sendVampPostResp, err := http.Post(
+		fmt.Sprintf(srv.Cfg.TgEndp, vampBot.Token, "sendMessage"),
+		"application/json",
+		bytes.NewBuffer(json_data),
+	)
+	if err != nil {
+		return fmt.Errorf("sendChPostAsVamp Post err: %v", err)
+	}
+	defer sendVampPostResp.Body.Close()
+	var cAny struct {
+		models.BotErrResp
+		Result struct {
+			MessageId int    `json:"message_id"`
+			Caption   string `json:"caption"`
+		} `json:"result"`
+	}
+	if err := json.NewDecoder(sendVampPostResp.Body).Decode(&cAny); err != nil {
+		return fmt.Errorf("sendChPostAsVamp Decode err: %v", err)
+	}
+	if cAny.ErrorCode != 0 {
+		errMess := fmt.Errorf("sendChPostAsVamp Post ErrorResp: %+v", cAny)
+		return errMess
+	}
+	if cAny.Result.MessageId != 0 {
+		err = srv.db.AddNewPost(vampBot.ChId, cAny.Result.MessageId, donor_ch_mes_id, cAny.Result.Caption)
+		if err != nil {
+			return fmt.Errorf("sendChPostAsVamp AddNewPost err: %v", err)
+		}
+	}
+
 	return nil
 }
 
@@ -279,7 +274,7 @@ func (srv *TgService) sendChPostAsVamp_VideoNote(vampBot entity.Bot, m models.Up
 		Result struct {
 			MessageId int `json:"message_id"`
 			Caption   string `json:"caption"`
-		} `json:"result,omitempty"`
+		} `json:"result"`
 	}
 	if err := json.NewDecoder(rrres.Body).Decode(&cAny2); err != nil && err != io.EOF {
 		return err
@@ -326,7 +321,7 @@ func (srv *TgService) sendChPostAsVamp_Video_or_Photo(vampBot entity.Bot, m mode
 	}
 
 	if len(m.ChannelPost.CaptionEntities) > 0 {
-		entities := make([]models.MessageEntity, len(m.ChannelPost.CaptionEntities))
+		entities := make([]models.MessageEntity, 0)
 		mycopy.DeepCopy(m.ChannelPost.CaptionEntities, &entities)
 
 		newEntities, _, err := srv.PrepareEntities(entities, "", vampBot)
@@ -346,30 +341,14 @@ func (srv *TgService) sendChPostAsVamp_Video_or_Photo(vampBot entity.Bot, m mode
 		fileId = m.ChannelPost.Video.FileId
 	}
 
-	getFilePAthResp, err := http.Get(
-		fmt.Sprintf(srv.Cfg.TgEndp, srv.Cfg.Token, fmt.Sprintf("getFile?file_id=%s", fileId)),
-	)
+	cAny, err := srv.GetFile(fileId)
 	if err != nil {
-		return err
+		return fmt.Errorf("sendChPostAsVamp_Video_or_Photo GetFile fileId-%s err: %v", fileId, err)
 	}
-	defer getFilePAthResp.Body.Close()
-	var cAny struct {
-		Ok     bool `json:"ok"`
-		Result struct {
-			File_id        string `json:"file_id"`
-			File_unique_id string `json:"file_unique_id"`
-			File_path      string `json:"file_path"`
-		} `json:"result"`
-	}
-	if err := json.NewDecoder(getFilePAthResp.Body).Decode(&cAny); err != nil {
-		return err
-	}
-	if !cAny.Ok {
-		return fmt.Errorf("NOT OK GET %s FILE PATH! _", postType)
-	}
+	
 	fileNameDir := strings.Split(cAny.Result.File_path, ".")
 	fileNameInServer := fmt.Sprintf("./files/%s.%s", cAny.Result.File_unique_id, fileNameDir[1])
-	srv.l.Info(fmt.Sprintf("sendChPostAsVamp_VideoNote: fileNameInServer: %s", fileNameInServer))
+	srv.l.Info(fmt.Sprintf("sendChPostAsVamp_Video_or_Photo: fileNameInServer: %s", fileNameInServer))
 
 	_, err = os.Stat(fileNameInServer)
 	if errors.Is(err, os.ErrNotExist) {
@@ -381,7 +360,6 @@ func (srv *TgService) sendChPostAsVamp_Video_or_Photo(vampBot entity.Bot, m mode
 			return fmt.Errorf("sendChPostAsVamp_Video_or_Photo DownloadFile err: %v", err)
 		}
 	}
-
 	futureVideoJson[postType] = fmt.Sprintf("@%s", fileNameInServer)
 
 	cf, body, err := files.CreateForm(futureVideoJson)
@@ -472,7 +450,7 @@ func (srv *TgService) sendAndDeleteMedia(vampBot entity.Bot, fileNameInServer st
 	if cAny2.ErrorCode != 0 {
 		return "", fmt.Errorf("sendAndDeleteMedia: NOT OK %s: %+v", method, cAny2)
 	}
-	DelJson, err := json.Marshal(map[string]any{
+	del_json, err := json.Marshal(map[string]any{
 		"chat_id":    strconv.Itoa(vampBot.ChId),
 		"message_id": strconv.Itoa(cAny2.Result.MessageId),
 	})
@@ -482,24 +460,20 @@ func (srv *TgService) sendAndDeleteMedia(vampBot entity.Bot, fileNameInServer st
 	rrres, err = http.Post(
 		fmt.Sprintf(srv.Cfg.TgEndp, vampBot.Token, "deleteMessage"),
 		"application/json",
-		bytes.NewBuffer(DelJson),
+		bytes.NewBuffer(del_json),
 	)
 	if err != nil {
 		return "", fmt.Errorf("sendAndDeleteMedia: Post err: %v", err)
 	}
 	defer rrres.Body.Close()
-	var cAny3 struct {
-		Ok          bool `json:"ok"`
-		Result      any  `json:"result"`
-		ErrorCode   any  `json:"error_code"`
-		Description any  `json:"description"`
-	}
+	var cAny3 models.BotErrResp
 	if err := json.NewDecoder(rrres.Body).Decode(&cAny3); err != nil && err != io.EOF {
 		return "", fmt.Errorf("sendAndDeleteMedia Decode err: %v", err)
 	}
 	if cAny3.ErrorCode != 0 {
 		return "", fmt.Errorf("sendAndDeleteMedia ErrorResp: %+v", cAny3)
 	}
+
 	var fileId string
 	if postType == "photo" {
 		if len(cAny2.Result.Photo) > 0 {
