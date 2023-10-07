@@ -21,6 +21,7 @@ func (srv *TgService) HandleCallbackQuery(m models.Update) error {
 		err := srv.CQ_vampire_register(m)
 		if err != nil {
 			srv.SendMessage(chatId, ERR_MSG)
+			srv.SendMessage(chatId, err.Error())
 		}
 		return err
 	}
@@ -29,6 +30,7 @@ func (srv *TgService) HandleCallbackQuery(m models.Update) error {
 		err := srv.CQ_vampire_delete(m)
 		if err != nil {
 			srv.SendMessage(chatId, ERR_MSG)
+			srv.SendMessage(chatId, err.Error())
 		}
 		return err
 	}
@@ -37,6 +39,7 @@ func (srv *TgService) HandleCallbackQuery(m models.Update) error {
 		err := srv.CQ_add_ch_to_bot(m)
 		if err != nil {
 			srv.SendMessage(chatId, ERR_MSG)
+			srv.SendMessage(chatId, err.Error())
 		}
 		return err
 	}
@@ -45,6 +48,7 @@ func (srv *TgService) HandleCallbackQuery(m models.Update) error {
 		err := srv.CQ_create_group_link(m)
 		if err != nil {
 			srv.SendMessage(chatId, ERR_MSG)
+			srv.SendMessage(chatId, err.Error())
 		}
 		return err
 	}
@@ -53,6 +57,7 @@ func (srv *TgService) HandleCallbackQuery(m models.Update) error {
 		err := srv.CQ_update_group_link(m)
 		if err != nil {
 			srv.SendMessage(chatId, ERR_MSG)
+			srv.SendMessage(chatId, err.Error())
 		}
 		return err
 	}
@@ -61,6 +66,7 @@ func (srv *TgService) HandleCallbackQuery(m models.Update) error {
 		err := srv.CQ_delete_group_link(m)
 		if err != nil {
 			srv.SendMessage(chatId, ERR_MSG)
+			srv.SendMessage(chatId, err.Error())
 		}
 		return err
 	}
@@ -69,6 +75,7 @@ func (srv *TgService) HandleCallbackQuery(m models.Update) error {
 		err := srv.CQ_add_admin(m)
 		if err != nil {
 			srv.SendMessage(chatId, ERR_MSG)
+			srv.SendMessage(chatId, err.Error())
 		}
 		return err
 	}
@@ -77,6 +84,7 @@ func (srv *TgService) HandleCallbackQuery(m models.Update) error {
 		err := srv.CQ_show_bots_and_channels(m)
 		if err != nil {
 			srv.SendMessage(chatId, ERR_MSG)
+			srv.SendMessage(chatId, err.Error())
 		}
 		return err
 	}
@@ -85,6 +93,7 @@ func (srv *TgService) HandleCallbackQuery(m models.Update) error {
 		err := srv.CQ_edit_bot_group_link(m)
 		if err != nil {
 			srv.SendMessage(chatId, ERR_MSG)
+			srv.SendMessage(chatId, err.Error())
 		}
 		return err
 	}
@@ -93,6 +102,7 @@ func (srv *TgService) HandleCallbackQuery(m models.Update) error {
 		err := srv.CQ_show_all_group_links(m)
 		if err != nil {
 			srv.SendMessage(chatId, ERR_MSG)
+			srv.SendMessage(chatId, err.Error())
 		}
 		return err
 	}
@@ -101,6 +111,7 @@ func (srv *TgService) HandleCallbackQuery(m models.Update) error {
 		err := srv.CQ_show_admin_panel(m)
 		if err != nil {
 			srv.SendMessage(chatId, ERR_MSG)
+			srv.SendMessage(chatId, err.Error())
 		}
 		return err
 	}
@@ -109,6 +120,7 @@ func (srv *TgService) HandleCallbackQuery(m models.Update) error {
 		err := srv.CQ_accept_ch_post_by_admin(m)
 		if err != nil {
 			srv.SendMessage(chatId, ERR_MSG)
+			srv.SendMessage(chatId, err.Error())
 		}
 		return err
 	}
@@ -117,6 +129,7 @@ func (srv *TgService) HandleCallbackQuery(m models.Update) error {
 		err := srv.CQ_del_lost_bots(m)
 		if err != nil {
 			srv.SendMessage(chatId, ERR_MSG)
+			srv.SendMessage(chatId, err.Error())
 		}
 		return err
 	}
@@ -125,6 +138,7 @@ func (srv *TgService) HandleCallbackQuery(m models.Update) error {
 		err := srv.CQ_del_post_in_chs_bots(m)
 		if err != nil {
 			srv.SendMessage(chatId, ERR_MSG)
+			srv.SendMessage(chatId, err.Error())
 		}
 		return err
 	}
@@ -137,9 +151,11 @@ func (srv *TgService) HandleCallbackQuery(m models.Update) error {
 	if strings.HasPrefix(cq.Data, "edit_bot_") { // edit_bot_%s_link_to_%d_gr_link_btn
 		botId := my_regex.GetStringInBetween(cq.Data, "edit_bot_", "_link")
 		grLinkId := my_regex.GetStringInBetween(cq.Data, "to_", "_gr_link")
-		fmt.Println("botId:", botId)
-		fmt.Println("grLinkId:", grLinkId)
 		err := srv.CQ_edit_bot_group_link_stp2(m, botId, grLinkId)
+		if err != nil {
+			srv.SendMessage(chatId, ERR_MSG)
+			srv.SendMessage(chatId, err.Error())
+		}
 		return err
 	}
 
