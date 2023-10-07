@@ -81,27 +81,27 @@ func New(conf TgConfig, db *pg.Database, l *zap.Logger) (*TgService, error) {
 	go s.DeleteLostBots()
 	// уведомление о метке на канале
 	go s.AlertScamBots()
-
-	// получение tg updates Donor
-	go func() {
-		updConf := UpdateConfig{
-			Offset:  0,
-			Timeout: 30,
-			Buffer:  1000,
-		}
-		updates, _ := s.GetUpdatesChan(&updConf, s.Cfg.Token)
-		for update := range updates {
-			s.bot_Update(update)
-		}
-	}()
-
+	// получение tg Donor updates
+	go s.GetTgBotUpdates()
 	// когда MediaGroup
 	go s.AcceptChPostByAdmin()
 
 	return s, nil
 }
 
-func (ts *TgService) GetUpdatesChan(conf *UpdateConfig, token string) (chan models.Update, chan struct{}) {
+func (srv *TgService) GetTgBotUpdates() {
+	updConf := UpdateConfig{
+		Offset:  0,
+		Timeout: 30,
+		Buffer:  1000,
+	}
+	updates, _ := srv.GetUpdatesChan(&updConf, srv.Cfg.Token)
+	for update := range updates {
+		srv.bot_Update(update)
+	}
+}
+
+func (srv *TgService) GetUpdatesChan(conf *UpdateConfig, token string) (chan models.Update, chan struct{}) {
 	UpdCh := make(chan models.Update, conf.Buffer)
 	shutdownCh := make(chan struct{})
 
@@ -112,7 +112,7 @@ func (ts *TgService) GetUpdatesChan(conf *UpdateConfig, token string) (chan mode
 				close(UpdCh)
 				return
 			default:
-				updates, err := ts.GetUpdates(conf, token)
+				updates, err := srv.GetUpdates(conf, token)
 				if err != nil {
 					log.Println("err: ", err)
 					log.Println("Failed to get updates, retrying in 3 seconds...")
@@ -132,7 +132,7 @@ func (ts *TgService) GetUpdatesChan(conf *UpdateConfig, token string) (chan mode
 	return UpdCh, shutdownCh
 }
 
-func (ts *TgService) GetUpdates(conf *UpdateConfig, token string) ([]models.Update, error) {
+func (srv *TgService) GetUpdates(conf *UpdateConfig, token string) ([]models.Update, error) {
 	json_data, err := json.Marshal(map[string]any{
 		"offset":  conf.Offset,
 		"timeout": conf.Timeout,
@@ -141,10 +141,10 @@ func (ts *TgService) GetUpdates(conf *UpdateConfig, token string) ([]models.Upda
 		return []models.Update{}, err
 	}
 	fmt.Println(
-		fmt.Sprintf(ts.Cfg.TgEndp, token, "getUpdates"),
+		fmt.Sprintf(srv.Cfg.TgEndp, token, "getUpdates"),
 	)
 	resp, err := http.Post(
-		fmt.Sprintf(ts.Cfg.TgEndp, token, "getUpdates"),
+		fmt.Sprintf(srv.Cfg.TgEndp, token, "getUpdates"),
 		"application/json",
 		bytes.NewBuffer(json_data),
 	)
@@ -226,14 +226,14 @@ func MediaInSlice2(s []Media, m Media) bool {
 	return false
 }
 
-func (ts *TgService) DeleteOldFiles() {
+func (srv *TgService) DeleteOldFiles() {
 	cron := gocron.NewScheduler(mskLoc)
 	cron.Every(1).Day().At("02:30").Do(func() {
 		err := files.RemoveContentsFromDir("files")
 		if err != nil {
-			ts.l.Error(fmt.Sprintf("DeleteOldFiles .RemoveContentsFromDir('files') err: %v", err))
+			srv.l.Error(fmt.Sprintf("DeleteOldFiles .RemoveContentsFromDir('files') err: %v", err))
 		}
-		ts.l.Info("DeleteOldFiles At(02:30): ok")
+		srv.l.Info("DeleteOldFiles At(02:30): ok")
 	})
 	cron.StartAsync()
 }
