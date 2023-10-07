@@ -20,7 +20,7 @@ var (
 	mskLoc, _ = time.LoadLocation("Europe/Moscow")
 )
 
-const(
+const (
 	StoreKey = "example"
 )
 
@@ -370,7 +370,7 @@ func (srv *TgService) AcceptChPostByAdmin() {
 					mediaArr = append(mediaArr, x)
 				}
 			} else {
-				srv.l.Error("Channel closed!")
+				srv.l.Error("AcceptChPostByAdmin closed!")
 				return
 			}
 		case <-time.After(time.Second * 15):
@@ -378,7 +378,7 @@ func (srv *TgService) AcceptChPostByAdmin() {
 				continue
 			}
 			if len(mediaArr) == 1 {
-				srv.l.Error("len(mediaArr) == 1")
+				srv.l.Error("AcceptChPostByAdmin len(mediaArr) == 1")
 				continue
 			}
 
@@ -398,39 +398,38 @@ func (srv *TgService) AcceptChPostByAdmin() {
 				}
 			}
 
-			DonorBot, err := srv.db.GetBotInfoByToken(srv.Cfg.Token)
+			donorBot, err := srv.db.GetBotInfoByToken(srv.Cfg.Token)
 			if err != nil {
-				srv.l.Error(fmt.Sprintf("Channel: GetBotInfoByToken token-%s", srv.Cfg.Token), zap.Error(err))
+				srv.l.Error(fmt.Sprintf("AcceptChPostByAdmin: GetBotInfoByToken token-%s err: %v", srv.Cfg.Token, err))
 			}
 
 			acceptMess := map[string]any{
-				"chat_id": strconv.Itoa(DonorBot.ChId),
+				"chat_id": strconv.Itoa(donorBot.ChId),
 				"media":   arrsik,
 			}
 			if mediaArr[0].Reply_to_message_id != 0 {
 				acceptMess["reply_to_message_id"] = mediaArr[0].Reply_to_message_id
 			}
-			MediaJson, err := json.Marshal(acceptMess)
+			media_json, err := json.Marshal(acceptMess)
 			if err != nil {
-				srv.l.Error("Channel: json.Marshal(acceptMess) err", zap.Error(err))
+				srv.l.Error(fmt.Sprintf("AcceptChPostByAdmin: json.Marshal(acceptMess) err: %v", err))
 			}
-			err = srv.sendData(MediaJson, "sendMediaGroup")
+			err = srv.sendData(media_json, "sendMediaGroup")
 			if err != nil {
-				srv.l.Error("Channel: Post(sendMediaGroup) err", zap.Error(err))
+				srv.l.Error(fmt.Sprintf("AcceptChPostByAdmin: sendData(sendMediaGroup) err: %v", err))
 			}
 
-			acceptMess = map[string]any{
-				"chat_id":      strconv.Itoa(DonorBot.ChId),
+			media_json, err = json.Marshal(map[string]any{
+				"chat_id":      strconv.Itoa(donorBot.ChId),
 				"text":         "подтвердите сообщение сверху",
 				"reply_markup": `{ "inline_keyboard" : [[{ "text": "разослать по каналам", "callback_data": "accept_ch_post_by_admin" }]] }`,
-			}
-			MediaJson, err = json.Marshal(acceptMess)
+			})
 			if err != nil {
-				srv.l.Error("Channel: Marshal(acceptMess) err", zap.Error(err))
+				srv.l.Error(fmt.Sprintf("AcceptChPostByAdmin: Marshal media_json err: %v", err))
 			}
-			err = srv.sendData(MediaJson, "sendMessage")
+			err = srv.sendData(media_json, "sendMessage")
 			if err != nil {
-				srv.l.Error("Channel: sendData(sendMessage) err", zap.Error(err))
+				srv.l.Error(fmt.Sprintf("AcceptChPostByAdmin: sendData(sendMessage) err: %v", err))
 			}
 
 			mediaArr = mediaArr[0:0]

@@ -246,7 +246,7 @@ func (srv *TgService) RM_add_ch_to_bot_spet2(m models.Update, botId int) error {
 	}
 	defer resp.Body.Close()
 
-	var j models.APIRBotresp
+	var j models.ApiBotResp
 	if err := json.NewDecoder(resp.Body).Decode(&j); err != nil {
 		return fmt.Errorf("RM_add_ch_to_bot_spet2 NewDecoder err: %v", err)
 	}

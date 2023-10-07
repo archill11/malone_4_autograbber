@@ -9,15 +9,15 @@ import (
 	"strconv"
 )
 
-func (srv *TgService) getBotByToken(token string) (models.APIRBotresp, error) {
+func (srv *TgService) getBotByToken(token string) (models.ApiBotResp, error) {
 	resp, err := http.Get(fmt.Sprintf(srv.Cfg.TgEndp, token, "getMe"))
 	if err != nil {
-		return models.APIRBotresp{}, err
+		return models.ApiBotResp{}, fmt.Errorf("getBotByToken Get err: %v", err)
 	}
 	defer resp.Body.Close()
-	var j models.APIRBotresp
+	var j models.ApiBotResp
 	if err := json.NewDecoder(resp.Body).Decode(&j); err != nil {
-		return models.APIRBotresp{}, err
+		return models.ApiBotResp{}, err
 	}
 	return j, err
 }

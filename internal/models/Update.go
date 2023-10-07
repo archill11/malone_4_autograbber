@@ -10,7 +10,7 @@ type BotErrResp struct {
 	Description string `json:"description"`
 }
 
-type APIRBotresp struct {
+type ApiBotResp struct {
 	Ok          bool   `json:"ok"`
 	Result      User   `json:"result"`
 	ErrorCode   int    `json:"error_code"`
