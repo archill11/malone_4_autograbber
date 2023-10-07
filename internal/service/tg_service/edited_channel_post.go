@@ -20,7 +20,7 @@ func (srv *TgService) Donor_HandleEditedChannelPost(m models.Update) error {
 	// userUserName := m.Message.From.UserName
 	srv.l.Info("tgClient: Donor_HandleEditedChannelPost", zap.Any("models.Update", m))
 
-	err := srv.Donor_editEditedChannelPost(m)
+	err := srv.Donor_EditEditedChannelPost(m)
 	if err != nil {
 		if err != nil {
 			srv.SendMessage(chatId, ERR_MSG_2+err.Error())
@@ -30,7 +30,7 @@ func (srv *TgService) Donor_HandleEditedChannelPost(m models.Update) error {
 	return nil
 }
 
-func (srv *TgService) Donor_editEditedChannelPost(m models.Update) error {
+func (srv *TgService) Donor_EditEditedChannelPost(m models.Update) error {
 	// message_id := m.EditedChannelPost.MessageId
 
 	// если не Media_Group
