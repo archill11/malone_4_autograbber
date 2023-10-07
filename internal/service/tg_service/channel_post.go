@@ -329,10 +329,7 @@ func (srv *TgService) sendChPostAsVamp_Video_or_Photo(vampBot entity.Bot, m mode
 		entities := make([]models.MessageEntity, len(m.ChannelPost.CaptionEntities))
 		mycopy.DeepCopy(m.ChannelPost.CaptionEntities, &entities)
 
-		var newEntities []models.MessageEntity
-		var err error
-
-		newEntities, _, err = srv.PrepareEntities(entities, "", vampBot)
+		newEntities, _, err := srv.PrepareEntities(entities, "", vampBot)
 		if err != nil {
 			return fmt.Errorf("sendChPostAsVamp PrepareEntities err: %v", err)
 		}
@@ -362,7 +359,7 @@ func (srv *TgService) sendChPostAsVamp_Video_or_Photo(vampBot entity.Bot, m mode
 			File_id        string `json:"file_id"`
 			File_unique_id string `json:"file_unique_id"`
 			File_path      string `json:"file_path"`
-		} `json:"result,omitempty"`
+		} `json:"result"`
 	}
 	if err := json.NewDecoder(getFilePAthResp.Body).Decode(&cAny); err != nil {
 		return err
@@ -381,8 +378,7 @@ func (srv *TgService) sendChPostAsVamp_Video_or_Photo(vampBot entity.Bot, m mode
 			fmt.Sprintf("https://api.telegram.org/file/bot%s/%s", srv.Cfg.Token, cAny.Result.File_path),
 		)
 		if err != nil {
-			srv.l.Error("sendChPostAsVamp_Video_or_Photo: send_ch_post_as_vamp.go:318", zap.Error(err))
-			return err
+			return fmt.Errorf("sendChPostAsVamp_Video_or_Photo DownloadFile err: %v", err)
 		}
 	}
 
@@ -390,7 +386,7 @@ func (srv *TgService) sendChPostAsVamp_Video_or_Photo(vampBot entity.Bot, m mode
 
 	cf, body, err := files.CreateForm(futureVideoJson)
 	if err != nil {
-		return err
+		return fmt.Errorf("sendChPostAsVamp_Video_or_Photo CreateForm err: %v", err)
 	}
 	method := "sendVideo"
 	if postType == "photo" {
@@ -402,27 +398,18 @@ func (srv *TgService) sendChPostAsVamp_Video_or_Photo(vampBot entity.Bot, m mode
 		body,
 	)
 	if err != nil {
-		return err
+		return fmt.Errorf("sendChPostAsVamp_Video_or_Photo Post err: %v", err)
 	}
 
 	defer rrres.Body.Close()
-	var cAny2 struct {
-		Ok     bool `json:"ok"`
-		Result struct {
-			MessageId int    `json:"message_id"`
-			Caption   string `json:"caption"`
-			Chat struct {
-				Id int `json:"id"`
-			} `json:"chat"`
-		} `json:"result,omitempty"`
-	}
+	var cAny2 models.SendMediaResp
 	if err := json.NewDecoder(rrres.Body).Decode(&cAny2); err != nil && err != io.EOF {
-		return err
+		return fmt.Errorf("sendChPostAsVamp_Video_or_Photo Decode err: %v", err)
 	}
 	if cAny2.Result.MessageId != 0 {
 		err = srv.db.AddNewPost(vampBot.ChId, cAny2.Result.MessageId, donor_ch_mes_id, cAny2.Result.Caption)
 		if err != nil {
-			return err
+			return fmt.Errorf("sendChPostAsVamp_Video_or_Photo AddNewPost err: %v", err)
 		}
 	}
 	return nil
@@ -549,7 +536,7 @@ func (s *TgService) sendChPostAsVamp_Media_Group() error {
 		for i, media := range mediaArr {
 			fileId, err := s.sendAndDeleteMedia(vampBot, media.fileNameInServer, media.Type_media)
 			if err != nil {
-				s.l.Error("sendChPostAsVamp_Media_Group: sendAndDeleteMedia err", zap.Any("bot ch link", vampBot.ChLink), zap.Error(err))
+				s.l.Error(fmt.Sprintf("sendChPostAsVamp_Media_Group sendAndDeleteMedia ChLink-%s err", vampBot.ChLink), zap.Error(err))
 			}
 			mediaArr[i].File_id = fileId
 
@@ -557,7 +544,7 @@ func (s *TgService) sendChPostAsVamp_Media_Group() error {
 				replToDonorChPostId := media.Reply_to_donor_message_id
 				currPost, err := s.db.GetPostByDonorIdAndChId(replToDonorChPostId, vampBot.ChId)
 				if err != nil {
-					s.l.Error("sendChPostAsVamp_Media_Group: GetPostByDonorIdAndChId err", zap.Error(err))
+					s.l.Error(fmt.Sprintf("sendChPostAsVamp_Media_Group: GetPostByDonorIdAndChId err: %v", err))
 				}
 				mediaArr[i].Reply_to_message_id = currPost.PostId
 			}
@@ -599,14 +586,14 @@ func (s *TgService) sendChPostAsVamp_Media_Group() error {
 		}
 		MediaJson, err := json.Marshal(ttttt)
 		if err != nil {
-			s.l.Error("sendChPostAsVamp_Media_Group: Marshal err", zap.Error(err))
+			s.l.Error(fmt.Sprintf("sendChPostAsVamp_Media_Group: Marshal err: %v", err))
 		}
 
 		s.l.Info("sendChPostAsVamp_Media_Group: sending media-group", zap.Any("bot ch link", vampBot.ChLink), zap.Any("map[string]any", ttttt))
 		
 		cAny223, err := s.SendMediaGroup(MediaJson)
 		if err != nil {
-			s.l.Error("sendChPostAsVamp_Media_Group: SendMediaGroup err", zap.Error(err))
+			s.l.Error(fmt.Sprintf("sendChPostAsVamp_Media_Group: SendMediaGroup err: %v", err))
 		}
 
 		s.l.Info("sendChPostAsVamp_Media_Group: SendMediaGroup resp", zap.Any("bot ch link", vampBot.ChLink), zap.Any("resp struct", cAny223))
