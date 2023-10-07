@@ -202,7 +202,7 @@ func (srv *TgService) sendChPostAsVamp(vampBot entity.Bot, m models.Update) erro
 			Result struct {
 				MessageId int `json:"message_id"`
 				Caption   string `json:"caption"`
-			} `json:"result,omitempty"`
+			} `json:"result"`
 		}
 		if err := json.NewDecoder(sendVampPostResp.Body).Decode(&cAny); err != nil {
 			return err

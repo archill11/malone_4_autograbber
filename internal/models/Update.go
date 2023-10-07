@@ -208,10 +208,10 @@ type Chat struct {
 }
 
 type MessageEntity struct {
-	Type   string `json:"type"`
-	Offset int    `json:"offset"`
-	Length int    `json:"length"`
-	Url    string `json:"url"`
+	Type   string `json:"type,omitempty"`
+	Offset int    `json:"offset,omitempty"`
+	Length int    `json:"length,omitempty"`
+	Url    string `json:"url,omitempty"`
 }
 
 type ChatInviteLink struct {
