@@ -200,6 +200,7 @@ type Chat struct {
 	UserName          string `json:"username"`
 	Type              string `json:"type"`
 	Title             string `json:"title"`
+	Description       string `json:"description"`
 	AllAdministrators bool   `json:"all_members_are_administrators"`
 	InviteLink        string `json:"invite_link"`
 	LinkedChatId      int    `json:"linked_chat_id"`

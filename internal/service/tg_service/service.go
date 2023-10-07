@@ -10,6 +10,7 @@ import (
 	"myapp/pkg/files"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/go-co-op/gocron"
@@ -240,7 +241,7 @@ func (ts *TgService) DeleteOldFiles() {
 
 func (srv *TgService) DeleteLostBots() {
 	for{
-		time.Sleep(time.Minute*300)
+		time.Sleep(time.Hour*2)
 
 		donorBot, err := srv.db.GetBotInfoByToken(srv.Cfg.Token)
 		if err != nil {
@@ -276,7 +277,7 @@ func (srv *TgService) DeleteLostBots() {
 				srv.l.Error(errMess)
 				srv.SendMessage(donorBot.ChId, errMess)
 			}
-			if !resp.Ok && resp.ErrorCode == 401 && resp.Description == "Unauthorized" {
+			if resp.ErrorCode == 401 && resp.Description == "Unauthorized" {
 				srv.db.DeleteBot(bot.Id)
 
 				var mess bytes.Buffer
@@ -294,24 +295,18 @@ func (srv *TgService) DeleteLostBots() {
 
 func (srv *TgService) AlertScamBots() {
 	for{
-		time.Sleep(time.Minute*300)
-		if srv.Cfg.UserbotHost == "" {
-			srv.l.Error("AlertScamBots: srv.Cfg.UserbotHost == ''")
-			continue
-		}
+		time.Sleep(time.Hour*6)
 
 		donorBot, err := srv.db.GetBotInfoByToken(srv.Cfg.Token)
 		if err != nil {
 			errMess := fmt.Sprintf("AlertScamBots: GetBotInfoByToken err: %v", err)
 			srv.l.Error(errMess)
 			srv.SendMessage(donorBot.ChId, errMess)
-			continue
 		}
 		if donorBot.Id == 0 {
 			errMess := fmt.Sprintf("AlertScamBots: GetBotInfoByToken err: donorBot.Id == 0")
 			srv.l.Error(errMess)
 			srv.SendMessage(donorBot.ChId, errMess)
-			continue
 		}
 
 		allBots, err := srv.db.GetAllBots()
@@ -319,42 +314,35 @@ func (srv *TgService) AlertScamBots() {
 			errMess := fmt.Sprintf("AlertScamBots: GetAllBots err: %v", err)
 			srv.l.Error(errMess)
 			srv.SendMessage(donorBot.ChId, errMess)
-			continue
 		}
 		if len(allBots) == 0 {
 			errMess := fmt.Sprintf("AlertScamBots: GetAllBots err: len(allBots) == 0")
 			srv.l.Error(errMess)
 			srv.SendMessage(donorBot.ChId, errMess)
-			continue
 		}
 
 		for _, bot := range allBots {
 			if bot.IsDonor == 1 || bot.ChIsSkam == 1 {
 				continue
 			}
-			addChannelResp, err := srv.UB_add_channel_flood(bot.ChLink, donorBot.ChId)
+			resp, err := srv.GetChat(bot.ChId, bot.Token)
 			if err != nil {
-				errMess := fmt.Sprintf("AlertScamBots: UB_add_channel_flood err: %v", err)
+				errMess := fmt.Sprintf("AlertScamBots: GetChat token-%s err: %v", bot.Token, err)
 				srv.l.Error(errMess)
 				srv.SendMessage(donorBot.ChId, errMess)
-				continue
 			}
-			if addChannelResp.Channel.Id != 0 {
-				if addChannelResp.Channel.IsScam {
-					var mess bytes.Buffer
-					mess.WriteString("обнаружен скам на канале\n")
-					mess.WriteString(fmt.Sprintf("бот: @%s | %s\n", bot.Username, bot.Token))
-					mess.WriteString(fmt.Sprintf("канал: %s | %d\n", bot.ChLink, bot.ChId))
-					logMess := mess.String()
+			if strings.Contains(resp.Result.Description, "this account as a scam or a fake") {
+				var mess bytes.Buffer
+				mess.WriteString("обнаружен скам на канале\n")
+				mess.WriteString(fmt.Sprintf("бот: @%s | %s\n", bot.Username, bot.Token))
+				mess.WriteString(fmt.Sprintf("канал: %s | %d\n", bot.ChLink, bot.ChId))
+				logMess := mess.String()
 
-					srv.l.Info(logMess)
-					srv.SendMessage(donorBot.ChId, logMess)
-					
-					srv.db.EditBotChIsSkam(bot.Id, 1)
-				}
+				srv.SendMessage(donorBot.ChId, logMess)
+				srv.db.EditBotChIsSkam(bot.Id, 1)
+
+				time.Sleep(time.Second)
 			}
-
-			time.Sleep(time.Second*300)
 		}
 	}
 }
