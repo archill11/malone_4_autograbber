@@ -16,7 +16,13 @@ import (
 	"go.uber.org/zap"
 )
 
-const StoreKey = "example"
+var (
+	mskLoc, _ = time.LoadLocation("Europe/Moscow")
+)
+
+const(
+	StoreKey = "example"
+)
 
 type (
 	UpdateConfig struct {
@@ -90,84 +96,7 @@ func New(conf TgConfig, db *pg.Database, l *zap.Logger) (*TgService, error) {
 	}()
 
 	// когда MediaGroup
-	go func() {
-		mediaArr := make([]Media, 0)
-		for {
-			select {
-			case x, ok := <-s.MediaCh:
-				if ok {
-					okk := MediaInSlice2(mediaArr, x)
-					if !okk {
-						mediaArr = append(mediaArr, x)
-					}
-				} else {
-					s.l.Error("Channel closed!")
-					return
-				}
-			case <-time.After(time.Second * 15):
-				if len(mediaArr) == 0 {
-					continue
-				}
-				if len(mediaArr) == 1 {
-					s.l.Error("len(mediaArr) == 1")
-					continue
-				}
-
-				s.MediaStore.MediaGroups[StoreKey] = mediaArr
-
-				arrsik := make([]models.InputMedia, 0)
-				for _, med := range mediaArr {
-					nwmd := models.InputMedia{
-						Type:            med.Type_media,
-						Media:           med.File_id,
-						Caption:         med.Caption,
-						CaptionEntities: med.Caption_entities,
-					}
-					ok := MediaInSlice(arrsik, nwmd)
-					if !ok {
-						arrsik = append(arrsik, nwmd)
-					}
-				}
-
-				DonorBot, err := s.db.GetBotInfoByToken(s.Cfg.Token)
-				if err != nil {
-					s.l.Error(fmt.Sprintf("Channel: GetBotInfoByToken token-%s", s.Cfg.Token), zap.Error(err))
-				}
-
-				acceptMess := map[string]any{
-					"chat_id": strconv.Itoa(DonorBot.ChId),
-					"media":   arrsik,
-				}
-				if mediaArr[0].Reply_to_message_id != 0 {
-					acceptMess["reply_to_message_id"] = mediaArr[0].Reply_to_message_id
-				}
-				MediaJson, err := json.Marshal(acceptMess)
-				if err != nil {
-					s.l.Error("Channel: json.Marshal(acceptMess) err", zap.Error(err))
-				}
-				err = s.sendData(MediaJson, "sendMediaGroup")
-				if err != nil {
-					s.l.Error("Channel: Post(sendMediaGroup) err", zap.Error(err))
-				}
-
-				acceptMess = map[string]any{
-					"chat_id":      strconv.Itoa(DonorBot.ChId),
-					"text":         "подтвердите сообщение сверху",
-					"reply_markup": `{ "inline_keyboard" : [[{ "text": "разослать по каналам", "callback_data": "accept_ch_post_by_admin" }]] }`,
-				}
-				MediaJson, err = json.Marshal(acceptMess)
-				if err != nil {
-					s.l.Error("Channel: Marshal(acceptMess) err", zap.Error(err))
-				}
-				err = s.sendData(MediaJson, "sendMessage")
-				if err != nil {
-					s.l.Error("Channel: sendData(sendMessage) err", zap.Error(err))
-				}
-
-				mediaArr = mediaArr[0:0]
-			}
-		}
-	}()
+	go s.AcceptChPostByAdmin()
 
 	return s, nil
 }
@@ -236,7 +165,7 @@ func (srv *TgService) Donor_Update_v2(m models.Update) error {
 	if m.ChannelPost != nil { // on Channel_Post
 		err := srv.Donor_HandleChannelPost(m)
 		if err != nil {
-			srv.l.Error("donor_Update: Donor_HandleChannelPost(m)", zap.Error(err))
+			srv.l.Error("Donor_HandleChannelPost err", zap.Error(err))
 		}
 		return nil
 	}
@@ -244,7 +173,7 @@ func (srv *TgService) Donor_Update_v2(m models.Update) error {
 	if m.EditedChannelPost != nil { // on Edited_Channel_Post
 		err := srv.Donor_HandleEditedChannelPost(m)
 		if err != nil {
-			srv.l.Error("donor_Update: Donor_HandleEditedChannelPost(m)", zap.Error(err))
+			srv.l.Error("Donor_HandleEditedChannelPost err", zap.Error(err))
 		}
 		return nil
 	}
@@ -252,17 +181,18 @@ func (srv *TgService) Donor_Update_v2(m models.Update) error {
 	if m.CallbackQuery != nil { // on Callback_Query
 		err := srv.HandleCallbackQuery(m)
 		if err != nil {
-			srv.l.Error("donor_Update: HandleCallbackQuery(m)", zap.Error(err))
+			srv.l.Error("HandleCallbackQuery err", zap.Error(err))
 		}
 		return nil
 	}
 
 	if m.Message != nil && m.Message.ReplyToMessage != nil { // on Reply_To_Message
-		chatId := m.Message.From.Id
+		fromId := m.Message.From.Id
 		err := srv.HandleReplyToMessage(m)
 		if err != nil {
-			srv.l.Error("donor_Update: HandleReplyToMessage(m)", zap.Error(err))
-			srv.SendMessage(chatId, fmt.Sprintf("%s: %v", ERR_MSG, err))
+			srv.l.Error("HandleReplyToMessage err", zap.Error(err))
+			srv.SendMessage(fromId, ERR_MSG)
+			srv.SendMessage(fromId, err.Error())
 		}
 		return nil
 	}
@@ -270,7 +200,7 @@ func (srv *TgService) Donor_Update_v2(m models.Update) error {
 	if m.Message != nil && m.Message.Chat != nil { // on Message
 		err := srv.HandleMessage(m)
 		if err != nil {
-			srv.l.Error("donor_Update: HandleMessage(m)", zap.Error(err))
+			srv.l.Error("HandleMessage err", zap.Error(err))
 		}
 		return nil
 	}
@@ -297,7 +227,6 @@ func MediaInSlice2(s []Media, m Media) bool {
 }
 
 func (ts *TgService) DeleteOldFiles() {
-	mskLoc, _ := time.LoadLocation("Europe/Moscow")
 	cron := gocron.NewScheduler(mskLoc)
 	cron.Every(1).Day().At("02:30").Do(func() {
 		err := files.RemoveContentsFromDir("files")
@@ -426,6 +355,85 @@ func (srv *TgService) AlertScamBots() {
 			}
 
 			time.Sleep(time.Second*300)
+		}
+	}
+}
+
+func (srv *TgService) AcceptChPostByAdmin() {
+	mediaArr := make([]Media, 0)
+	for {
+		select {
+		case x, ok := <-srv.MediaCh:
+			if ok {
+				okk := MediaInSlice2(mediaArr, x)
+				if !okk {
+					mediaArr = append(mediaArr, x)
+				}
+			} else {
+				srv.l.Error("Channel closed!")
+				return
+			}
+		case <-time.After(time.Second * 15):
+			if len(mediaArr) == 0 {
+				continue
+			}
+			if len(mediaArr) == 1 {
+				srv.l.Error("len(mediaArr) == 1")
+				continue
+			}
+
+			srv.MediaStore.MediaGroups[StoreKey] = mediaArr
+
+			arrsik := make([]models.InputMedia, 0)
+			for _, med := range mediaArr {
+				nwmd := models.InputMedia{
+					Type:            med.Type_media,
+					Media:           med.File_id,
+					Caption:         med.Caption,
+					CaptionEntities: med.Caption_entities,
+				}
+				ok := MediaInSlice(arrsik, nwmd)
+				if !ok {
+					arrsik = append(arrsik, nwmd)
+				}
+			}
+
+			DonorBot, err := srv.db.GetBotInfoByToken(srv.Cfg.Token)
+			if err != nil {
+				srv.l.Error(fmt.Sprintf("Channel: GetBotInfoByToken token-%s", srv.Cfg.Token), zap.Error(err))
+			}
+
+			acceptMess := map[string]any{
+				"chat_id": strconv.Itoa(DonorBot.ChId),
+				"media":   arrsik,
+			}
+			if mediaArr[0].Reply_to_message_id != 0 {
+				acceptMess["reply_to_message_id"] = mediaArr[0].Reply_to_message_id
+			}
+			MediaJson, err := json.Marshal(acceptMess)
+			if err != nil {
+				srv.l.Error("Channel: json.Marshal(acceptMess) err", zap.Error(err))
+			}
+			err = srv.sendData(MediaJson, "sendMediaGroup")
+			if err != nil {
+				srv.l.Error("Channel: Post(sendMediaGroup) err", zap.Error(err))
+			}
+
+			acceptMess = map[string]any{
+				"chat_id":      strconv.Itoa(DonorBot.ChId),
+				"text":         "подтвердите сообщение сверху",
+				"reply_markup": `{ "inline_keyboard" : [[{ "text": "разослать по каналам", "callback_data": "accept_ch_post_by_admin" }]] }`,
+			}
+			MediaJson, err = json.Marshal(acceptMess)
+			if err != nil {
+				srv.l.Error("Channel: Marshal(acceptMess) err", zap.Error(err))
+			}
+			err = srv.sendData(MediaJson, "sendMessage")
+			if err != nil {
+				srv.l.Error("Channel: sendData(sendMessage) err", zap.Error(err))
+			}
+
+			mediaArr = mediaArr[0:0]
 		}
 	}
 }
