@@ -30,14 +30,14 @@ type ResponseParameters struct {
 type Update struct {
 	UpdateId           int                 `json:"update_id"`
 	Message            *Message            `json:"message"`
-	ChannelPost        *Message            `json:"channel_post,omitempty"`
-	EditedChannelPost  *Message            `json:"edited_channel_post,omitempty"`
-	CallbackQuery      *CallbackQuery      `json:"callback_query,omitempty"`
-	InlineQuery        *InlineQuery        `json:"inline_query,omitempty"`
-	ChosenInlineResult *ChosenInlineResult `json:"chosen_inline_result,omitempty"`
-	MyChatMember       *ChatMemberUpdated  `json:"my_chat_member,omitempty"`
-	ChatMember         *ChatMemberUpdated  `json:"chat_member,omitempty"`
-	ChatJoinRequest    *ChatJoinRequest    `json:"chat_join_request,omitempty"`
+	ChannelPost        *Message            `json:"channel_post"`
+	EditedChannelPost  *Message            `json:"edited_channel_post"`
+	CallbackQuery      *CallbackQuery      `json:"callback_query"`
+	InlineQuery        *InlineQuery        `json:"inline_query"`
+	ChosenInlineResult *ChosenInlineResult `json:"chosen_inline_result"`
+	MyChatMember       *ChatMemberUpdated  `json:"my_chat_member"`
+	ChatMember         *ChatMemberUpdated  `json:"chat_member"`
+	ChatJoinRequest    *ChatJoinRequest    `json:"chat_join_request"`
 }
 
 type Message struct {
@@ -206,9 +206,9 @@ type Chat struct {
 }
 
 type MessageEntity struct {
-	Type   string `json:"type,omitempty"`
-	Offset int    `json:"offset,omitempty"`
-	Length int    `json:"length,omitempty"`
+	Type   string `json:"type"`
+	Offset int    `json:"offset"`
+	Length int    `json:"length"`
 	Url    string `json:"url,omitempty"`
 }
 
