@@ -68,7 +68,7 @@ func (srv *TgService) Donor_addChannelPost(m models.Update) error {
 		newmedia := Media{
 			Media_group_id:            *m.ChannelPost.MediaGroupId,
 			Type_media:                postType,
-			fileNameInServer:          filePath,
+			File_name_in_server:       filePath,
 			Donor_message_id:          message_id,
 			Reply_to_donor_message_id: 0,
 			Caption:                   "",
@@ -403,7 +403,7 @@ func (srv *TgService) sendAndDeleteMedia(vampBot entity.Bot, fileNameInServer st
 	if postType == "photo" {
 		method = "sendPhoto"
 	}
-	
+
 	rrres, err := http.Post(
 		fmt.Sprintf(srv.Cfg.TgEndp, vampBot.Token, method),
 		cf,
@@ -460,7 +460,7 @@ func (s *TgService) sendChPostAsVamp_Media_Group() error {
 			continue
 		}
 		for i, media := range mediaArr {
-			fileId, err := s.sendAndDeleteMedia(vampBot, media.fileNameInServer, media.Type_media)
+			fileId, err := s.sendAndDeleteMedia(vampBot, media.File_name_in_server, media.Type_media)
 			if err != nil {
 				s.l.Error(fmt.Sprintf("sendChPostAsVamp_Media_Group sendAndDeleteMedia ChLink-%s err", vampBot.ChLink), zap.Error(err))
 			}

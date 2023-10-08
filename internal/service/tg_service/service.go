@@ -52,7 +52,7 @@ type (
 	Media struct {
 		Media_group_id            string
 		Type_media                string
-		fileNameInServer          string
+		File_name_in_server       string
 		Donor_message_id          int
 		Reply_to_donor_message_id int // реплай на сообщение в канале доноре
 		Caption                   string
@@ -190,7 +190,7 @@ func MediaInSlice(s []models.InputMedia, m models.InputMedia) bool {
 
 func MediaInSlice2(s []Media, m Media) bool {
 	for _, v := range s {
-		if v.fileNameInServer == m.fileNameInServer {
+		if v.File_name_in_server == m.File_name_in_server {
 			return true
 		}
 	}
