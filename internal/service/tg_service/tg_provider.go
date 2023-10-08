@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"myapp/internal/models"
 	"net/http"
 	"strconv"
@@ -148,7 +149,27 @@ func (srv *TgService) SendMediaGroup(json_data []byte, token string) (models.Sen
 	return sendMGResp, nil
 }
 
-func (srv *TgService) DeleteMessage(chat, messId int, botToken string) error {
+func (srv *TgService) SendVideoNote(body io.Reader, contentType string, token string) (models.SendMediaResp, error) {
+	resp, err := http.Post(
+		fmt.Sprintf(srv.Cfg.TgEndp, token, "sendVideoNote"),
+		contentType,
+		body,
+	)
+	if err != nil {
+		return models.SendMediaResp{}, fmt.Errorf("SendVideoNote Post %v", err)
+	}
+	defer resp.Body.Close()
+	var sendMGResp models.SendMediaResp
+	if err := json.NewDecoder(resp.Body).Decode(&sendMGResp); err != nil {
+		return models.SendMediaResp{}, fmt.Errorf("SendVideoNote Decode err: %v", err)
+	}
+	if sendMGResp.ErrorCode != 0 {
+		return sendMGResp, fmt.Errorf("SendVideoNote BotErrResp: %v", sendMGResp.BotErrResp)
+	}
+	return sendMGResp, nil
+}
+
+func (srv *TgService) DeleteMessage(chat, messId int, token string) error {
 	json_data, err := json.Marshal(map[string]any{
 		"chat_id":    strconv.Itoa(chat),
 		"message_id": strconv.Itoa(messId),
@@ -156,7 +177,7 @@ func (srv *TgService) DeleteMessage(chat, messId int, botToken string) error {
 	if err != nil {
 		return err
 	}
-	err = srv.sendData_v2(json_data, botToken, "deleteMessage")
+	err = srv.sendData_v2(json_data, token, "deleteMessage")
 	if err != nil {
 		return err
 	}
