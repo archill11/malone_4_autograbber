@@ -8,8 +8,6 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
-
-	"go.uber.org/zap"
 )
 
 const (
@@ -38,9 +36,9 @@ const (
 func (srv *TgService) HandleReplyToMessage(m models.Update) error {
 	rm := m.Message.ReplyToMessage
 	replyMes := m.Message.Text
-	// chatId := m.Message.From.Id
-
-	srv.l.Info("tgClient: HandleReplyToMessage", zap.Any("rm.Tex", rm.Text), zap.Any("replyMes", replyMes))
+	fromId := m.Message.From.Id
+	fromUsername := m.Message.From.UserName
+	srv.l.Info(fmt.Sprintf("HandleCallbackQuery: fromId-%d fromUsername-%s, replyMes-%s rm.Tex-%s", fromId, fromUsername, replyMes, rm.Text))
 
 	if rm.Text == NEW_BOT_MSG {
 		err := srv.RM_obtain_vampire_bot_token(m)
@@ -124,12 +122,12 @@ func (srv *TgService) HandleReplyToMessage(m models.Update) error {
 }
 
 func (srv *TgService) RM_obtain_vampire_bot_token(m models.Update) error {
-	rm := m.Message.ReplyToMessage
 	replyMes := m.Message.Text
-	chatId := m.Message.From.Id
-	srv.l.Info("tg_service: RM_obtain_vampire_bot_token", zap.Any("rm.Text", rm.Text), zap.Any("replyMes", replyMes))
+	fromId := m.Message.From.Id
+	fromUsername := m.Message.From.UserName
+	srv.l.Info(fmt.Sprintf("RM_obtain_vampire_bot_token: fromId-%d fromUsername-%s, replyMes-%s", fromId, fromUsername, replyMes))
 
-	tgobotResp, err := srv.GetMe(strings.TrimSpace(replyMes))
+	tgobotResp, err := srv.GetMe(replyMes)
 	if err != nil {
 		return err
 	}
@@ -138,95 +136,95 @@ func (srv *TgService) RM_obtain_vampire_bot_token(m models.Update) error {
 	if err != nil {
 		return err
 	}
-	srv.SendMessage(chatId, SUCCESS_ADDED_BOT)
+	srv.SendMessage(fromId, SUCCESS_ADDED_BOT)
 
 	grl, _ := srv.db.GetAllGroupLinks()
 	if len(grl) == 0 {
 		return nil
 	}
-	err = srv.SendForceReply(chatId, fmt.Sprintf(GROUP_LINK_FOR_BOT_MSG, res.Id))
+	srv.SendForceReply(fromId, fmt.Sprintf(GROUP_LINK_FOR_BOT_MSG, res.Id))
 
-	return err
+	return nil
 }
 
 func (srv *TgService) RM_delete_bot(m models.Update) error {
-	rm := m.Message.ReplyToMessage
 	replyMes := m.Message.Text
-	chatId := m.Message.From.Id
-	srv.l.Info("tg_service: RM_delete_bot", zap.Any("rm.Text", rm.Text), zap.Any("replyMes", replyMes))
+	fromId := m.Message.From.Id
+	fromUsername := m.Message.From.UserName
+	srv.l.Info(fmt.Sprintf("RM_delete_bot: fromId-%d fromUsername-%s, replyMes-%s", fromId, fromUsername, replyMes))
 
 	id, err := strconv.Atoi(strings.TrimSpace(replyMes))
 	if err != nil {
-		srv.SendMessage(chatId, "неправильный формат id !")
+		srv.SendMessage(fromId, "неправильный формат id !")
 		return err
 	}
 	bot, err := srv.db.GetBotInfoById(id)
 	if err != nil {
-		srv.SendMessage(chatId, ERR_MSG)
+		srv.SendMessage(fromId, ERR_MSG)
 		return err
 	}
 	if bot.Id == 0 {
-		srv.SendMessage(chatId, "я не знаю такого бота !")
+		srv.SendMessage(fromId, "я не знаю такого бота !")
 		return nil
 	}
 	if bot.IsDonor == 1 {
-		srv.SendMessage(chatId, "главного бота нельзя удалить")
+		srv.SendMessage(fromId, "главного бота нельзя удалить")
 		return nil
 	}
 	err = srv.db.DeleteBot(id)
 	if err != nil {
 		return err
 	}
-	err = srv.SendMessage(chatId, SUCCESS_DELETE_BOT)
+	srv.SendMessage(fromId, SUCCESS_DELETE_BOT)
 
-	return err
+	return nil
 }
 
 func (srv *TgService) RM_add_ch_to_bot(m models.Update) error {
-	rm := m.Message.ReplyToMessage
 	replyMes := m.Message.Text
-	chatId := m.Message.From.Id
-	srv.l.Info("tg_service: RM_add_ch_to_bot", zap.Any("rm.Text", rm.Text), zap.Any("replyMes", replyMes))
+	fromId := m.Message.From.Id
+	fromUsername := m.Message.From.UserName
+	srv.l.Info(fmt.Sprintf("RM_add_ch_to_bot: fromId-%d fromUsername-%s, replyMes-%s", fromId, fromUsername, replyMes))
 
 	id, err := strconv.Atoi(strings.TrimSpace(replyMes))
 	if err != nil {
-		srv.SendMessage(chatId, "неправильный формат id !")
+		srv.SendMessage(fromId, "неправильный формат id !")
 		return err
 	}
 	bot, err := srv.db.GetBotInfoById(id)
 	if err != nil {
-		srv.SendMessage(chatId, ERR_MSG)
+		srv.SendMessage(fromId, ERR_MSG)
 		return err
 	}
 	if bot.Id == 0 {
-		srv.SendMessage(chatId, "я не знаю такого бота !")
+		srv.SendMessage(fromId, "я не знаю такого бота !")
 		return nil
 	}
 
-	err = srv.SendForceReply(chatId, fmt.Sprintf("укажите id канала в котором уже бот админ и к которому нужно привязать бота-%d", bot.Id))
+	srv.SendForceReply(fromId, fmt.Sprintf("укажите id канала в котором уже бот админ и к которому нужно привязать бота-%d", bot.Id))
 
-	return err
+	return nil
 }
 
 func (srv *TgService) RM_add_ch_to_bot_spet2(m models.Update, botId int) error {
-	rm := m.Message.ReplyToMessage
 	replyMes := m.Message.Text
-	chatId := m.Message.From.Id
-	srv.l.Info("tg_service: RM_add_ch_to_bot_spet2", zap.Any("rm.Text", rm.Text), zap.Any("replyMes", replyMes))
+	fromId := m.Message.From.Id
+	fromUsername := m.Message.From.UserName
+	srv.l.Info(fmt.Sprintf("RM_add_ch_to_bot_spet2: fromId-%d fromUsername-%s, replyMes-%s", fromId, fromUsername, replyMes))
 	replyMes = strings.TrimSpace(replyMes)
 
 	chId, err := strconv.Atoi("-100" + replyMes)
 	if err != nil {
-		srv.SendMessage(chatId, fmt.Sprintf("%s: %v", ERR_MSG, err))
+		srv.SendMessage(fromId, fmt.Sprintf("%s: %v", ERR_MSG, err))
 		return err
 	}
 	bot, err := srv.db.GetBotInfoById(botId)
 	if err != nil {
-		srv.SendMessage(chatId, ERR_MSG)
+		srv.SendMessage(fromId, ERR_MSG)
 		return err
 	}
 	if bot.Id == 0 {
-		srv.SendMessage(chatId, "я не знаю такого бота !")
+		srv.SendMessage(fromId, "я не знаю такого бота !")
 		return nil
 	}
 
@@ -259,47 +257,47 @@ func (srv *TgService) RM_add_ch_to_bot_spet2(m models.Update, botId int) error {
 	bot.ChLink = j.Result.InviteLink
 	err = srv.db.EditBotField(bot.Id, "ch_id", bot.ChId)
 	if err != nil {
-		srv.SendMessage(chatId, ERR_MSG)
+		srv.SendMessage(fromId, ERR_MSG)
 		return err
 	}
 	err = srv.db.EditBotField(bot.Id, "ch_link", bot.ChLink)
 	if err != nil {
-		srv.SendMessage(chatId, ERR_MSG)
+		srv.SendMessage(fromId, ERR_MSG)
 		return err
 	}
-	err = srv.SendMessage(chatId, fmt.Sprintf("канал %d привязанна к боту %d", chId, botId))
-	return err
+	srv.SendMessage(fromId, fmt.Sprintf("канал %d привязанна к боту %d", chId, botId))
+	return nil
 }
 
 func (srv *TgService) RM_add_admin(m models.Update) error {
-	rm := m.Message.ReplyToMessage
 	replyMes := m.Message.Text
-	chatId := m.Message.From.Id
-	srv.l.Info("tg_service: RM_add_admin", zap.Any("rm.Text", rm.Text), zap.Any("replyMes", replyMes))
+	fromId := m.Message.From.Id
+	fromUsername := m.Message.From.UserName
+	srv.l.Info(fmt.Sprintf("RM_add_admin: fromId-%d fromUsername-%s, replyMes-%s", fromId, fromUsername, replyMes))
 
 	usr, err := srv.db.GetUserByUsername(strings.TrimSpace(replyMes))
 	if err != nil {
-		srv.SendMessage(chatId, ERR_MSG)
+		srv.SendMessage(fromId, ERR_MSG)
 		return fmt.Errorf("RM_add_admin: srv.db.GetUserByUsername(%s) : %v", strings.TrimSpace(replyMes), err)
 	}
 	if usr.Id == 0 {
-		srv.SendMessage(chatId, "я не знаю такого юзера , пусть напишет мне /start")
+		srv.SendMessage(fromId, "я не знаю такого юзера , пусть напишет мне /start")
 		return nil
 	}
 	err = srv.db.EditAdmin(usr.Username, 1)
 	if err != nil {
-		srv.SendMessage(chatId, ERR_MSG)
+		srv.SendMessage(fromId, ERR_MSG)
 		return fmt.Errorf("RM_add_admin: srv.db.EditAdmin(%s, 1) : %v", usr.Username, err)
 	}
-	err = srv.SendMessage(chatId, "Админ добавлен")
-	return err
+	srv.SendMessage(fromId, "Админ добавлен")
+	return nil
 }
 
 func (srv *TgService) RM_add_group_link(m models.Update) error {
-	rm := m.Message.ReplyToMessage
 	replyMes := m.Message.Text
-	chatId := m.Message.From.Id
-	srv.l.Info("RM_add_group_link", zap.Any("rm.Text", rm.Text), zap.Any("replyMes", replyMes))
+	fromId := m.Message.From.Id
+	fromUsername := m.Message.From.UserName
+	srv.l.Info(fmt.Sprintf("RM_add_group_link: fromId-%d fromUsername-%s, replyMes-%s", fromId, fromUsername, replyMes))
 
 	replyMes = strings.TrimSpace(replyMes)
 	runeStr := []rune(replyMes)
@@ -320,18 +318,18 @@ func (srv *TgService) RM_add_group_link(m models.Update) error {
 
 	err := srv.db.AddNewGroupLink(groupLinkTitle, groupLinkLink)
 	if err != nil {
-		srv.SendMessage(chatId, ERR_MSG)
+		srv.SendMessage(fromId, ERR_MSG)
 		return fmt.Errorf("RM_add_admin: srv.db.AddNewGroupLink(%s, %s) : %v", groupLinkTitle, groupLinkLink, err)
 	}
-	err = srv.SendMessage(chatId, "группа-ссылка добавлен")
-	return err
+	srv.SendMessage(fromId, "группа-ссылка добавлен")
+	return nil
 }
 
 func (srv *TgService) RM_edit_bot_group_link(m models.Update) error {
-	rm := m.Message.ReplyToMessage
 	replyMes := m.Message.Text
 	fromId := m.Message.From.Id
-	srv.l.Info("tg_service: RM_edit_bot_group_link", zap.Any("rm.Text", rm.Text), zap.Any("replyMes", replyMes))
+	fromUsername := m.Message.From.UserName
+	srv.l.Info(fmt.Sprintf("RM_edit_bot_group_link: fromId-%d fromUsername-%s, replyMes-%s", fromId, fromUsername, replyMes))
 
 	botToken := replyMes
 	urlArr := strings.Split(botToken, ":")
@@ -371,36 +369,36 @@ func (srv *TgService) RM_edit_bot_group_link(m models.Update) error {
 }
 
 func (srv *TgService) RM_delete_group_link(m models.Update) error {
-	rm := m.Message.ReplyToMessage
 	replyMes := m.Message.Text
-	chatId := m.Message.From.Id
-	srv.l.Info("tg_service: RM_delete_group_link", zap.Any("rm.Text", rm.Text), zap.Any("replyMes", replyMes))
+	fromId := m.Message.From.Id
+	fromUsername := m.Message.From.UserName
+	srv.l.Info(fmt.Sprintf("RM_delete_group_link: fromId-%d fromUsername-%s, replyMes-%s", fromId, fromUsername, replyMes))
 
 	replyMes = strings.TrimSpace(replyMes)
 	grId, err := strconv.Atoi(replyMes)
 	if err != nil {
-		srv.SendMessage(chatId, ERR_MSG)
+		srv.SendMessage(fromId, ERR_MSG)
 		return err
 	}
 	err = srv.db.DeleteGroupLink(grId)
 	if err != nil {
-		srv.SendMessage(chatId, ERR_MSG)
+		srv.SendMessage(fromId, ERR_MSG)
 		return err
 	}
 	err = srv.db.EditBotGroupLinkIdToNull(grId)
 	if err != nil {
-		srv.SendMessage(chatId, ERR_MSG)
+		srv.SendMessage(fromId, ERR_MSG)
 		return err
 	}
-	err = srv.SendMessage(chatId, "группа-ссылка удалена")
-	return err
+	srv.SendMessage(fromId, "группа-ссылка удалена")
+	return nil
 }
 
 func (srv *TgService) RM_delete_post_in_chs(m models.Update) error {
-	rm := m.Message.ReplyToMessage
 	replyMes := m.Message.Text
 	fromId := m.Message.From.Id
-	srv.l.Info("tg_service: RM_delete_post_in_chs", zap.Any("rm.Text", rm.Text), zap.Any("replyMes", replyMes))
+	fromUsername := m.Message.From.UserName
+	srv.l.Info(fmt.Sprintf("RM_delete_post_in_chs: fromId-%d fromUsername-%s, replyMes-%s", fromId, fromUsername, replyMes))
 
 	linkToPostInCh := replyMes
 	chIdStrFromLink, postIdStrFromLink, err := srv.GetPostAndChFromLonk(linkToPostInCh)
@@ -447,38 +445,38 @@ func (srv *TgService) RM_delete_post_in_chs(m models.Update) error {
 }
 
 func (srv *TgService) RM_update_bot_group_link(m models.Update, botId int) error {
-	rm := m.Message.ReplyToMessage
 	replyMes := m.Message.Text
-	chatId := m.Message.From.Id
-	srv.l.Info("tg_service: RM_update_bot_group_link", zap.Any("rm.Text", rm.Text), zap.Any("replyMes", replyMes))
+	fromId := m.Message.From.Id
+	fromUsername := m.Message.From.UserName
+	srv.l.Info(fmt.Sprintf("RM_update_bot_group_link: fromId-%d fromUsername-%s, replyMes-%s", fromId, fromUsername, replyMes))
 	replyMes = strings.TrimSpace(replyMes)
 
 	grId, err := strconv.Atoi(replyMes)
 	if err != nil {
-		srv.SendMessage(chatId, ERR_MSG)
+		srv.SendMessage(fromId, ERR_MSG)
 		return err
 	}
 	err = srv.db.EditBotGroupLinkId(grId, botId)
 	if err != nil {
-		srv.SendMessage(chatId, ERR_MSG)
+		srv.SendMessage(fromId, ERR_MSG)
 		return err
 	}
-	err = srv.SendMessage(chatId, fmt.Sprintf("группа-ссылка %d привязанна к боту %d", grId, botId))
-	return err
+	srv.SendMessage(fromId, fmt.Sprintf("группа-ссылка %d привязанна к боту %d", grId, botId))
+	return nil
 }
 
 func (srv *TgService) RM_update_group_link(m models.Update, refId int) error {
-	rm := m.Message.ReplyToMessage
 	replyMes := m.Message.Text
-	chatId := m.Message.From.Id
-	srv.l.Info("tg_service: RM_update_group_link", zap.Any("rm.Text", rm.Text), zap.Any("replyMes", replyMes))
+	fromId := m.Message.From.Id
+	fromUsername := m.Message.From.UserName
+	srv.l.Info(fmt.Sprintf("RM_update_group_link: fromId-%d fromUsername-%s, replyMes-%s", fromId, fromUsername, replyMes))
 	replyMes = strings.TrimSpace(replyMes)
 
 	err := srv.db.UpdateGroupLink(refId, replyMes)
 	if err != nil {
-		srv.SendMessage(chatId, ERR_MSG)
+		srv.SendMessage(fromId, ERR_MSG)
 		return err
 	}
-	err = srv.SendMessage(chatId, "группа-ссылка обновлена")
-	return err
+	srv.SendMessage(fromId, "группа-ссылка обновлена")
+	return nil
 }
