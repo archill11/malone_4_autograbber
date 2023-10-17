@@ -46,12 +46,12 @@ func CreateForm(form map[string]string) (string, io.Reader, error) {
 			val = val[1:]
 			file, err := os.Open(val)
 			if err != nil {
-				return "", nil, err
+				return "", nil, fmt.Errorf("CreateForm Open err: %v", err)
 			}
 			defer file.Close()
 			part, err := mp.CreateFormFile(key, val)
 			if err != nil {
-				return "", nil, err
+				return "", nil, fmt.Errorf("CreateForm CreateFormFile err: %v", err)
 			}
 			io.Copy(part, file)
 		} else {
