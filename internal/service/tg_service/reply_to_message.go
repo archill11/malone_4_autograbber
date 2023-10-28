@@ -379,7 +379,7 @@ func (srv *TgService) RM_delete_post_in_chs(m models.Update) error {
 	srv.l.Info(fmt.Sprintf("RM_delete_post_in_chs: fromId: %d fromUsername: %s, replyMes: %s", fromId, fromUsername, replyMes))
 
 	linkToPostInCh := replyMes
-	chIdStrFromLink, postIdStrFromLink, err := srv.GetPostAndChFromLonk(linkToPostInCh)
+	chIdStrFromLink, postIdStrFromLink, err := srv.GetPostAndChFromLink(linkToPostInCh)
 	if err != nil {
 		return fmt.Errorf("RM_delete_post_in_chs err: %v", err)
 	}

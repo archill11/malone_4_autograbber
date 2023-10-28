@@ -121,10 +121,10 @@ func (srv *TgService) PrepareReplyMarkup(entities models.InlineKeyboardMarkup, v
 	return entities, nil
 }
 
-func (srv *TgService) GetPostAndChFromLonk(link string) (string, string, error) {
+func (srv *TgService) GetPostAndChFromLink(link string) (string, string, error) {
 	urlArr := strings.Split(link, "/")
 	if len(urlArr) != 6 {
-		return "", "", fmt.Errorf("GetPostAndChFromLonk err: не правилная ссылка %s", link)
+		return "", "", fmt.Errorf("GetPostAndChFromLink err: не правилная ссылка %s", link)
 	}
 	for i, v := range urlArr {
 		if v == "t.me" && urlArr[i+1] == "c" {

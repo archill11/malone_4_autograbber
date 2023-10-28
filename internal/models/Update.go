@@ -136,12 +136,12 @@ type ChatMemberUpdated struct {
 	Chat          Chat           `json:"chat"`
 	From          User           `json:"from"`
 	Date          int            `json:"date"`
-	OldChatMember ChatMember1    `json:"old_chat_member"`
-	NewChatMember ChatMember1    `json:"new_chat_member"`
+	OldChatMember ChatMember     `json:"old_chat_member"`
+	NewChatMember ChatMember     `json:"new_chat_member"`
 	InviteLink    ChatInviteLink `json:"invite_link"`
 }
 
-type ChatMember1 struct {
+type ChatMember struct {
 	Status string `json:"status"`
 	User   User   `json:"user"`
 }
