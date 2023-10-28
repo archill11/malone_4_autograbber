@@ -16,7 +16,7 @@ func (srv *TgService) HandleCallbackQuery(m models.Update) error {
 	cq := m.CallbackQuery
 	fromId := cq.From.Id
 	fromUsername := cq.From.UserName
-	srv.l.Info(fmt.Sprintf("HandleCallbackQuery: fromId-%d fromUsername-%s, cq.Data-%s", fromId, fromUsername, cq.Data))
+	srv.l.Info(fmt.Sprintf("HandleCallbackQuery: fromId: %d fromUsername: %s, cq.Data: %s", fromId, fromUsername, cq.Data))
 
 	if cq.Data == "create_vampere_bot" {
 		err := srv.CQ_vampire_register(m)
@@ -167,7 +167,7 @@ func (srv *TgService) CQ_vampire_register(m models.Update) error {
 	cq := m.CallbackQuery
 	fromId := cq.From.Id
 	fromUsername := cq.From.UserName
-	srv.l.Info(fmt.Sprintf("CQ_vampire_register: fromId-%d fromUsername-%s", fromId, fromUsername))
+	srv.l.Info(fmt.Sprintf("CQ_vampire_register: fromId: %d fromUsername: %s", fromId, fromUsername))
 
 	err := srv.SendForceReply(fromId, NEW_BOT_MSG)
 	return err
@@ -177,7 +177,7 @@ func (srv *TgService) CQ_vampire_delete(m models.Update) error {
 	cq := m.CallbackQuery
 	fromId := cq.From.Id
 	fromUsername := cq.From.UserName
-	srv.l.Info(fmt.Sprintf("CQ_vampire_delete: fromId-%d fromUsername-%s", fromId, fromUsername))
+	srv.l.Info(fmt.Sprintf("CQ_vampire_delete: fromId: %d fromUsername: %s", fromId, fromUsername))
 
 	err := srv.SendForceReply(fromId, DELETE_BOT_MSG)
 	return err
@@ -187,7 +187,7 @@ func (srv *TgService) CQ_add_ch_to_bot(m models.Update) error {
 	cq := m.CallbackQuery
 	fromId := cq.From.Id
 	fromUsername := cq.From.UserName
-	srv.l.Info(fmt.Sprintf("CQ_add_ch_to_bot: fromId-%d fromUsername-%s", fromId, fromUsername))
+	srv.l.Info(fmt.Sprintf("CQ_add_ch_to_bot: fromId: %d fromUsername: %s", fromId, fromUsername))
 
 	err := srv.SendForceReply(fromId, ADD_CH_TO_BOT_MSG)
 	return err
@@ -197,7 +197,7 @@ func (srv *TgService) CQ_add_admin(m models.Update) error {
 	cq := m.CallbackQuery
 	fromId := cq.From.Id
 	fromUsername := cq.From.UserName
-	srv.l.Info(fmt.Sprintf("CQ_add_admin: fromId-%d fromUsername-%s", fromId, fromUsername))
+	srv.l.Info(fmt.Sprintf("CQ_add_admin: fromId: %d fromUsername: %s", fromId, fromUsername))
 
 	err := srv.SendForceReply(fromId, NEW_ADMIN_MSG)
 	return err
@@ -207,7 +207,7 @@ func (srv *TgService) CQ_show_bots_and_channels(m models.Update) error {
 	cq := m.CallbackQuery
 	fromId := cq.From.Id
 	fromUsername := cq.From.UserName
-	srv.l.Info(fmt.Sprintf("CQ_show_bots_and_channels: fromId-%d fromUsername-%s", fromId, fromUsername))
+	srv.l.Info(fmt.Sprintf("CQ_show_bots_and_channels: fromId: %d fromUsername: %s", fromId, fromUsername))
 
 	err := srv.showBotsAndChannels(fromId)
 	return err
@@ -217,7 +217,7 @@ func (srv *TgService) CQ_edit_bot_group_link(m models.Update) error {
 	cq := m.CallbackQuery
 	fromId := cq.From.Id
 	fromUsername := cq.From.UserName
-	srv.l.Info(fmt.Sprintf("CQ_edit_bot_group_link: fromId-%d fromUsername-%s", fromId, fromUsername))
+	srv.l.Info(fmt.Sprintf("CQ_edit_bot_group_link: fromId: %d fromUsername: %s", fromId, fromUsername))
 
 	err := srv.SendForceReply(fromId, EDIT_BOT_GROUP_LINK_MSG)
 	return err
@@ -227,7 +227,7 @@ func (srv *TgService) CQ_show_all_group_links(m models.Update) error {
 	cq := m.CallbackQuery
 	fromId := cq.From.Id
 	fromUsername := cq.From.UserName
-	srv.l.Info(fmt.Sprintf("CQ_show_all_group_links: fromId-%d fromUsername-%s", fromId, fromUsername))
+	srv.l.Info(fmt.Sprintf("CQ_show_all_group_links: fromId: %d fromUsername: %s", fromId, fromUsername))
 
 	err := srv.showAllGroupLinks(fromId)
 	return err
@@ -237,7 +237,7 @@ func (srv *TgService) CQ_show_admin_panel(m models.Update) error {
 	cq := m.CallbackQuery
 	fromId := cq.From.Id
 	fromUsername := cq.From.UserName
-	srv.l.Info(fmt.Sprintf("CQ_show_admin_panel: fromId-%d fromUsername-%s", fromId, fromUsername))
+	srv.l.Info(fmt.Sprintf("CQ_show_admin_panel: fromId: %d fromUsername: %s", fromId, fromUsername))
 
 	err := srv.showAdminPanel(fromId)
 	return err
@@ -247,7 +247,7 @@ func (srv *TgService) CQ_create_group_link(m models.Update) error {
 	cq := m.CallbackQuery
 	fromId := cq.From.Id
 	fromUsername := cq.From.UserName
-	srv.l.Info(fmt.Sprintf("CQ_create_group_link: fromId-%d fromUsername-%s", fromId, fromUsername))
+	srv.l.Info(fmt.Sprintf("CQ_create_group_link: fromId: %d fromUsername: %s", fromId, fromUsername))
 
 	err := srv.SendForceReply(fromId, NEW_GROUP_LINK_MSG)
 	return err
@@ -257,7 +257,7 @@ func (srv *TgService) CQ_delete_group_link(m models.Update) error {
 	cq := m.CallbackQuery
 	fromId := cq.From.Id
 	fromUsername := cq.From.UserName
-	srv.l.Info(fmt.Sprintf("CQ_delete_group_link: fromId-%d fromUsername-%s", fromId, fromUsername))
+	srv.l.Info(fmt.Sprintf("CQ_delete_group_link: fromId: %d fromUsername: %s", fromId, fromUsername))
 
 	err := srv.SendForceReply(fromId, DELETE_GROUP_LINK_MSG)
 	return err
@@ -267,7 +267,7 @@ func (srv *TgService) CQ_update_group_link(m models.Update) error {
 	cq := m.CallbackQuery
 	fromId := cq.From.Id
 	fromUsername := cq.From.UserName
-	srv.l.Info(fmt.Sprintf("CQ_update_group_link: fromId-%d fromUsername-%s", fromId, fromUsername))
+	srv.l.Info(fmt.Sprintf("CQ_update_group_link: fromId: %d fromUsername: %s", fromId, fromUsername))
 
 	srv.SendForceReply(fromId, UPDATE_GROUP_LINK_MSG)
 	return nil
@@ -277,11 +277,11 @@ func (srv *TgService) CQ_accept_ch_post_by_admin(m models.Update) error {
 	cq := m.CallbackQuery
 	fromId := cq.From.Id
 	fromUsername := cq.From.UserName
-	srv.l.Info(fmt.Sprintf("CQ_accept_ch_post_by_admin: fromId-%d fromUsername-%s", fromId, fromUsername))
+	srv.l.Info(fmt.Sprintf("CQ_accept_ch_post_by_admin: fromId: %d fromUsername: %s", fromId, fromUsername))
 
 	DonorBot, err := srv.db.GetBotInfoByToken(srv.Cfg.Token)
 	if err != nil {
-		return fmt.Errorf("CQ_accept_ch_post_by_admin GetBotInfoByToken token-%s err: %v", srv.Cfg.Token, err)
+		return fmt.Errorf("CQ_accept_ch_post_by_admin GetBotInfoByToken token: %s err: %v", srv.Cfg.Token, err)
 		
 	}
 	srv.SendMessage(DonorBot.ChId, "ок, начинаю рассылку по остальным")
@@ -302,7 +302,7 @@ func (srv *TgService) CQ_del_lost_bots(m models.Update) error {
 	cq := m.CallbackQuery
 	fromId := cq.From.Id
 	fromUsername := cq.From.UserName
-	srv.l.Info(fmt.Sprintf("CQ_del_lost_bots: fromId-%d fromUsername-%s", fromId, fromUsername))
+	srv.l.Info(fmt.Sprintf("CQ_del_lost_bots: fromId: %d fromUsername: %s", fromId, fromUsername))
 
 	allBots, err := srv.db.GetAllBots()
 	if err != nil {
@@ -344,7 +344,7 @@ func (srv *TgService) CQ_del_post_in_chs_bots(m models.Update) error {
 	cq := m.CallbackQuery
 	fromId := cq.From.Id
 	fromUsername := cq.From.UserName
-	srv.l.Info(fmt.Sprintf("CQ_del_post_in_chs_bots: fromId-%d fromUsername-%s", fromId, fromUsername))
+	srv.l.Info(fmt.Sprintf("CQ_del_post_in_chs_bots: fromId: %d fromUsername: %s", fromId, fromUsername))
 
 	srv.SendForceReply(fromId, DELETE_POST_MSG)
 	return nil
@@ -361,15 +361,15 @@ func (srv *TgService) CQ_edit_bot_group_link_stp2(m models.Update, botIdStr, grL
 	cq := m.CallbackQuery
 	fromId := cq.From.Id
 	fromUsername := cq.From.UserName
-	srv.l.Info(fmt.Sprintf("CQ_edit_bot_group_link_stp2: fromId-%d fromUsername-%s", fromId, fromUsername))
+	srv.l.Info(fmt.Sprintf("CQ_edit_bot_group_link_stp2: fromId: %d fromUsername: %s", fromId, fromUsername))
 
 	botId, err := strconv.Atoi(botIdStr)
 	if err != nil {
-		return fmt.Errorf("CQ_edit_bot_group_link_stp2: некоректный id бота-%s : %v", botIdStr, err)
+		return fmt.Errorf("CQ_edit_bot_group_link_stp2: некоректный id бота: %s : %v", botIdStr, err)
 	}
 	groupLinkId, err := strconv.Atoi(grLinkIdStr)
 	if err != nil {
-		return fmt.Errorf("CQ_edit_bot_group_link_stp2: некоректный id ссылки-%s : %v", botIdStr, err)
+		return fmt.Errorf("CQ_edit_bot_group_link_stp2: некоректный id ссылки: %s : %v", botIdStr, err)
 	}
 	err = srv.db.EditBotGroupLinkId(groupLinkId, botId)
 	if err != nil {

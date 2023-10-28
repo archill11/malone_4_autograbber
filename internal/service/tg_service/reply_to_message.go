@@ -16,7 +16,7 @@ func (srv *TgService) HandleReplyToMessage(m models.Update) error {
 	replyMes := m.Message.Text
 	fromId := m.Message.From.Id
 	fromUsername := m.Message.From.UserName
-	srv.l.Info(fmt.Sprintf("HandleCallbackQuery: fromId-%d fromUsername-%s, replyMes-%s rm.Tex-%s", fromId, fromUsername, replyMes, rm.Text))
+	srv.l.Info(fmt.Sprintf("HandleCallbackQuery: fromId: %d fromUsername: %s, replyMes: %s rm.Tex: %s", fromId, fromUsername, replyMes, rm.Text))
 
 	if rm.Text == NEW_BOT_MSG {
 		err := srv.RM_obtain_vampire_bot_token(m)
@@ -103,7 +103,7 @@ func (srv *TgService) RM_obtain_vampire_bot_token(m models.Update) error {
 	replyMes := m.Message.Text
 	fromId := m.Message.From.Id
 	fromUsername := m.Message.From.UserName
-	srv.l.Info(fmt.Sprintf("RM_obtain_vampire_bot_token: fromId-%d fromUsername-%s, replyMes-%s", fromId, fromUsername, replyMes))
+	srv.l.Info(fmt.Sprintf("RM_obtain_vampire_bot_token: fromId: %d fromUsername: %s, replyMes: %s", fromId, fromUsername, replyMes))
 
 	tgobotResp, err := srv.GetMe(replyMes)
 	if err != nil {
@@ -129,7 +129,7 @@ func (srv *TgService) RM_delete_bot(m models.Update) error {
 	replyMes := m.Message.Text
 	fromId := m.Message.From.Id
 	fromUsername := m.Message.From.UserName
-	srv.l.Info(fmt.Sprintf("RM_delete_bot: fromId-%d fromUsername-%s, replyMes-%s", fromId, fromUsername, replyMes))
+	srv.l.Info(fmt.Sprintf("RM_delete_bot: fromId: %d fromUsername: %s, replyMes: %s", fromId, fromUsername, replyMes))
 
 	id, err := strconv.Atoi(strings.TrimSpace(replyMes))
 	if err != nil {
@@ -162,7 +162,7 @@ func (srv *TgService) RM_add_ch_to_bot(m models.Update) error {
 	replyMes := m.Message.Text
 	fromId := m.Message.From.Id
 	fromUsername := m.Message.From.UserName
-	srv.l.Info(fmt.Sprintf("RM_add_ch_to_bot: fromId-%d fromUsername-%s, replyMes-%s", fromId, fromUsername, replyMes))
+	srv.l.Info(fmt.Sprintf("RM_add_ch_to_bot: fromId: %d fromUsername: %s, replyMes: %s", fromId, fromUsername, replyMes))
 
 	id, err := strconv.Atoi(strings.TrimSpace(replyMes))
 	if err != nil {
@@ -179,7 +179,7 @@ func (srv *TgService) RM_add_ch_to_bot(m models.Update) error {
 		return nil
 	}
 
-	srv.SendForceReply(fromId, fmt.Sprintf("укажите id канала в котором уже бот админ и к которому нужно привязать бота-%d", bot.Id))
+	srv.SendForceReply(fromId, fmt.Sprintf("укажите id канала в котором уже бот админ и к которому нужно привязать бота: %d", bot.Id))
 
 	return nil
 }
@@ -188,7 +188,7 @@ func (srv *TgService) RM_add_ch_to_bot_spet2(m models.Update, botId int) error {
 	replyMes := m.Message.Text
 	fromId := m.Message.From.Id
 	fromUsername := m.Message.From.UserName
-	srv.l.Info(fmt.Sprintf("RM_add_ch_to_bot_spet2: fromId-%d fromUsername-%s, replyMes-%s", fromId, fromUsername, replyMes))
+	srv.l.Info(fmt.Sprintf("RM_add_ch_to_bot_spet2: fromId: %d fromUsername: %s, replyMes: %s", fromId, fromUsername, replyMes))
 	replyMes = strings.TrimSpace(replyMes)
 
 	chId, err := strconv.Atoi("-100" + replyMes)
@@ -228,7 +228,7 @@ func (srv *TgService) RM_add_ch_to_bot_spet2(m models.Update, botId int) error {
 	}
 
 	if !j.Ok {
-		return fmt.Errorf("RM_add_ch_to_bot_spet2 !j.Ok error: %v. ch_id %d", j.Description, chId)
+		return fmt.Errorf("RM_add_ch_to_bot_spet2 !j.Ok error: %v, ch_id %d", j.Description, chId)
 	}
 
 	bot.ChId = j.Result.Id
@@ -251,7 +251,7 @@ func (srv *TgService) RM_add_admin(m models.Update) error {
 	replyMes := m.Message.Text
 	fromId := m.Message.From.Id
 	fromUsername := m.Message.From.UserName
-	srv.l.Info(fmt.Sprintf("RM_add_admin: fromId-%d fromUsername-%s, replyMes-%s", fromId, fromUsername, replyMes))
+	srv.l.Info(fmt.Sprintf("RM_add_admin: fromId: %d fromUsername: %s, replyMes: %s", fromId, fromUsername, replyMes))
 
 	usr, err := srv.db.GetUserByUsername(strings.TrimSpace(replyMes))
 	if err != nil {
@@ -265,7 +265,7 @@ func (srv *TgService) RM_add_admin(m models.Update) error {
 	err = srv.db.EditAdmin(usr.Username, 1)
 	if err != nil {
 		srv.SendMessage(fromId, ERR_MSG)
-		return fmt.Errorf("RM_add_admin: srv.db.EditAdmin(%s, 1) : %v", usr.Username, err)
+		return fmt.Errorf("RM_add_admin: srv.db.EditAdmin(%s, 1) err: %v", usr.Username, err)
 	}
 	srv.SendMessage(fromId, "Админ добавлен")
 	return nil
@@ -275,7 +275,7 @@ func (srv *TgService) RM_add_group_link(m models.Update) error {
 	replyMes := m.Message.Text
 	fromId := m.Message.From.Id
 	fromUsername := m.Message.From.UserName
-	srv.l.Info(fmt.Sprintf("RM_add_group_link: fromId-%d fromUsername-%s, replyMes-%s", fromId, fromUsername, replyMes))
+	srv.l.Info(fmt.Sprintf("RM_add_group_link: fromId: %d fromUsername: %s, replyMes: %s", fromId, fromUsername, replyMes))
 
 	replyMes = strings.TrimSpace(replyMes)
 	runeStr := []rune(replyMes)
@@ -297,7 +297,7 @@ func (srv *TgService) RM_add_group_link(m models.Update) error {
 	err := srv.db.AddNewGroupLink(groupLinkTitle, groupLinkLink)
 	if err != nil {
 		srv.SendMessage(fromId, ERR_MSG)
-		return fmt.Errorf("RM_add_admin: srv.db.AddNewGroupLink(%s, %s) : %v", groupLinkTitle, groupLinkLink, err)
+		return fmt.Errorf("RM_add_admin: srv.db.AddNewGroupLink(%s, %s) err: %v", groupLinkTitle, groupLinkLink, err)
 	}
 	srv.SendMessage(fromId, "группа-ссылка добавлен")
 	return nil
@@ -307,7 +307,7 @@ func (srv *TgService) RM_edit_bot_group_link(m models.Update) error {
 	replyMes := m.Message.Text
 	fromId := m.Message.From.Id
 	fromUsername := m.Message.From.UserName
-	srv.l.Info(fmt.Sprintf("RM_edit_bot_group_link: fromId-%d fromUsername-%s, replyMes-%s", fromId, fromUsername, replyMes))
+	srv.l.Info(fmt.Sprintf("RM_edit_bot_group_link: fromId: %d fromUsername: %s, replyMes: %s", fromId, fromUsername, replyMes))
 
 	botToken := replyMes
 	urlArr := strings.Split(botToken, ":")
@@ -318,7 +318,7 @@ func (srv *TgService) RM_edit_bot_group_link(m models.Update) error {
 
 	_, err := strconv.Atoi(botIdStr)
 	if err != nil {
-		return fmt.Errorf("RM_edit_bot_group_link: некоректный id бота-%s : %v", botIdStr, err)
+		return fmt.Errorf("RM_edit_bot_group_link: некоректный id бота: %s err: %v", botIdStr, err)
 	}
 
 	grs, _ := srv.db.GetAllGroupLinks()
@@ -350,7 +350,7 @@ func (srv *TgService) RM_delete_group_link(m models.Update) error {
 	replyMes := m.Message.Text
 	fromId := m.Message.From.Id
 	fromUsername := m.Message.From.UserName
-	srv.l.Info(fmt.Sprintf("RM_delete_group_link: fromId-%d fromUsername-%s, replyMes-%s", fromId, fromUsername, replyMes))
+	srv.l.Info(fmt.Sprintf("RM_delete_group_link: fromId: %d fromUsername: %s, replyMes: %s", fromId, fromUsername, replyMes))
 
 	replyMes = strings.TrimSpace(replyMes)
 	grId, err := strconv.Atoi(replyMes)
@@ -376,7 +376,7 @@ func (srv *TgService) RM_delete_post_in_chs(m models.Update) error {
 	replyMes := m.Message.Text
 	fromId := m.Message.From.Id
 	fromUsername := m.Message.From.UserName
-	srv.l.Info(fmt.Sprintf("RM_delete_post_in_chs: fromId-%d fromUsername-%s, replyMes-%s", fromId, fromUsername, replyMes))
+	srv.l.Info(fmt.Sprintf("RM_delete_post_in_chs: fromId: %d fromUsername: %s, replyMes: %s", fromId, fromUsername, replyMes))
 
 	linkToPostInCh := replyMes
 	chIdStrFromLink, postIdStrFromLink, err := srv.GetPostAndChFromLonk(linkToPostInCh)
@@ -385,25 +385,25 @@ func (srv *TgService) RM_delete_post_in_chs(m models.Update) error {
 	}
 	postIdFromLink, err := strconv.Atoi(postIdStrFromLink)
 	if err != nil {
-		return fmt.Errorf("RM_delete_post_in_chs Atoi postIdStrFromLink-%s err: %v", postIdStrFromLink, err)
+		return fmt.Errorf("RM_delete_post_in_chs Atoi postIdStrFromLink: %s err: %v", postIdStrFromLink, err)
 	}
 	chIdFromLink, err := strconv.Atoi(chIdStrFromLink)
 	if err != nil {
-		return fmt.Errorf("RM_delete_post_in_chs Atoi chIdStrFromLink-%s err: %v", chIdStrFromLink, err)
+		return fmt.Errorf("RM_delete_post_in_chs Atoi chIdStrFromLink: %s err: %v", chIdStrFromLink, err)
 	}
 
 	chwithmStr := fmt.Sprintf("-100%d", chIdFromLink)
 	chDonor, err := strconv.Atoi(chwithmStr)
 	if err != nil {
-		return fmt.Errorf("RM_delete_post_in_chs Atoi-%s err: %v", chwithmStr, err)
+		return fmt.Errorf("RM_delete_post_in_chs Atoi: %s err: %v", chwithmStr, err)
 	}
 
 	bot, err := srv.db.GetBotByChannelId(chDonor)
 	if err != nil {
-		return fmt.Errorf("RM_delete_post_in_chs GetBotByChannelId chDonor-%d err: %v", chDonor, err)
+		return fmt.Errorf("RM_delete_post_in_chs GetBotByChannelId chDonor: %d err: %v", chDonor, err)
 	}
 	if bot.IsDonor == 0 {
-		return fmt.Errorf("RM_delete_post_in_chs канал не донор chDonor-%d err: bot.IsDonor == 0", chDonor)
+		return fmt.Errorf("RM_delete_post_in_chs канал не донор chDonor: %d err: bot.IsDonor == 0", chDonor)
 	}
 
 	newm := models.Update{
@@ -416,7 +416,7 @@ func (srv *TgService) RM_delete_post_in_chs(m models.Update) error {
 	m.EditedChannelPost.Text = "deletepost"
 	err = srv.Donor_HandleEditedChannelPost(newm)
 	if err != nil {
-		return fmt.Errorf("RM_delete_post_in_chsDonor_HandleEditedChannelPost newm-%+v err: %v", newm, err)
+		return fmt.Errorf("RM_delete_post_in_chsDonor_HandleEditedChannelPost newm: %+v err: %v", newm, err)
 	}
 	srv.SendMessage(fromId, "пост удален")
 	return nil
@@ -426,7 +426,7 @@ func (srv *TgService) RM_update_bot_group_link(m models.Update, botId int) error
 	replyMes := m.Message.Text
 	fromId := m.Message.From.Id
 	fromUsername := m.Message.From.UserName
-	srv.l.Info(fmt.Sprintf("RM_update_bot_group_link: fromId-%d fromUsername-%s, replyMes-%s", fromId, fromUsername, replyMes))
+	srv.l.Info(fmt.Sprintf("RM_update_bot_group_link: fromId: %d fromUsername: %s, replyMes: %s", fromId, fromUsername, replyMes))
 	replyMes = strings.TrimSpace(replyMes)
 
 	grId, err := strconv.Atoi(replyMes)
@@ -447,7 +447,7 @@ func (srv *TgService) RM_update_group_link(m models.Update, refId int) error {
 	replyMes := m.Message.Text
 	fromId := m.Message.From.Id
 	fromUsername := m.Message.From.UserName
-	srv.l.Info(fmt.Sprintf("RM_update_group_link: fromId-%d fromUsername-%s, replyMes-%s", fromId, fromUsername, replyMes))
+	srv.l.Info(fmt.Sprintf("RM_update_group_link: fromId: %d fromUsername: %s, replyMes: %s", fromId, fromUsername, replyMes))
 	replyMes = strings.TrimSpace(replyMes)
 
 	err := srv.db.UpdateGroupLink(refId, replyMes)

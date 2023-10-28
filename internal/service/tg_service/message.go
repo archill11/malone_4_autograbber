@@ -3,17 +3,13 @@ package tg_service
 import (
 	"fmt"
 	"myapp/internal/models"
-
-	"go.uber.org/zap"
 )
 
 func (srv *TgService) HandleMessage(m models.Update) error {
-	// chatId := m.Message.Chat.Id
-	// userFirstName := m.Message.From.FirstName
-	userUserName := m.Message.From.UserName
 	msgText := m.Message.Text
-
-	srv.l.Info("tgClient: HandleMessage", zap.Any("userUserName", userUserName), zap.Any("msgText", msgText))
+	fromUsername := m.Message.From.UserName
+	fromId := m.Message.From.Id
+	srv.l.Info(fmt.Sprintf("HandleMessage: fromId: %d, fromUsername: %s, msgText: %s", fromId, fromUsername, msgText))
 
 	if msgText == "/admin" {
 		err := srv.M_admin(m)
@@ -32,21 +28,21 @@ func (srv *TgService) M_start(m models.Update) error {
 	fromId := m.Message.Chat.Id
 	msgText := m.Message.Text
 	fromFirstName := m.Message.From.FirstName
-	fromUserName := m.Message.From.UserName
-	srv.l.Info("M_start:", zap.Any("fromUserName", fromUserName), zap.Any("msgText", msgText))
+	fromUsername := m.Message.From.UserName
+	srv.l.Info(fmt.Sprintf("M_start: fromId: %d fromUsername: %s, msgText: %s", fromId, fromUsername, msgText))
 
 	srv.SendMessage(fromId, fmt.Sprintf("Привет %s", fromFirstName))
 	
-	err := srv.db.AddNewUser(fromId, fromUserName, fromFirstName)
+	err := srv.db.AddNewUser(fromId, fromUsername, fromFirstName)
 
 	return err
 }
 
 func (srv *TgService) M_admin(m models.Update) error {
-	fromId := m.Message.From.Id
+	fromId := m.Message.Chat.Id
 	msgText := m.Message.Text
-	fromUserName := m.Message.From.UserName
-	srv.l.Info("M_admin:", zap.Any("fromUserName", fromUserName), zap.Any("msgText", msgText))
+	fromUsername := m.Message.From.UserName
+	srv.l.Info(fmt.Sprintf("M_admin: fromId: %d fromUsername: %s, msgText: %s", fromId, fromUsername, msgText))
 
 	u, err := srv.db.GetUserById(fromId)
 	if err != nil {
