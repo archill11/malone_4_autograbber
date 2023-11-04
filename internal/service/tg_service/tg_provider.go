@@ -170,6 +170,7 @@ func (srv *TgService) SendVideoNote(body io.Reader, contentType string, token st
 }
 
 func (srv *TgService) DeleteMessage(chat, messId int, token string) error {
+	srv.l.Info(fmt.Sprintf("DeleteMessage chat_id: %d, message_id: %d, token: %s", chat, messId, token))
 	json_data, err := json.Marshal(map[string]any{
 		"chat_id":    strconv.Itoa(chat),
 		"message_id": strconv.Itoa(messId),
