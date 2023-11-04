@@ -411,9 +411,9 @@ func (srv *TgService) RM_delete_post_in_chs(m models.Update) error {
 			Chat: &models.Chat{},
 		},
 	}
-	m.EditedChannelPost.Chat.Id = fromId
-	m.EditedChannelPost.MessageId = postIdFromLink
-	m.EditedChannelPost.Text = "deletepost"
+	newm.EditedChannelPost.Chat.Id = fromId
+	newm.EditedChannelPost.MessageId = postIdFromLink
+	newm.EditedChannelPost.Text = "deletepost"
 	err = srv.Donor_HandleEditedChannelPost(newm)
 	if err != nil {
 		return fmt.Errorf("RM_delete_post_in_chsDonor_HandleEditedChannelPost newm: %+v err: %v", newm, err)
