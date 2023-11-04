@@ -405,16 +405,22 @@ func (srv *TgService) RM_delete_post_in_chs(m models.Update) error {
 	if bot.IsDonor == 0 {
 		return fmt.Errorf("RM_delete_post_in_chs канал не донор chDonor: %d err: bot.IsDonor == 0", chDonor)
 	}
-
+	srv.l.Info("10")
 	newm := models.Update{
 		EditedChannelPost: &models.Message{
 			Chat: &models.Chat{},
 		},
 	}
+	srv.l.Info("11")
 	newm.EditedChannelPost.Chat.Id = fromId
+	srv.l.Info("12")
 	newm.EditedChannelPost.MessageId = postIdFromLink
-	newm.EditedChannelPost.Text = "deletepost"
-	*newm.EditedChannelPost.Caption = "deletepost"
+	srv.l.Info("13")
+	cap := "deletepost"
+	newm.EditedChannelPost.Text = cap
+	srv.l.Info("14")
+	newm.EditedChannelPost.Caption = &cap
+	srv.l.Info("15")
 	err = srv.Donor_HandleEditedChannelPost(newm)
 	if err != nil {
 		return fmt.Errorf("RM_delete_post_in_chsDonor_HandleEditedChannelPost newm: %+v err: %v", newm, err)
