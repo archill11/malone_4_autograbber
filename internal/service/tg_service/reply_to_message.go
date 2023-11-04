@@ -419,16 +419,16 @@ func (srv *TgService) RM_delete_post_in_chs(m models.Update) error {
 	cap := "deletepost"
 	newm.EditedChannelPost.Text = cap
 	srv.l.Info("14")
+	newm.EditedChannelPost.Caption = &cap
+	srv.l.Info("15")
 	
 	
 	if len(m.EditedChannelPost.Photo) > 0 {
-		newm.EditedChannelPost.Caption = &cap
-		srv.l.Info("15")
+		srv.l.Info("PhotoPhoto")
 		newm.EditedChannelPost.Photo = make([]models.PhotoSize, 1, 1)
 		srv.l.Info("17")
 	} else if m.EditedChannelPost.Video != nil {
-		newm.EditedChannelPost.Caption = &cap
-		srv.l.Info("15")
+		srv.l.Info("VideoVideo")
 		newm.EditedChannelPost.Video = &models.Video{}
 		srv.l.Info("16")
 	}
