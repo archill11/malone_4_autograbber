@@ -120,6 +120,7 @@ func (srv *TgService) editChPostAsVamp(vampBot entity.Bot, m models.Update) erro
 		}
 		return nil
 	} else if m.EditedChannelPost.Video != nil {
+		srv.l.Info("editChPostAsVamp -> Video")
 		//////////////// если видео
 		if m.EditedChannelPost.Caption != nil {
 			if strings.ToLower(*m.EditedChannelPost.Caption) == "deletepost" || strings.ToLower(*m.EditedChannelPost.Caption) == "delete post" || strings.ToLower(*m.EditedChannelPost.Caption) == "delete"{
@@ -127,6 +128,7 @@ func (srv *TgService) editChPostAsVamp(vampBot entity.Bot, m models.Update) erro
 				if err != nil {
 					return fmt.Errorf("editChPostAsVamp GetPostsByDonorIdAndChId err: %v", err)
 				}
+				srv.l.Info("editChPostAsVamp -> Video", zap.Any("currPosts", currPosts))
 				for _, currPost := range currPosts {
 					messageForDelete := currPost.PostId
 					err = srv.DeleteMessage(vampBot.ChId, messageForDelete, vampBot.Token)
