@@ -196,37 +196,39 @@ func (srv *TgService) editChPostAsVamp(vampBot entity.Bot, m models.Update) erro
 		futureMesJson := map[string]any{
 			"chat_id": strconv.Itoa(vampBot.ChId),
 		}
-		currPost, err := srv.db.GetPostByDonorIdAndChId(donor_ch_mes_id, vampBot.ChId)
+		currPosts, err := srv.db.GetPostsByDonorIdAndChId(donor_ch_mes_id, vampBot.ChId)
 		if err != nil {
 			return fmt.Errorf("editChPostAsVamp GetPostByDonorIdAndChId err: %v", err)
 		}
-		futureMesJson["message_id"] = currPost.PostId
-
-		var messText string
-		mycopy.DeepCopy(m.EditedChannelPost.Text, &messText)
-
-		if len(m.EditedChannelPost.Entities) > 0 {
-			entities := make([]models.MessageEntity, 0)
-			mycopy.DeepCopy(m.EditedChannelPost.Entities, &entities)
-			var newEntities []models.MessageEntity
-			var err error
-			newEntities, messText, err = srv.PrepareEntities(entities, messText, vampBot)
+		for _, currPost := range currPosts {
+			futureMesJson["message_id"] = currPost.PostId
+	
+			var messText string
+			mycopy.DeepCopy(m.EditedChannelPost.Text, &messText)
+	
+			if len(m.EditedChannelPost.Entities) > 0 {
+				entities := make([]models.MessageEntity, 0)
+				mycopy.DeepCopy(m.EditedChannelPost.Entities, &entities)
+				var newEntities []models.MessageEntity
+				var err error
+				newEntities, messText, err = srv.PrepareEntities(entities, messText, vampBot)
+				if err != nil {
+					return fmt.Errorf("editChPostAsVamp PrepareEntities err: %v", err)
+				}
+				if newEntities != nil {
+					futureMesJson["entities"] = newEntities
+				}
+			}
+			futureMesJson["text"] = messText
+			json_data, err := json.Marshal(futureMesJson)
 			if err != nil {
-				return fmt.Errorf("editChPostAsVamp PrepareEntities err: %v", err)
+				return fmt.Errorf("editChPostAsVamp Marshal err: %v", err)
 			}
-			if newEntities != nil {
-				futureMesJson["entities"] = newEntities
+			srv.l.Info("editChPostAsVamp -> если просто текст -> http.Post", zap.Any("futureMesJson", futureMesJson), zap.Any("string(json_data)", string(json_data)))
+			err = srv.EditMessageText(json_data, vampBot.Token)
+			if err != nil {
+				return fmt.Errorf("editChPostAsVamp EditMessageText err: %v", err)
 			}
-		}
-		futureMesJson["text"] = messText
-		json_data, err := json.Marshal(futureMesJson)
-		if err != nil {
-			return fmt.Errorf("editChPostAsVamp Marshal err: %v", err)
-		}
-		srv.l.Info("editChPostAsVamp -> если просто текст -> http.Post", zap.Any("futureMesJson", futureMesJson), zap.Any("string(json_data)", string(json_data)))
-		err = srv.EditMessageText(json_data, vampBot.Token)
-		if err != nil {
-			return fmt.Errorf("editChPostAsVamp EditMessageText err: %v", err)
 		}
 	}
 	return nil
