@@ -70,10 +70,7 @@ func (srv *TgService) editChPostAsVamp(vampBot entity.Bot, m models.Update) erro
 				}
 				for _, currPost := range currPosts {
 					messageForDelete := currPost.PostId
-					err = srv.DeleteMessage(vampBot.ChId, messageForDelete, vampBot.Token)
-					if err != nil {
-						return err
-					}
+					srv.DeleteMessage(vampBot.ChId, messageForDelete, vampBot.Token)
 				}
 				return nil
 			}
@@ -131,10 +128,7 @@ func (srv *TgService) editChPostAsVamp(vampBot entity.Bot, m models.Update) erro
 				srv.l.Info("editChPostAsVamp -> Video", zap.Any("currPosts", currPosts))
 				for _, currPost := range currPosts {
 					messageForDelete := currPost.PostId
-					err = srv.DeleteMessage(vampBot.ChId, messageForDelete, vampBot.Token)
-					if err != nil {
-						return err
-					}
+					srv.DeleteMessage(vampBot.ChId, messageForDelete, vampBot.Token)
 				}
 				return nil
 			}
