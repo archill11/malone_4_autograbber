@@ -130,7 +130,7 @@ func (srv *TgService) GetPostAndChFromLink(link string) (string, string, error) 
 		if v == "t.me" && urlArr[i+1] == "c" {
 			chId := urlArr[i+2]
 			postId := urlArr[i+3]
-			logMes := fmt.Sprintf("ChangeLinkReferredToPost: это ссылка на канал %s и пост %s", chId, postId)
+			logMes := fmt.Sprintf("GetPostAndChFromLink: это ссылка на канал %s и пост %s", chId, postId)
 			srv.l.Info(logMes)
 			return chId, postId, nil
 		}
