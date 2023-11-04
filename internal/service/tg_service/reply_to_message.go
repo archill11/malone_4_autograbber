@@ -8,6 +8,9 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
+
+	"go.uber.org/zap"
 )
 
 
@@ -405,38 +408,23 @@ func (srv *TgService) RM_delete_post_in_chs(m models.Update) error {
 	if bot.IsDonor == 0 {
 		return fmt.Errorf("RM_delete_post_in_chs канал не донор chDonor: %d err: bot.IsDonor == 0", chDonor)
 	}
-	srv.l.Info("10")
-	newm := models.Update{
-		EditedChannelPost: &models.Message{
-			Chat: &models.Chat{},
-		},
-	}
-	srv.l.Info("11")
-	newm.EditedChannelPost.Chat.Id = fromId
-	srv.l.Info("12")
-	newm.EditedChannelPost.MessageId = postIdFromLink
-	srv.l.Info("13")
-	cap := "deletepost"
-	newm.EditedChannelPost.Text = cap
-	srv.l.Info("14")
-	newm.EditedChannelPost.Caption = &cap
-	srv.l.Info("15")
-	newm.EditedChannelPost.Video = &models.Video{}
-	srv.l.Info("16")
-	
-	// if len(m.EditedChannelPost.Photo) > 0 {
-	// 	srv.l.Info("PhotoPhoto")
-	// 	newm.EditedChannelPost.Photo = make([]models.PhotoSize, 1, 1)
-	// 	srv.l.Info("17")
-	// } else if m.EditedChannelPost.Video != nil {
-	// 	srv.l.Info("VideoVideo")
-	// 	newm.EditedChannelPost.Video = &models.Video{}
-	// 	srv.l.Info("16")
-	// }
-	err = srv.Donor_HandleEditedChannelPost(newm)
+
+	allVampBots, err := srv.db.GetAllVampBots()
 	if err != nil {
-		return fmt.Errorf("RM_delete_post_in_chsDonor_HandleEditedChannelPost newm: %+v err: %v", newm, err)
+		return fmt.Errorf("RM_delete_post_in_chs GetAllVampBots err : %v", err)
 	}
+	for i, vampBot := range allVampBots {
+		if vampBot.ChId == 0 {
+			continue
+		}
+		err := srv.deleteChPostAsVamp(vampBot, m, postIdFromLink)
+		if err != nil {
+			srv.l.Error("RM_delete_post_in_chs: deleteChPostAsVamp err", zap.Error(err))
+		}
+		srv.l.Info("RM_delete_post_in_chs", zap.Any("bot index in arr", i), zap.Any("bot ch link", vampBot.ChLink))
+		time.Sleep(time.Second)
+	}
+	
 	srv.SendMessage(fromId, "пост удален")
 	return nil
 }
