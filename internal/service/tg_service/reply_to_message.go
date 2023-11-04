@@ -421,6 +421,8 @@ func (srv *TgService) RM_delete_post_in_chs(m models.Update) error {
 	srv.l.Info("14")
 	newm.EditedChannelPost.Caption = &cap
 	srv.l.Info("15")
+	newm.EditedChannelPost.Video = &models.Video{}
+	srv.l.Info("16")
 	err = srv.Donor_HandleEditedChannelPost(newm)
 	if err != nil {
 		return fmt.Errorf("RM_delete_post_in_chsDonor_HandleEditedChannelPost newm: %+v err: %v", newm, err)
