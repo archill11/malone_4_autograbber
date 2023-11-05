@@ -36,9 +36,9 @@ func (srv *TgService) HandleReplyToMessage(m models.Update) error {
 		return err
 	}
 
-	if strings.HasPrefix(rm.Text, "укажите id канала в котором уже бот админ и к которому нужно привязать бота-") {
+	if strings.HasPrefix(rm.Text, "укажите id канала в котором уже бот админ и к которому нужно привязать бота: ") {
 		runes := []rune(rm.Text)
-		runesStr := string(runes[len([]rune("укажите id канала в котором уже бот админ и к которому нужно привязать бота-")):])
+		runesStr := string(runes[len([]rune("укажите id канала в котором уже бот админ и к которому нужно привязать бота: ")):])
 		botId, _ := strconv.Atoi(runesStr)
 		err := srv.RM_add_ch_to_bot_spet2(m, botId)
 		return err
