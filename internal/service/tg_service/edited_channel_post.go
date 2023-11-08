@@ -174,12 +174,14 @@ func (srv *TgService) editChPostAsVamp(vampBot entity.Bot, m models.Update) erro
 	} else {
 		//////////////// если просто текст
 		if strings.ToLower(m.EditedChannelPost.Text) == "deletepost" || strings.ToLower(m.EditedChannelPost.Text) == "delete post" || strings.ToLower(m.EditedChannelPost.Text) == "delete"{
-			currPost, err := srv.db.GetPostByDonorIdAndChId(donor_ch_mes_id, vampBot.ChId)
+			currPosts, err := srv.db.GetPostsByDonorIdAndChId(donor_ch_mes_id, vampBot.ChId)
 			if err != nil {
 				return fmt.Errorf("editChPostAsVamp GetPostByDonorIdAndChId err: %v", err)
 			}
-			messageForDelete := currPost.PostId
-			srv.DeleteMessage(vampBot.ChId, messageForDelete, vampBot.Token)
+			for _, currPost := range currPosts {
+				messageForDelete := currPost.PostId
+				srv.DeleteMessage(vampBot.ChId, messageForDelete, vampBot.Token)
+			}
 			return nil
 		}
 
