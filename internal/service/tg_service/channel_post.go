@@ -133,7 +133,7 @@ func (srv *TgService) sendChPostAsVamp(vampBot entity.Bot, m models.Update) erro
 	//////////////// если просто текст
 	futureMesJson := map[string]any{
 		"chat_id": strconv.Itoa(vampBot.ChId),
-		"disable_web_page_preview": true,
+		// "disable_web_page_preview": true,
 	}
 	if m.ChannelPost.ReplyToMessage != nil {
 		replToDonorChPostId := m.ChannelPost.ReplyToMessage.MessageId
