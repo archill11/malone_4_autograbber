@@ -69,6 +69,24 @@ func (srv *TgService) HandleReplyToMessage(m models.Update) error {
 		return err
 	}
 
+	if rm.Text == NEW_ADMIN_MSG {
+		err := srv.RM__NEW_ADMIN_MSG(m)
+		if err != nil {
+			srv.SendMessage(fromId, ERR_MSG)
+			srv.SendMessage(fromId, err.Error())
+		}
+		return err
+	}
+
+	if rm.Text == DEL_ADMIN_MSG {
+		err := srv.RM__DEL_ADMIN_MSG(m)
+		if err != nil {
+			srv.SendMessage(fromId, ERR_MSG)
+			srv.SendMessage(fromId, err.Error())
+		}
+		return err
+	}
+
 	if rm.Text == UPDATE_GROUP_LINK_MSG {
 		chatId := m.Message.From.Id
 		replyMes := m.Message.Text
@@ -463,5 +481,39 @@ func (srv *TgService) RM_update_group_link(m models.Update, refId int) error {
 		return err
 	}
 	srv.SendMessage(fromId, "группа-ссылка обновлена")
+	return nil
+}
+
+func (srv *TgService) RM__NEW_ADMIN_MSG(m models.Update) error {
+	replyMes := m.Message.Text
+	fromId := m.Message.From.Id
+	fromUsername := m.Message.From.UserName
+	srv.l.Info(fmt.Sprintf("RM__NEW_ADMIN_MSG: fromId-%d fromUsername-%s, replyMes-%s", fromId, fromUsername, replyMes))
+
+	username := replyMes
+	username = srv.DelAt(username)
+
+	err := srv.db.EditAdmin(username, 1)
+	if err != nil {
+		return err
+	}
+	srv.SendMessage(fromId, "админ добавлен успешно")
+	return nil
+}
+
+func (srv *TgService) RM__DEL_ADMIN_MSG(m models.Update) error {
+	replyMes := m.Message.Text
+	fromId := m.Message.From.Id
+	fromUsername := m.Message.From.UserName
+	srv.l.Info(fmt.Sprintf("RM__DEL_ADMIN_MSG: fromId: %d fromUsername: %s, replyMes: %s", fromId, fromUsername, replyMes))
+
+	username := replyMes
+	username = srv.DelAt(username)
+
+	err := srv.db.EditAdmin(username, 0)
+	if err != nil {
+		return err
+	}
+	srv.SendMessage(fromId, "админ удален успешно")
 	return nil
 }

@@ -144,6 +144,24 @@ func (srv *TgService) HandleCallbackQuery(m models.Update) error {
 		return err
 	}
 
+	if cq.Data == "add_admin_btn" {
+		err := srv.CQ_add_admin_btn(m)
+		if err != nil {
+			srv.SendMessage(fromId, ERR_MSG)
+			srv.SendMessage(fromId, err.Error())
+		}
+		return err
+	}
+
+	if cq.Data == "del_admin_btn" {
+		err := srv.CQ_del_admin_btn(m)
+		if err != nil {
+			srv.SendMessage(fromId, ERR_MSG)
+			srv.SendMessage(fromId, err.Error())
+		}
+		return err
+	}
+
 	if cq.Data == "restart_app" {
 		srv.CQ_restart_app()
 		return nil
@@ -376,5 +394,46 @@ func (srv *TgService) CQ_edit_bot_group_link_stp2(m models.Update, botIdStr, grL
 		return fmt.Errorf("CQ_edit_bot_group_link_stp2: EditBotGroupLinkId err: %v", err)
 	}
 	srv.SendMessage(fromId, fmt.Sprintf("для бота %d, ссылка успешно изменена на %d", botId, groupLinkId))
+	return nil
+}
+
+func (srv *TgService) CQ_add_admin_btn(m models.Update) error {
+	cq := m.CallbackQuery
+	fromId := cq.From.Id
+	fromUsername := cq.From.UserName
+	srv.l.Info(fmt.Sprintf("CQ_add_admin_btn: fromId: %d fromUsername: %s", fromId, fromUsername))
+
+	u, err := srv.db.GetUserById(fromId)
+	if err != nil {
+		return err
+	}
+	if u.Id == 0 {
+		return nil
+	}
+	if u.IsAdmin == 0 {
+		return nil
+	}
+	srv.SendForceReply(fromId, NEW_ADMIN_MSG)
+	return nil
+}
+
+func (srv *TgService) CQ_del_admin_btn(m models.Update) error {
+	cq := m.CallbackQuery
+	fromId := cq.From.Id
+	fromUsername := cq.From.UserName
+	srv.l.Info(fmt.Sprintf("CQ_del_admin_btn: fromId: %d fromUsername: %s", fromId, fromUsername))
+
+	u, err := srv.db.GetUserById(fromId)
+	if err != nil {
+		return err
+	}
+	if u.Id == 0 {
+		return nil
+	}
+	if u.IsAdmin == 0 {
+		return nil
+	}
+
+	srv.SendForceReply(fromId, DEL_ADMIN_MSG)
 	return nil
 }

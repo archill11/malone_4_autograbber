@@ -34,3 +34,22 @@ func (srv *TgService) showAdminPanel(chatId int) error {
 	}
 	return nil
 }
+
+func (srv *TgService) showAdminPanelRoles(chatId int) error {
+	json_data, err := json.Marshal(map[string]any{
+		"chat_id": strconv.Itoa(chatId),
+		"text":    "Привет, я бот Донор",
+		"reply_markup": `{"inline_keyboard" : [
+			[{ "text": "➕ Добавить админа", "callback_data": "add_admin_btn" }],
+			[{ "text": "🗑 Удалить админа", "callback_data": "del_admin_btn" }]
+		]}`,
+	})
+	if err != nil {
+		return err
+	}
+	err = srv.sendData(json_data, "sendMessage")
+	if err != nil {
+		return err
+	}
+	return nil
+}
