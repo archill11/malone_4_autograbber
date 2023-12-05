@@ -8,6 +8,7 @@ services:
     ports:
       - 4000:4000
     environment:
+      TG_ENDPOINT: https://api.telegram.org/bot%s/%s
       APP_PORT: 4000
       PG_USER: postgres
       PG_PASSWORD: secret
