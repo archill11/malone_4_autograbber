@@ -356,10 +356,13 @@ func (srv *TgService) sendChPostAsVamp_Video_or_Photo(vampBot entity.Bot, m mode
 		return fmt.Errorf("sendChPostAsVamp_Video_or_Photo Decode err: %v", err)
 	}
 	if cAny2.Result.MessageId != 0 {
+		srv.l.Info(fmt.Sprintf("sendChPostAsVamp_Video_or_Photo: Post resp: %+v", cAny2))
 		err = srv.db.AddNewPost(vampBot.ChId, cAny2.Result.MessageId, donor_ch_mes_id, cAny2.Result.Caption)
 		if err != nil {
 			return fmt.Errorf("sendChPostAsVamp_Video_or_Photo AddNewPost err: %v", err)
 		}
+	} else {
+		srv.l.Info(fmt.Sprintf("sendChPostAsVamp_Video_or_Photo: Post resp err: %+v", cAny2))
 	}
 	return nil
 }
