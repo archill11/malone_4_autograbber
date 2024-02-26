@@ -61,7 +61,7 @@ func (srv *TgService) showAllGroupLinks(chatId int) error {
 		}
 		mess.WriteString(fmt.Sprintf("Количество Привязаных ботов: %d\n\n", len(bots)))
 
-		if i%40 == 0 && i > 0 {
+		if i%30 == 0 && i > 0 {
 			err = srv.SendMessage(chatId, mess.String())
 			if err != nil {
 				return err
