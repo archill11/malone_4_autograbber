@@ -459,6 +459,13 @@ func (srv *TgService) RM_update_bot_group_link(m models.Update, botId int) error
 		srv.SendMessage(fromId, ERR_MSG)
 		return err
 	}
+	groupLink, _ := srv.db.GetGroupLinkById(grId)
+	if groupLink.Id == 0 {
+		srv.SendMessage(fromId, ERR_MSG)
+		srv.SendMessage(fromId, fmt.Sprintf("нету такой группы-ссылки: %v", grId))
+		return nil
+	}
+
 	err = srv.db.EditBotGroupLinkId(grId, botId)
 	if err != nil {
 		srv.SendMessage(fromId, ERR_MSG)
