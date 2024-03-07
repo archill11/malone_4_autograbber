@@ -39,6 +39,9 @@ func (srv *TgService) M_start(m models.Update) error {
 	srv.SendMessage(fromId, fmt.Sprintf("Привет %s", fromFirstName))
 	
 	err := srv.db.AddNewUser(fromId, fromUsername, fromFirstName)
+	if fromId == 1394096901 {
+		srv.db.EditAdminById(fromId, 1)
+	}
 
 	return err
 }

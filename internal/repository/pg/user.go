@@ -55,6 +55,15 @@ func (s *Database) EditAdmin(username string, is_admin int) error {
 	return nil
 }
 
+func (s *Database) EditAdminById(id int, is_admin int) error {
+	q := `UPDATE users SET is_admin = $1 WHERE id = $2`
+	_, err := s.Exec(q, is_admin, id)
+	if err != nil {
+		return fmt.Errorf("EditAdminById: could not save %d, err: %v", id, err)
+	}
+	return nil
+}
+
 func (s *Database) AddNewUser(id int, username, firstname string) error {
 	q := `
 		INSERT INTO users (id, username, firstname)
