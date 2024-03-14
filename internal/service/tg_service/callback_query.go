@@ -99,6 +99,15 @@ func (srv *TgService) HandleCallbackQuery(m models.Update) error {
 		return err
 	}
 
+	if cq.Data == "edit_bot_lichka" {
+		err := srv.CQ_edit_bot_lichka(m)
+		if err != nil {
+			srv.SendMessage(fromId, ERR_MSG)
+			srv.SendMessage(fromId, err.Error())
+		}
+		return err
+	}
+
 	if cq.Data == "show_all_group_links" {
 		err := srv.CQ_show_all_group_links(m)
 		if err != nil {
@@ -238,6 +247,16 @@ func (srv *TgService) CQ_edit_bot_group_link(m models.Update) error {
 	srv.l.Info(fmt.Sprintf("CQ_edit_bot_group_link: fromId: %d fromUsername: %s", fromId, fromUsername))
 
 	err := srv.SendForceReply(fromId, EDIT_BOT_GROUP_LINK_MSG)
+	return err
+}
+
+func (srv *TgService) CQ_edit_bot_lichka(m models.Update) error {
+	cq := m.CallbackQuery
+	fromId := cq.From.Id
+	fromUsername := cq.From.UserName
+	srv.l.Info(fmt.Sprintf("CQ_edit_bot_lichka: fromId: %d fromUsername: %s", fromId, fromUsername))
+
+	err := srv.SendForceReply(fromId, EDIT_BOT_LICHKA_MSG)
 	return err
 }
 

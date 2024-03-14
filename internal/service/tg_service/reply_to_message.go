@@ -59,6 +59,11 @@ func (srv *TgService) HandleReplyToMessage(m models.Update) error {
 		return err
 	}
 
+	if rm.Text == EDIT_BOT_LICHKA_MSG {
+		err := srv.RM_edit_bot_lichka(m)
+		return err
+	}
+
 	if rm.Text == DELETE_GROUP_LINK_MSG {
 		err := srv.RM_delete_group_link(m)
 		return err
@@ -364,6 +369,42 @@ func (srv *TgService) RM_edit_bot_group_link(m models.Update) error {
 	}
 
 	// err = srv.SendMessage(chatId, fmt.Sprintf("для бота %d, ссылка успешно изменена %d -> %d", botId, oldGroupLink, groupLinkId))
+	return nil
+}
+
+func (srv *TgService) RM_edit_bot_lichka(m models.Update) error {
+	replyMes := m.Message.Text
+	fromId := m.Message.From.Id
+	fromUsername := m.Message.From.UserName
+	srv.l.Info(fmt.Sprintf("RM_edit_bot_lichka: fromId: %d fromUsername: %s, replyMes: %s", fromId, fromUsername, replyMes))
+
+	words := strings.Fields(replyMes)
+	if len(words) != 2 {
+		return fmt.Errorf("неверный формат ввода")
+	}
+
+	botToken := words[0]
+	urlArr := strings.Split(botToken, ":")
+	if len(urlArr) != 2 {
+		return fmt.Errorf("RM_edit_bot_lichka err: не правилный токен %s", botToken)
+	}
+	botIdStr := urlArr[0]
+
+	botId, err := strconv.Atoi(botIdStr)
+	if err != nil {
+		return fmt.Errorf("RM_edit_bot_lichka: некоректный id бота: %s err: %v", botIdStr, err)
+	}
+
+	lichka := words[1]
+	if lichka != "" {
+		lichka = srv.AddAt(words[1])
+	}
+	err = srv.db.EditBotLichka(botId, lichka)
+	if err != nil {
+		return fmt.Errorf("RM_edit_bot_lichka: EditBotLichka err: %v", err)
+	}
+
+	srv.SendMessage(fromId, fmt.Sprintf("для бота %d, ссылка успешно изменена -> %s", botId, lichka))
 	return nil
 }
 
