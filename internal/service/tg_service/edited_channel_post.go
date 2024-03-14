@@ -22,9 +22,7 @@ func (srv *TgService) Donor_HandleEditedChannelPost(m models.Update) error {
 
 	err := srv.Donor_EditEditedChannelPost(m)
 	if err != nil {
-		if err != nil {
-			srv.SendMessage(chatId, ERR_MSG_2+err.Error())
-		}
+		srv.SendMessage(chatId, ERR_MSG_2+err.Error())
 		return err
 	}
 	return nil

@@ -25,10 +25,8 @@ func (srv *TgService) Donor_HandleChannelPost(m models.Update) error {
 
 	err := srv.Donor_addChannelPost(m)
 	if err != nil {
-		if err != nil {
-			srv.SendMessage(fromId, ERR_MSG + err.Error())
-			srv.SendMessage(fromId, err.Error())
-		}
+		srv.SendMessage(fromId, ERR_MSG + err.Error())
+		srv.SendMessage(fromId, err.Error())
 		return err
 	}
 	return nil
@@ -133,7 +131,7 @@ func (srv *TgService) sendChPostAsVamp(vampBot entity.Bot, m models.Update) erro
 	//////////////// если просто текст
 	futureMesJson := map[string]any{
 		"chat_id": strconv.Itoa(vampBot.ChId),
-		"link_preview_options": `{"is_disabled": true}`,
+		"link_preview_options": `{"is_disabled": false}`,
 	}
 	if m.ChannelPost.ReplyToMessage != nil {
 		replToDonorChPostId := m.ChannelPost.ReplyToMessage.MessageId

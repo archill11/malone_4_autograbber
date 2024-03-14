@@ -45,6 +45,14 @@ func (srv *TgService) ChangeLinkReferredToPost(originalLink string, vampBot enti
 			return newLink, nil
 		}
 	}
+	// https://t.me/lichka
+	if strings.HasPrefix(originalLink, "http://t.me/lichka") || strings.HasPrefix(originalLink, "t.me/lichka") || strings.HasPrefix(originalLink, "https://t.me/lichka") {
+		lichka := vampBot.Lichka
+		if lichka != "" {
+			newLink := fmt.Sprintf("https://t.me/%s", srv.DelAt(lichka))
+			return newLink, nil
+		}
+	}
 	return "", nil
 }
 
@@ -82,6 +90,10 @@ func (srv *TgService) PrepareEntities(entities []models.MessageEntity, messText 
 		if newUrl != "" {
 			entities[i].Url = newUrl
 		}
+	}
+	lichka := vampBot.Lichka
+	if lichka != "" {
+		messText = strings.Replace(messText, "@lichka", lichka, -1)
 	}
 	if !cutEntities {
 		return entities, messText, nil
