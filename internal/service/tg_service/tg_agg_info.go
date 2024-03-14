@@ -18,7 +18,7 @@ func (srv *TgService) showBotsAndChannels(chatId int) error {
 		if b.IsDonor == 1 {
 			mess.WriteString("-Донор")
 		}
-		mess.WriteString(fmt.Sprintf("\n	ch_link: %s\n", b.ChLink))
+		mess.WriteString(fmt.Sprintf("\n	ch_link: %s", b.ChLink))
 		mess.WriteString(fmt.Sprintf("\n	личка: %s\n", b.Lichka))
 
 		if i%50 == 0 && i > 0 {
