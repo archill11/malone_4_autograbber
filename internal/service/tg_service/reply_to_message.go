@@ -503,6 +503,8 @@ func (srv *TgService) RM_update_bot_group_link(m models.Update, botId int) error
 		return err
 	}
 	srv.SendMessage(fromId, fmt.Sprintf("группа-ссылка %d привязанна к боту %d", grId, botId))
+
+	srv.SendForceReply(fromId, EDIT_BOT_LICHKA_MSG)
 	return nil
 }
 
