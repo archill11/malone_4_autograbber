@@ -64,6 +64,24 @@ func (s *Database) EditAdminById(id int, is_admin int) error {
 	return nil
 }
 
+func (s *Database) EditIsUser(username string, is_user int) error {
+	q := `UPDATE users SET is_user = $1 WHERE username = $2`
+	_, err := s.Exec(q, is_user, username)
+	if err != nil {
+		return fmt.Errorf("EditIsUser: could not save %s, err: %v", username, err)
+	}
+	return nil
+}
+
+func (s *Database) EditIsUserById(id int, is_user int) error {
+	q := `UPDATE users SET is_user = $1 WHERE id = $2`
+	_, err := s.Exec(q, is_user, id)
+	if err != nil {
+		return fmt.Errorf("EditIsUserById: could not save %d, err: %v", id, err)
+	}
+	return nil
+}
+
 func (s *Database) AddNewUser(id int, username, firstname string) error {
 	q := `
 		INSERT INTO users (id, username, firstname)

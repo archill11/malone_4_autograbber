@@ -44,11 +44,6 @@ func (srv *TgService) HandleReplyToMessage(m models.Update) error {
 		return err
 	}
 
-	if rm.Text == NEW_ADMIN_MSG {
-		err := srv.RM_add_admin(m)
-		return err
-	}
-
 	if rm.Text == NEW_GROUP_LINK_MSG {
 		err := srv.RM_add_group_link(m)
 		return err
@@ -85,6 +80,24 @@ func (srv *TgService) HandleReplyToMessage(m models.Update) error {
 
 	if rm.Text == DEL_ADMIN_MSG {
 		err := srv.RM__DEL_ADMIN_MSG(m)
+		if err != nil {
+			srv.SendMessage(fromId, ERR_MSG)
+			srv.SendMessage(fromId, err.Error())
+		}
+		return err
+	}
+
+	if rm.Text == NEW_USER_MSG {
+		err := srv.RM__NEW_USER_MSG(m)
+		if err != nil {
+			srv.SendMessage(fromId, ERR_MSG)
+			srv.SendMessage(fromId, err.Error())
+		}
+		return err
+	}
+
+	if rm.Text == DEL_USER_MSG {
+		err := srv.RM__DEL_USER_MSG(m)
 		if err != nil {
 			srv.SendMessage(fromId, ERR_MSG)
 			srv.SendMessage(fromId, err.Error())
@@ -141,6 +154,7 @@ func (srv *TgService) RM_obtain_vampire_bot_token(m models.Update) error {
 		return err
 	}
 	srv.SendMessage(fromId, SUCCESS_ADDED_BOT)
+	srv.db.EditBotUserCreator(res.Id, fromId)
 
 	grl, _ := srv.db.GetAllGroupLinks()
 	if len(grl) == 0 {
@@ -270,30 +284,6 @@ func (srv *TgService) RM_add_ch_to_bot_spet2(m models.Update, botId int) error {
 		return err
 	}
 	srv.SendMessage(fromId, fmt.Sprintf("канал %d привязанна к боту %d", chId, botId))
-	return nil
-}
-
-func (srv *TgService) RM_add_admin(m models.Update) error {
-	replyMes := m.Message.Text
-	fromId := m.Message.From.Id
-	fromUsername := m.Message.From.UserName
-	srv.l.Info(fmt.Sprintf("RM_add_admin: fromId: %d fromUsername: %s, replyMes: %s", fromId, fromUsername, replyMes))
-
-	usr, err := srv.db.GetUserByUsername(strings.TrimSpace(replyMes))
-	if err != nil {
-		srv.SendMessage(fromId, ERR_MSG)
-		return fmt.Errorf("RM_add_admin: srv.db.GetUserByUsername(%s) : %v", strings.TrimSpace(replyMes), err)
-	}
-	if usr.Id == 0 {
-		srv.SendMessage(fromId, "я не знаю такого юзера , пусть напишет мне /start")
-		return nil
-	}
-	err = srv.db.EditAdmin(usr.Username, 1)
-	if err != nil {
-		srv.SendMessage(fromId, ERR_MSG)
-		return fmt.Errorf("RM_add_admin: srv.db.EditAdmin(%s, 1) err: %v", usr.Username, err)
-	}
-	srv.SendMessage(fromId, "Админ добавлен")
 	return nil
 }
 
@@ -541,7 +531,17 @@ func (srv *TgService) RM__NEW_ADMIN_MSG(m models.Update) error {
 	username := replyMes
 	username = srv.DelAt(username)
 
-	err := srv.db.EditAdmin(username, 1)
+	usr, err := srv.db.GetUserByUsername(username)
+	if err != nil {
+		srv.SendMessage(fromId, ERR_MSG)
+		return fmt.Errorf("RM_add_admin: srv.db.GetUserByUsername(%s) : %v", strings.TrimSpace(replyMes), err)
+	}
+	if usr.Id == 0 {
+		srv.SendMessage(fromId, "я не знаю такого юзера , пусть напишет мне /start")
+		return nil
+	}
+
+	err = srv.db.EditAdmin(username, 1)
 	if err != nil {
 		return err
 	}
@@ -563,5 +563,39 @@ func (srv *TgService) RM__DEL_ADMIN_MSG(m models.Update) error {
 		return err
 	}
 	srv.SendMessage(fromId, "админ удален успешно")
+	return nil
+}
+
+func (srv *TgService) RM__NEW_USER_MSG(m models.Update) error {
+	replyMes := m.Message.Text
+	fromId := m.Message.From.Id
+	fromUsername := m.Message.From.UserName
+	srv.l.Info(fmt.Sprintf("RM__NEW_USER_MSG: fromId-%d fromUsername-%s, replyMes-%s", fromId, fromUsername, replyMes))
+
+	username := replyMes
+	username = srv.DelAt(username)
+
+	err := srv.db.EditIsUser(username, 1)
+	if err != nil {
+		return err
+	}
+	srv.SendMessage(fromId, "user добавлен успешно")
+	return nil
+}
+
+func (srv *TgService) RM__DEL_USER_MSG(m models.Update) error {
+	replyMes := m.Message.Text
+	fromId := m.Message.From.Id
+	fromUsername := m.Message.From.UserName
+	srv.l.Info(fmt.Sprintf("RM__DEL_USER_MSG: fromId: %d fromUsername: %s, replyMes: %s", fromId, fromUsername, replyMes))
+
+	username := replyMes
+	username = srv.DelAt(username)
+
+	err := srv.db.EditIsUser(username, 0)
+	if err != nil {
+		return err
+	}
+	srv.SendMessage(fromId, "user удален успешно")
 	return nil
 }

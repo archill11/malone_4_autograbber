@@ -190,7 +190,7 @@ func (s *Database) EditBotGroupLinkIdToNull(groupLinkId int) error {
 func (s *Database) EditBotGroupLinkId(groupLinkId, botId int) error {
 	q := `
 		UPDATE bots SET
-		group_link_id = $1
+			group_link_id = $1
 		WHERE id = $2
 	`
 	_, err := s.Exec(q, groupLinkId, botId)
@@ -210,6 +210,20 @@ func (s *Database) EditBotLichka(botId int, lichka string) error {
 	_, err := s.Exec(q, lichka, botId)
 	if err != nil {
 		return fmt.Errorf("db: EditBotLichka: lichka: %s botId: %d err: %w", lichka, botId, err)
+
+	}
+	return nil
+}
+
+func (s *Database) EditBotUserCreator(botId, user_creator int) error {
+	q := `
+		UPDATE bots SET
+			user_creator = $1
+		WHERE id = $2
+	`
+	_, err := s.Exec(q, user_creator, botId)
+	if err != nil {
+		return fmt.Errorf("db: EditBotUserCreator: user_creator: %d botId: %d err: %w", user_creator, botId, err)
 
 	}
 	return nil

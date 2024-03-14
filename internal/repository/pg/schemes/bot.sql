@@ -8,6 +8,7 @@ CREATE TABLE IF NOT EXISTS bots (
     ch_link       VARCHAR(255) DEFAULT '',
     group_link_id INT DEFAULT 0,
     lichka        TEXT DEFAULT '',
+    user_creator  INT  DEFAULT 0,
     created_at    TIMESTAMP DEFAULT now(),
     ch_is_skam    INT DEFAULT 0,
     PRIMARY KEY (id, token)

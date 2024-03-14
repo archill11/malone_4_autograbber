@@ -10,6 +10,8 @@ const (
 const (
 	NEW_ADMIN_MSG = "[NEW_ADMIN] Укажите username нового админа"
 	DEL_ADMIN_MSG = "[DEL_ADMIN] Укажите username админа"
+	NEW_USER_MSG  = "[NEW_USER] Укажите username нового user"
+	DEL_USER_MSG  = "[DEL_USER] Укажите username"
 
 	NEW_BOT_MSG             = "Укажите токен нового бота:"
 	DELETE_BOT_MSG          = "Укажите id бота которого нужно удалить:"

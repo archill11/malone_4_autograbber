@@ -72,8 +72,8 @@ func (srv *TgService) HandleCallbackQuery(m models.Update) error {
 		return err
 	}
 
-	if cq.Data == "add_admin_btn" {
-		err := srv.CQ_add_admin(m)
+	if cq.Data == "show_bots_and_channels" {
+		err := srv.CQ_show_bots_and_channels(m)
 		if err != nil {
 			srv.SendMessage(fromId, ERR_MSG)
 			srv.SendMessage(fromId, err.Error())
@@ -81,8 +81,8 @@ func (srv *TgService) HandleCallbackQuery(m models.Update) error {
 		return err
 	}
 
-	if cq.Data == "show_bots_and_channels" {
-		err := srv.CQ_show_bots_and_channels(m)
+	if cq.Data == "show_bots_and_channels_user" {
+		err := srv.CQ_show_bots_and_channels_user(m)
 		if err != nil {
 			srv.SendMessage(fromId, ERR_MSG)
 			srv.SendMessage(fromId, err.Error())
@@ -119,6 +119,15 @@ func (srv *TgService) HandleCallbackQuery(m models.Update) error {
 
 	if cq.Data == "show_admin_panel" {
 		err := srv.CQ_show_admin_panel(m)
+		if err != nil {
+			srv.SendMessage(fromId, ERR_MSG)
+			srv.SendMessage(fromId, err.Error())
+		}
+		return err
+	}
+
+	if cq.Data == "show_user_panel" {
+		err := srv.CQ_show_user_panel(m)
 		if err != nil {
 			srv.SendMessage(fromId, ERR_MSG)
 			srv.SendMessage(fromId, err.Error())
@@ -164,6 +173,24 @@ func (srv *TgService) HandleCallbackQuery(m models.Update) error {
 
 	if cq.Data == "del_admin_btn" {
 		err := srv.CQ_del_admin_btn(m)
+		if err != nil {
+			srv.SendMessage(fromId, ERR_MSG)
+			srv.SendMessage(fromId, err.Error())
+		}
+		return err
+	}
+
+	if cq.Data == "add_user_btn" {
+		err := srv.CQ_add_user_btn(m)
+		if err != nil {
+			srv.SendMessage(fromId, ERR_MSG)
+			srv.SendMessage(fromId, err.Error())
+		}
+		return err
+	}
+
+	if cq.Data == "del_user_btn" {
+		err := srv.CQ_del_user_btn(m)
 		if err != nil {
 			srv.SendMessage(fromId, ERR_MSG)
 			srv.SendMessage(fromId, err.Error())
@@ -220,16 +247,6 @@ func (srv *TgService) CQ_add_ch_to_bot(m models.Update) error {
 	return err
 }
 
-func (srv *TgService) CQ_add_admin(m models.Update) error {
-	cq := m.CallbackQuery
-	fromId := cq.From.Id
-	fromUsername := cq.From.UserName
-	srv.l.Info(fmt.Sprintf("CQ_add_admin: fromId: %d fromUsername: %s", fromId, fromUsername))
-
-	err := srv.SendForceReply(fromId, NEW_ADMIN_MSG)
-	return err
-}
-
 func (srv *TgService) CQ_show_bots_and_channels(m models.Update) error {
 	cq := m.CallbackQuery
 	fromId := cq.From.Id
@@ -237,6 +254,16 @@ func (srv *TgService) CQ_show_bots_and_channels(m models.Update) error {
 	srv.l.Info(fmt.Sprintf("CQ_show_bots_and_channels: fromId: %d fromUsername: %s", fromId, fromUsername))
 
 	err := srv.showBotsAndChannels(fromId)
+	return err
+}
+
+func (srv *TgService) CQ_show_bots_and_channels_user(m models.Update) error {
+	cq := m.CallbackQuery
+	fromId := cq.From.Id
+	fromUsername := cq.From.UserName
+	srv.l.Info(fmt.Sprintf("CQ_show_bots_and_channels_user: fromId: %d fromUsername: %s", fromId, fromUsername))
+
+	err := srv.showBotsAndChannels_user(fromId)
 	return err
 }
 
@@ -277,6 +304,16 @@ func (srv *TgService) CQ_show_admin_panel(m models.Update) error {
 	srv.l.Info(fmt.Sprintf("CQ_show_admin_panel: fromId: %d fromUsername: %s", fromId, fromUsername))
 
 	err := srv.showAdminPanel(fromId)
+	return err
+}
+
+func (srv *TgService) CQ_show_user_panel(m models.Update) error {
+	cq := m.CallbackQuery
+	fromId := cq.From.Id
+	fromUsername := cq.From.UserName
+	srv.l.Info(fmt.Sprintf("CQ_show_user_panel: fromId: %d fromUsername: %s", fromId, fromUsername))
+
+	err := srv.showUserPanel(fromId)
 	return err
 }
 
@@ -454,5 +491,46 @@ func (srv *TgService) CQ_del_admin_btn(m models.Update) error {
 	}
 
 	srv.SendForceReply(fromId, DEL_ADMIN_MSG)
+	return nil
+}
+
+func (srv *TgService) CQ_add_user_btn(m models.Update) error {
+	cq := m.CallbackQuery
+	fromId := cq.From.Id
+	fromUsername := cq.From.UserName
+	srv.l.Info(fmt.Sprintf("CQ_add_user_btn: fromId: %d fromUsername: %s", fromId, fromUsername))
+
+	u, err := srv.db.GetUserById(fromId)
+	if err != nil {
+		return err
+	}
+	if u.Id == 0 {
+		return nil
+	}
+	if u.IsAdmin == 0 {
+		return nil
+	}
+	srv.SendForceReply(fromId, NEW_USER_MSG)
+	return nil
+}
+
+func (srv *TgService) CQ_del_user_btn(m models.Update) error {
+	cq := m.CallbackQuery
+	fromId := cq.From.Id
+	fromUsername := cq.From.UserName
+	srv.l.Info(fmt.Sprintf("CQ_del_user_btn: fromId: %d fromUsername: %s", fromId, fromUsername))
+
+	u, err := srv.db.GetUserById(fromId)
+	if err != nil {
+		return err
+	}
+	if u.Id == 0 {
+		return nil
+	}
+	if u.IsAdmin == 0 {
+		return nil
+	}
+
+	srv.SendForceReply(fromId, DEL_USER_MSG)
 	return nil
 }
