@@ -54,6 +54,7 @@ func (srv *TgService) showBotsAndChannels_user(chatId int) error {
 		return err
 	}
 	var mess bytes.Buffer
+	mess.WriteString("Ваши боты:\n")
 	for i, b := range bots {
 		if b.UserCreator != chatId {
 			continue
