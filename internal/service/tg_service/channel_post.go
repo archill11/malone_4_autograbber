@@ -285,21 +285,25 @@ func (srv *TgService) sendChPostAsVamp_Video_or_Photo(vampBot entity.Bot, m mode
 		futureVideoJson["reply_markup"] = string(json_data)
 	}
 
+	var caption string
 	if m.ChannelPost.Caption != nil {
-		futureVideoJson["caption"] = *m.ChannelPost.Caption
+		caption = *m.ChannelPost.Caption
 	}
 
 	if len(m.ChannelPost.CaptionEntities) > 0 {
 		entities := make([]models.MessageEntity, 0)
 		mycopy.DeepCopy(m.ChannelPost.CaptionEntities, &entities)
 
-		newEntities, _, err := srv.PrepareEntities(entities, "", vampBot)
+		newEntities, caption, err := srv.PrepareEntities(entities, caption, vampBot)
 		if err != nil {
 			return fmt.Errorf("sendChPostAsVamp PrepareEntities err: %v", err)
 		}
 		if newEntities != nil {
 			j, _ := json.Marshal(entities)
 			futureVideoJson["caption_entities"] = string(j)
+		}
+		if m.ChannelPost.Caption != nil {
+			futureVideoJson["caption"] = caption
 		}
 	}
 
