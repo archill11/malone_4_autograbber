@@ -97,7 +97,7 @@ func (srv *TgService) Donor_addChannelPost(m models.Update) error {
 		return fmt.Errorf("Donor_addChannelPost GetAllVampBots err: %v", err)
 	}
 	for i, vampBot := range allVampBots {
-		if vampBot.ChId == 0 {
+		if vampBot.ChId == 0 || vampBot.IsDisable == 1 {
 			continue
 		}
 		srv.l.Info("Donor_addChannelPost", zap.Any("bot index in arr", i), zap.Any("bot ch link", vampBot.ChLink))
@@ -461,7 +461,7 @@ func (s *TgService) sendChPostAsVamp_Media_Group() error {
 	}
 
 	for _, vampBot := range allVampBots {
-		if vampBot.ChId == 0 {
+		if vampBot.ChId == 0 || vampBot.IsDisable == 1 {
 			continue
 		}
 		for i, media := range mediaArr {
