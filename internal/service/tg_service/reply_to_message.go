@@ -409,9 +409,9 @@ func (srv *TgService) RM_edit_bot_lichka_by_gr_link(m models.Update) error {
 	if len(words) < 2 {
 		return fmt.Errorf("неверный формат ввода")
 	}
-	lichka := words[1]
+	lichka := words[0]
 	if lichka != "" {
-		lichka = srv.AddAt(words[1])
+		lichka = srv.AddAt(lichka)
 	}
 
 	for i, v := range words {
