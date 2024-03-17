@@ -375,11 +375,7 @@ func (srv *TgService) RM_edit_bot_lichka(m models.Update) error {
 
 	botToken := words[0]
 	urlArr := strings.Split(botToken, ":")
-	if len(urlArr) != 2 {
-		return fmt.Errorf("RM_edit_bot_lichka err: не правилный токен %s", botToken)
-	}
 	botIdStr := urlArr[0]
-
 	botId, err := strconv.Atoi(botIdStr)
 	if err != nil {
 		return fmt.Errorf("RM_edit_bot_lichka: некоректный id бота: %s err: %v", botIdStr, err)
