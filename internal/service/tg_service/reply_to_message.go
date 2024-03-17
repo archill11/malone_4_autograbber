@@ -59,6 +59,11 @@ func (srv *TgService) HandleReplyToMessage(m models.Update) error {
 		return err
 	}
 
+	if rm.Text == EDIT_BOT_LICHKA_BY_GRLINK_MSG {
+		err := srv.RM_edit_bot_lichka_by_gr_link(m)
+		return err
+	}
+
 	if rm.Text == DELETE_GROUP_LINK_MSG {
 		err := srv.RM_delete_group_link(m)
 		return err
@@ -390,7 +395,43 @@ func (srv *TgService) RM_edit_bot_lichka(m models.Update) error {
 		return fmt.Errorf("RM_edit_bot_lichka: EditBotLichka err: %v", err)
 	}
 
-	srv.SendMessage(fromId, fmt.Sprintf("для бота %d, ссылка успешно изменена -> %s", botId, lichka))
+	srv.SendMessage(fromId, fmt.Sprintf("для бота %d, личка успешно изменена -> %s", botId, lichka))
+	return nil
+}
+
+func (srv *TgService) RM_edit_bot_lichka_by_gr_link(m models.Update) error {
+	replyMes := m.Message.Text
+	fromId := m.Message.From.Id
+	fromUsername := m.Message.From.UserName
+	srv.l.Info(fmt.Sprintf("RM_edit_bot_lichka_by_gr_link: fromId: %d fromUsername: %s, replyMes: %s", fromId, fromUsername, replyMes))
+
+	words := strings.Fields(replyMes)
+	if len(words) < 2 {
+		return fmt.Errorf("неверный формат ввода")
+	}
+	lichka := words[1]
+	if lichka != "" {
+		lichka = srv.AddAt(words[1])
+	}
+
+	for i, v := range words {
+		if i == 0 {
+			continue
+		}
+		rgLinkId, err := strconv.Atoi(v)
+		if err != nil {
+			return fmt.Errorf("RM_edit_bot_lichka_by_gr_link: некоректный id группы ссылки: %s err: %v", v, err)
+		}
+		bots, err := srv.db.GetBotsByGrouLinkId(rgLinkId)
+		if err != nil {
+			return fmt.Errorf("RM_edit_bot_lichka_by_gr_link: GetBotsByGrouLinkId err: %v", err)
+		}
+		for _, vv := range bots {
+			srv.db.EditBotLichka(vv.Id, lichka)
+		}
+		srv.SendMessage(fromId, fmt.Sprintf("для гр-ссылки %d (кол-во ботов: %d), личка успешно изменена -> %s", rgLinkId, len(bots), lichka))
+	}
+
 	return nil
 }
 
