@@ -1,0 +1,41 @@
+version: '3'
+
+services:
+  app:
+    container_name: grabber-app_250k
+    build: ./
+    restart: unless-stopped
+    ports:
+      - 4007:4007
+    environment:
+      TG_ENDPOINT: https://api.telegram.org/bot%s/%s
+      APP_PORT: 4007
+      PG_USER: postgres
+      PG_PASSWORD: secret
+      PG_DATABASE: grabber
+      PG_HOST: grab_db_250k
+      PG_PORT: 5432
+    volumes:
+      - ./volumes/logs:/app/logs
+      - ./volumes/files:/app/files
+    networks:
+      - mynet
+
+  db:
+    container_name: grab_db_250k
+    image: postgres:15-alpine
+    ports:
+      - "5441:5432"
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: secret
+      POSTGRES_DB: grabber
+    networks:
+      - mynet
+    volumes:
+      - ./volumes/db/data:/var/lib/postgresql/data
+
+networks:
+  mynet:
+    driver: bridge
