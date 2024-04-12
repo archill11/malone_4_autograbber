@@ -73,6 +73,8 @@ func New(conf TgConfig, db *pg.Database, l *zap.Logger) (*TgService, error) {
 		},
 	}
 
+	// добавить граббера в базу при первом создании сервиса
+	go s.InsertGrabberBot()
 	// удаление ненужных файлов
 	go s.DeleteOldFiles()
 	// удаление потеряных ботов
@@ -260,6 +262,32 @@ func (srv *TgService) DeleteLostBots() {
 				time.Sleep(time.Second)
 			}
 		}
+	}
+}
+
+func (srv *TgService) InsertGrabberBot() {
+	time.Sleep(time.Second*4)
+	bots, err := srv.db.GetAllBots()
+	if err != nil {
+		err = fmt.Errorf("InsertGrabberBot GetAllBots err: %v", err)
+		srv.l.Error(err.Error())
+		return
+	}
+	if len(bots) > 0 {
+		return
+	}
+
+	grabberBot, err := srv.GetMe(srv.Cfg.Token)
+	if err != nil {
+		err = fmt.Errorf("InsertGrabberBot GetMe err: %v", err)
+		srv.l.Error(err.Error())
+		return
+	}
+	err = srv.db.AddNewBot(grabberBot.Result.Id, grabberBot.Result.UserName, grabberBot.Result.FirstName, srv.Cfg.Token, 1)
+	if err != nil {
+		err = fmt.Errorf("InsertGrabberBot AddNewBot err: %v", err)
+		srv.l.Error(err.Error())
+		return
 	}
 }
 
