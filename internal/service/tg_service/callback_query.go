@@ -207,6 +207,15 @@ func (srv *TgService) HandleCallbackQuery(m models.Update) error {
 		return err
 	}
 
+	if cq.Data == "change_domen_btn" {
+		err := srv.CQ_change_domen_btn(m)
+		if err != nil {
+			srv.SendMessage(fromId, ERR_MSG)
+			srv.SendMessage(fromId, err.Error())
+		}
+		return err
+	}
+
 	if cq.Data == "restart_app" {
 		srv.CQ_restart_app()
 		return nil
@@ -551,5 +560,26 @@ func (srv *TgService) CQ_del_user_btn(m models.Update) error {
 	}
 
 	srv.SendForceReply(fromId, DEL_USER_MSG)
+	return nil
+}
+
+func (srv *TgService) CQ_change_domen_btn(m models.Update) error {
+	cq := m.CallbackQuery
+	fromId := cq.From.Id
+	fromUsername := cq.From.UserName
+	srv.l.Info(fmt.Sprintf("CQ_change_domen_btn: fromId: %d fromUsername: %s", fromId, fromUsername))
+
+	u, err := srv.db.GetUserById(fromId)
+	if err != nil {
+		return err
+	}
+	if u.Id == 0 {
+		return nil
+	}
+	if u.IsAdmin == 0 {
+		return nil
+	}
+
+	srv.SendForceReply(fromId, CHANGE_DOMEN_MSG)
 	return nil
 }

@@ -26,4 +26,6 @@ const (
 	GROUP_LINK_UPDATE_MSG         = "укажите новую ссылку для ref [%d"
 
 	DELETE_POST_MSG = "Укажите id поста в доноре"
+
+	CHANGE_DOMEN_MSG = "Укажите old_домен new_домен через пробел"
 )

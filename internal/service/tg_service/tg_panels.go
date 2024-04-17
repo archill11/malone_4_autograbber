@@ -71,6 +71,7 @@ func (srv *TgService) showAdminPanelRoles(chatId int) error {
 		"chat_id": strconv.Itoa(chatId),
 		"text":    "Привет, я бот Донор",
 		"reply_markup": `{"inline_keyboard" : [
+			[{ "text": "Заменить домен", "callback_data": "change_domen_btn" }],
 			[{ "text": "➕ Добавить админа", "callback_data": "add_admin_btn" }],
 			[{ "text": "🗑 Удалить админа", "callback_data": "del_admin_btn" }]
 		]}`,

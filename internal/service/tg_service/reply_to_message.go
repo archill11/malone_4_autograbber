@@ -110,6 +110,15 @@ func (srv *TgService) HandleReplyToMessage(m models.Update) error {
 		return err
 	}
 
+	if rm.Text == CHANGE_DOMEN_MSG {
+		err := srv.RM__CHANGE_DOMEN_MSG(m)
+		if err != nil {
+			srv.SendMessage(fromId, ERR_MSG)
+			srv.SendMessage(fromId, err.Error())
+		}
+		return err
+	}
+
 	if rm.Text == UPDATE_GROUP_LINK_MSG {
 		chatId := m.Message.From.Id
 		replyMes := m.Message.Text
@@ -636,5 +645,43 @@ func (srv *TgService) RM__DEL_USER_MSG(m models.Update) error {
 		return err
 	}
 	srv.SendMessage(fromId, "user удален успешно")
+	return nil
+}
+
+func (srv *TgService) RM__CHANGE_DOMEN_MSG(m models.Update) error {
+	replyMes := m.Message.Text
+	fromId := m.Message.From.Id
+	fromUsername := m.Message.From.UserName
+	srv.l.Info(fmt.Sprintf("RM__CHANGE_DOMEN_MSG: fromId: %d fromUsername: %s, replyMes: %s", fromId, fromUsername, replyMes))
+
+	words := strings.Fields(replyMes)
+	if len(words) < 2 {
+		return fmt.Errorf("неверный формат ввода")
+	}
+	old_domen := words[0]
+	new_domen := words[1]
+
+	allgr, err := srv.db.GetAllGroupLinks()
+	if err != nil {
+		return fmt.Errorf("RM__CHANGE_DOMEN_MSG GetAllGroupLinks err: %v", err)
+	}
+	var cnt int
+	for _, v := range allgr {
+		oldLink := v.Link
+		newLink := strings.Replace(oldLink, old_domen, new_domen, -1)
+		if oldLink == newLink {
+			continue
+		}
+		err = srv.db.UpdateGroupLink(v.Id, newLink)
+		if err != nil {
+			err = fmt.Errorf("RM__CHANGE_DOMEN_MSG UpdateGroupLink err: %v", err)
+			srv.SendMessage(fromId, err.Error())
+		}
+		cnt++
+	}
+
+	logMess := fmt.Sprintf("все ссылки изменены. %d шт", cnt)
+	srv.SendMessage(fromId, logMess)
+
 	return nil
 }
