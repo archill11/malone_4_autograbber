@@ -3,6 +3,7 @@ CREATE TABLE IF NOT EXISTS users (
     username VARCHAR(255),
     firstname VARCHAR(255),
     is_admin INT DEFAULT 0,
+    is_super_admin INT DEFAULT 0,
     is_user INT DEFAULT 0,
     PRIMARY KEY (id)
 );

@@ -494,7 +494,7 @@ func (srv *TgService) CQ_add_admin_btn(m models.Update) error {
 	if u.Id == 0 {
 		return nil
 	}
-	if u.IsAdmin == 0 {
+	if u.IsSuperAdmin == 0 {
 		return nil
 	}
 	srv.SendForceReply(fromId, NEW_ADMIN_MSG)
@@ -514,7 +514,7 @@ func (srv *TgService) CQ_del_admin_btn(m models.Update) error {
 	if u.Id == 0 {
 		return nil
 	}
-	if u.IsAdmin == 0 {
+	if u.IsSuperAdmin == 0 {
 		return nil
 	}
 
@@ -576,7 +576,7 @@ func (srv *TgService) CQ_change_domen_btn(m models.Update) error {
 	if u.Id == 0 {
 		return nil
 	}
-	if u.IsAdmin == 0 {
+	if u.IsSuperAdmin == 0 {
 		return nil
 	}
 
