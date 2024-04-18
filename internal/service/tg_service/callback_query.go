@@ -571,12 +571,15 @@ func (srv *TgService) CQ_change_domen_btn(m models.Update) error {
 
 	u, err := srv.db.GetUserById(fromId)
 	if err != nil {
+		srv.l.Error(fmt.Sprintf("CQ_change_domen_btn GetUserById err: %v", err))
 		return err
 	}
 	if u.Id == 0 {
+		srv.l.Error("CQ_change_domen_btn GetUserById err: u.Id == 0")
 		return nil
 	}
 	if u.IsSuperAdmin == 0 {
+		srv.l.Error("CQ_change_domen_btn GetUserById err: u.IsSuperAdmin == 0")
 		return nil
 	}
 
