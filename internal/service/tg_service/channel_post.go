@@ -483,12 +483,15 @@ func (s *TgService) sendChPostAsVamp_Media_Group() error {
 				entities := make([]models.MessageEntity, 0)
 				mycopy.DeepCopy(media.Caption_entities, &entities)
 
-				newEntities, _, err := s.PrepareEntities(entities, "", vampBot)
+				newEntities, newText, err := s.PrepareEntities(entities, "", vampBot)
 				if err != nil {
 					return fmt.Errorf("sendChPostAsVamp PrepareEntities err: %v", err)
 				}
 				if newEntities != nil {
 					mediaArr[i].Caption_entities = newEntities
+				}
+				if media.Caption != "" {
+					mediaArr[i].Caption = newText
 				}
 			}
 		}
