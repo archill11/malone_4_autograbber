@@ -221,6 +221,21 @@ func (srv *TgService) sendChPostAsVamp_VideoNote(vampBot entity.Bot, m models.Up
 		}
 		futureVideoNoteJson["reply_to_message_id"] = strconv.Itoa(currPost.PostId)
 	}
+	if m.ChannelPost.ReplyMarkup != nil {
+		var inlineKeyboardMarkup models.InlineKeyboardMarkup
+		mycopy.DeepCopy(m.ChannelPost.ReplyMarkup, &inlineKeyboardMarkup)
+
+		newInlineKeyboardMarkup, err := srv.PrepareReplyMarkup(inlineKeyboardMarkup, vampBot)
+		if err != nil {
+			return fmt.Errorf("sendChPostAsVamp_VideoNote PrepareReplyMarkup err: %v", err)
+		}
+		json_data, err := json.Marshal(newInlineKeyboardMarkup)
+		if err != nil {
+			srv.l.Error("sendChPostAsVamp_VideoNote Marshal err", zap.Error(err), zap.Any("newInlineKeyboardMarkup", newInlineKeyboardMarkup))
+		}
+		futureVideoNoteJson["reply_markup"] = string(json_data)
+	}
+
 	getFileResp, err := srv.GetFile(m.ChannelPost.VideoNote.FileId)
 	if err != nil {
 		return fmt.Errorf("sendChPostAsVamp_VideoNote GetFile err: %v", err)
