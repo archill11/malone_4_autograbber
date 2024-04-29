@@ -32,6 +32,8 @@ type (
 
 	TgConfig struct {
 		TgEndp      string
+		TgLocEndp   string
+		TgLocUrl    string
 		Token       string
 	}
 

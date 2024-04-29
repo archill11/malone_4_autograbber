@@ -24,6 +24,8 @@ func Get() *Config {
 	var c Config
 
 	c.Tg.TgEndp = os.Getenv("TG_ENDPOINT")
+	c.Tg.TgLocEndp = os.Getenv("TG_LOCAL_ENDPOINT")
+	c.Tg.TgLocUrl = os.Getenv("TG_LOCAL_URL")
 	c.Tg.Token = os.Getenv("BOT_TOKEN")
 
 	c.Server.Port = os.Getenv("APP_PORT")

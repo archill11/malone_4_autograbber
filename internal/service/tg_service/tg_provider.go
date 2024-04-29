@@ -81,7 +81,7 @@ func (srv *TgService) GetChat(chatId int, token string) (models.GetChatResp, err
 
 func (srv *TgService) GetFile(fileId string) (models.GetFileResp, error) {
 	resp, err := http.Get(
-		fmt.Sprintf(srv.Cfg.TgEndp, srv.Cfg.Token, fmt.Sprintf("getFile?file_id=%s", fileId)),
+		fmt.Sprintf(srv.Cfg.TgLocEndp, srv.Cfg.Token, fmt.Sprintf("getFile?file_id=%s", fileId)),
 	)
 	if err != nil {
 		return models.GetFileResp{}, fmt.Errorf("GetFile Get file_id-%s err: %v", fileId, err)
@@ -151,7 +151,7 @@ func (srv *TgService) SendMediaGroup(json_data []byte, token string) (models.Sen
 
 func (srv *TgService) SendVideoNote(body io.Reader, contentType string, token string) (models.SendMediaResp, error) {
 	resp, err := http.Post(
-		fmt.Sprintf(srv.Cfg.TgEndp, token, "sendVideoNote"),
+		fmt.Sprintf(srv.Cfg.TgLocEndp, token, "sendVideoNote"),
 		contentType,
 		body,
 	)
