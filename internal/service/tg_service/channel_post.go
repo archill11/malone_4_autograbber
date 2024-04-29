@@ -473,11 +473,13 @@ func (srv *TgService) sendAndDeleteMedia(vampBot entity.Bot, fileNameInServer st
 	return fileId, nil
 }
 
-func (s *TgService) sendChPostAsVamp_Media_Group() error {
-	mediaArr, ok := s.MediaStore.MediaGroups[StoreKey]
+func (s *TgService) sendChPostAsVamp_Media_Group(mediaGroupId string) error {
+	s.l.Info("sendChPostAsVamp_Media_Group start sending", zap.Any("len s.MediaStore.MediaGroups", len(s.MediaStore.MediaGroups)), zap.Any("s.MediaStore.MediaGroups", s.MediaStore.MediaGroups))
+	mediaArr, ok := s.MediaStore.MediaGroups[mediaGroupId]
 	if !ok {
 		return fmt.Errorf("sendChPostAsVamp_Media_Group: not found in MediaStore")
 	}
+	s.l.Info("sendChPostAsVamp_Media_Group", zap.Any("len mediaArr", len(mediaArr)), zap.Any("mediaArr", mediaArr))
 
 	allVampBots, err := s.db.GetAllVampBots()
 	if err != nil {
@@ -571,6 +573,7 @@ func (s *TgService) sendChPostAsVamp_Media_Group() error {
 		}
 	}
 
-	delete(s.MediaStore.MediaGroups, StoreKey)
+	delete(s.MediaStore.MediaGroups, mediaGroupId)
+	s.l.Info("sendChPostAsVamp_Media_Group end sending", zap.Any("len s.MediaStore.MediaGroups", len(s.MediaStore.MediaGroups)), zap.Any("s.MediaStore.MediaGroups", s.MediaStore.MediaGroups))
 	return nil
 }

@@ -368,7 +368,8 @@ func (srv *TgService) AcceptChPostByAdmin() {
 				continue
 			}
 
-			srv.MediaStore.MediaGroups[StoreKey] = mediaArr
+			mediaGroupId := mediaArr[0].Media_group_id
+			srv.MediaStore.MediaGroups[mediaGroupId] = mediaArr
 
 			arrsik := make([]models.InputMedia, 0)
 			for _, med := range mediaArr {
@@ -408,7 +409,7 @@ func (srv *TgService) AcceptChPostByAdmin() {
 			media_json, err = json.Marshal(map[string]any{
 				"chat_id":      strconv.Itoa(donorBot.ChId),
 				"text":         "подтвердите сообщение сверху",
-				"reply_markup": `{ "inline_keyboard" : [[{ "text": "разослать по каналам", "callback_data": "accept_ch_post_by_admin" }]] }`,
+				"reply_markup": fmt.Sprintf(`{ "inline_keyboard" : [[{ "text": "разослать по каналам", "callback_data": "accept_ch_post_%s_by_admin" }]] }`, mediaGroupId),
 			})
 			if err != nil {
 				srv.l.Error(fmt.Sprintf("AcceptChPostByAdmin: Marshal media_json err: %v", err))

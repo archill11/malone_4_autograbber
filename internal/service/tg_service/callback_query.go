@@ -144,8 +144,10 @@ func (srv *TgService) HandleCallbackQuery(m models.Update) error {
 		return err
 	}
 
-	if cq.Data == "accept_ch_post_by_admin" {
-		err := srv.CQ_accept_ch_post_by_admin(m)
+	if strings.HasPrefix(cq.Data, "accept_ch_post_") { // accept_ch_post_13715320871173226_by_admin
+		mediaGroupId := my_regex.GetStringInBetween(cq.Data, "accept_ch_post_", "_by_admin")
+	// if cq.Data == "accept_ch_post_by_admin" {
+		err := srv.CQ_accept_ch_post_by_admin(m, mediaGroupId)
 		if err != nil {
 			srv.SendMessage(fromId, ERR_MSG)
 			srv.SendMessage(fromId, err.Error())
@@ -375,7 +377,7 @@ func (srv *TgService) CQ_update_group_link(m models.Update) error {
 	return nil
 }
 
-func (srv *TgService) CQ_accept_ch_post_by_admin(m models.Update) error {
+func (srv *TgService) CQ_accept_ch_post_by_admin(m models.Update, mediaGroupId string) error {
 	cq := m.CallbackQuery
 	fromId := cq.From.Id
 	fromUsername := cq.From.UserName
@@ -390,7 +392,7 @@ func (srv *TgService) CQ_accept_ch_post_by_admin(m models.Update) error {
 	srv.DeleteMessage(DonorBot.ChId, m.CallbackQuery.Message.MessageId, srv.Cfg.Token)
 
 	go func() {
-		err = srv.sendChPostAsVamp_Media_Group()
+		err = srv.sendChPostAsVamp_Media_Group(mediaGroupId)
 		if err != nil {
 			srv.SendMessage(DonorBot.ChId, ERR_MSG)
 			srv.SendMessage(DonorBot.ChId, err.Error())
