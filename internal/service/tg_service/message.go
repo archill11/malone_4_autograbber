@@ -9,7 +9,7 @@ func (srv *TgService) HandleMessage(m models.Update) error {
 	msgText := m.Message.Text
 	fromUsername := m.Message.From.UserName
 	fromId := m.Message.From.Id
-	srv.l.Info(fmt.Sprintf("HandleMessage: fromId: %d, fromUsername: %s, msgText: %s", fromId, fromUsername, msgText))
+	srv.l.Info(fmt.Sprintf("\nHandleMessage: fromId: %d, fromUsername: %s, msgText: %s", fromId, fromUsername, msgText))
 
 	if msgText == "/admin" {
 		err := srv.M_admin(m)

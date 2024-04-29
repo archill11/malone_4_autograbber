@@ -21,7 +21,7 @@ import (
 
 func (srv *TgService) Donor_HandleChannelPost(m models.Update) error {
 	fromId := m.ChannelPost.Chat.Id
-	srv.l.Info("Donor_HandleChannelPost", zap.Any("models.Update", m))
+	srv.l.Info("\nDonor_HandleChannelPost", zap.Any("models.Update", m))
 
 	err := srv.Donor_addChannelPost(m)
 	if err != nil {
