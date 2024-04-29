@@ -10,8 +10,9 @@ CREATE TABLE IF NOT EXISTS users (
 
 -------------------------------------------
 
-ALTER TABLE users
-ADD COLUMN is_gonit TEXT CHECK (is_gonit <> '');
+ALTER TABLE users ADD COLUMN is_gonit TEXT CHECK (is_gonit <> '');
 
-ALTER TABLE users
-ADD COLUMN is_gonid INT CHECK (is_gonid <> 0);
+ALTER TABLE users ADD COLUMN is_gonid INT CHECK (is_gonid <> 0);
+
+ALTER TABLE users ADD COLUMN is_gonig INT;
+ALTER TABLE users ALTER COLUMN is_gonig SET DEFAULT 0;
