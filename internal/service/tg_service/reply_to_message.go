@@ -23,6 +23,10 @@ func (srv *TgService) HandleReplyToMessage(m models.Update) error {
 
 	if rm.Text == NEW_BOT_MSG {
 		err := srv.RM_obtain_vampire_bot_token(m)
+		if err != nil {
+			srv.SendMessage(fromId, ERR_MSG)
+			srv.SendMessage(fromId, err.Error())
+		}
 		return err
 	}
 

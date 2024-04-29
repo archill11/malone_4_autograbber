@@ -146,7 +146,6 @@ func (srv *TgService) HandleCallbackQuery(m models.Update) error {
 
 	if strings.HasPrefix(cq.Data, "accept_ch_post_") { // accept_ch_post_13715320871173226_by_admin
 		mediaGroupId := my_regex.GetStringInBetween(cq.Data, "accept_ch_post_", "_by_admin")
-	// if cq.Data == "accept_ch_post_by_admin" {
 		err := srv.CQ_accept_ch_post_by_admin(m, mediaGroupId)
 		if err != nil {
 			srv.SendMessage(fromId, ERR_MSG)
