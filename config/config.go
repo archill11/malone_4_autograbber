@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"log"
 	"myapp/internal/client/http"
 	"myapp/internal/repository/pg"
@@ -23,9 +24,16 @@ func Get() *Config {
 	}
 	var c Config
 
-	c.Tg.TgEndp = os.Getenv("TG_ENDPOINT")
-	c.Tg.TgLocEndp = os.Getenv("TG_LOCAL_ENDPOINT")
+	c.Tg.TgUrl = os.Getenv("TG_URL")
+	if c.Tg.TgUrl == "" {
+		c.Tg.TgUrl = "https://api.telegram.org"
+	}
+	c.Tg.TgEndp = fmt.Sprintf("%s/bot%%s/%%s", c.Tg.TgUrl)
 	c.Tg.TgLocUrl = os.Getenv("TG_LOCAL_URL")
+	if c.Tg.TgLocUrl == "" {
+		c.Tg.TgLocUrl = "https://api.telegram.org"
+	}
+	c.Tg.TgLocEndp = fmt.Sprintf("%s/bot%%s/%%s", c.Tg.TgLocUrl)
 	c.Tg.Token = os.Getenv("BOT_TOKEN")
 
 	c.Server.Port = os.Getenv("APP_PORT")
