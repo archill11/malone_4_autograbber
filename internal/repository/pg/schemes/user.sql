@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS users (
     id BIGINT NOT NULL,
-    username VARCHAR(255),
-    firstname VARCHAR(255),
+    username TEXT,
+    firstname TEXT,
     is_admin INT DEFAULT 0,
     is_super_admin INT DEFAULT 0,
     is_user INT DEFAULT 0,
