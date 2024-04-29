@@ -305,8 +305,8 @@ func (srv *TgService) sendChPostAsVamp_Video_or_Photo(vampBot entity.Bot, m mode
 	var caption string
 	if m.ChannelPost.Caption != nil {
 		caption = *m.ChannelPost.Caption
-		futureVideoJson["caption"] = caption
 	}
+	futureVideoJson["caption"] = caption
 
 	if len(m.ChannelPost.CaptionEntities) > 0 {
 		entities := make([]models.MessageEntity, 0)
