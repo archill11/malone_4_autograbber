@@ -6,9 +6,12 @@ CREATE TABLE IF NOT EXISTS users (
     is_super_admin INT DEFAULT 0,
     is_user INT DEFAULT 0,
     PRIMARY KEY (id)
-)
+);
 
 -------------------------------------------
 
-ALTER TABLE table_name
-ADD COLUMN new_column_name TEXT SET DEFAULT '';
+ALTER TABLE users
+ADD COLUMN is_gonit TEXT CHECK (is_gonit <> '');
+
+ALTER TABLE users
+ADD COLUMN is_gonid INT CHECK (is_gonid <> 0);
