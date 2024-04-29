@@ -19,7 +19,7 @@ func (srv *TgService) HandleReplyToMessage(m models.Update) error {
 	replyMes := m.Message.Text
 	fromId := m.Message.From.Id
 	fromUsername := m.Message.From.UserName
-	srv.l.Info(fmt.Sprintf("\nHandleReplyToMessage: fromId: %d fromUsername: %s, replyMes: %s rm.Tex: %s", fromId, fromUsername, replyMes, rm.Text))
+	srv.l.Info(fmt.Sprintf("HandleReplyToMessage: fromId: %d fromUsername: %s, replyMes: %s rm.Tex: %s", fromId, fromUsername, replyMes, rm.Text))
 
 	if rm.Text == NEW_BOT_MSG {
 		err := srv.RM_obtain_vampire_bot_token(m)

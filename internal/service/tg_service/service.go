@@ -137,6 +137,7 @@ func (srv *TgService) GetUpdatesChan(conf *UpdateConfig, token string) (chan mod
 }
 
 func (srv *TgService) bot_Update(m models.Update) error {
+	srv.l.Info("	")
 	if m.ChannelPost != nil { // on Channel_Post
 		err := srv.Donor_HandleChannelPost(m)
 		if err != nil {

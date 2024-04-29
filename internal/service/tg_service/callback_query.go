@@ -16,7 +16,7 @@ func (srv *TgService) HandleCallbackQuery(m models.Update) error {
 	cq := m.CallbackQuery
 	fromId := cq.From.Id
 	fromUsername := cq.From.UserName
-	srv.l.Info(fmt.Sprintf("\nHandleCallbackQuery: fromId: %d fromUsername: %s, cq.Data: %s", fromId, fromUsername, cq.Data))
+	srv.l.Info(fmt.Sprintf("HandleCallbackQuery: fromId: %d fromUsername: %s, cq.Data: %s", fromId, fromUsername, cq.Data))
 
 	if cq.Data == "create_vampere_bot" {
 		err := srv.CQ_vampire_register(m)
