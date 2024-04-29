@@ -127,6 +127,10 @@ func (srv *TgService) sendChPostAsVamp(vampBot entity.Bot, m models.Update) erro
 	if m.ChannelPost.Video != nil {
 		return srv.sendChPostAsVamp_Video_or_Photo(vampBot, m, "video")
 	}
+	//////////////// если гифка
+	if m.ChannelPost.Animation != nil {
+		return srv.sendChPostAsVamp_Video_or_Photo(vampBot, m, "animation")
+	}
 
 	//////////////// если просто текст
 	futureMesJson := map[string]any{
@@ -326,6 +330,8 @@ func (srv *TgService) sendChPostAsVamp_Video_or_Photo(vampBot entity.Bot, m mode
 		fileId = m.ChannelPost.Photo[len(m.ChannelPost.Photo)-1].FileId
 	} else if m.ChannelPost.Video != nil {
 		fileId = m.ChannelPost.Video.FileId
+	} else if m.ChannelPost.Animation != nil {
+		fileId = m.ChannelPost.Animation.FileId
 	}
 
 	cAny, err := srv.GetFile(fileId)
@@ -356,6 +362,8 @@ func (srv *TgService) sendChPostAsVamp_Video_or_Photo(vampBot entity.Bot, m mode
 	method := "sendVideo"
 	if postType == "photo" {
 		method = "sendPhoto"
+	} else if postType == "animation" {
+		method = "sendAnimation"
 	}
 	rrres, err := http.Post(
 		fmt.Sprintf(srv.Cfg.TgEndp, vampBot.Token, method),
@@ -390,12 +398,12 @@ func (srv *TgService) downloadPostMedia(m models.Update, postType string) (strin
 		fileId = m.ChannelPost.Video.FileId
 	}
 	srv.l.Info(fmt.Sprintf("downloadPostMedia: getting file: %s", fmt.Sprintf(srv.Cfg.TgEndp, srv.Cfg.Token, "getFile?file_id="+fileId)))
-
+	
 	GetFileResp, err := srv.GetFile(fileId)
 	if err != nil {
 		return "", fmt.Errorf("downloadPostMedia GetFile fileId-%s err: %v", fileId, err)
 	}
-
+	
 	fileNameDir := strings.Split(GetFileResp.Result.File_path, ".")
 	fileNameInServer := fmt.Sprintf("./files/%s.%s", GetFileResp.Result.File_unique_id, fileNameDir[1])
 	err = files.DownloadFile(
@@ -405,6 +413,7 @@ func (srv *TgService) downloadPostMedia(m models.Update, postType string) (strin
 	if err != nil {
 		return "", fmt.Errorf("downloadPostMedia DownloadFile err: %v", err)
 	}
+	srv.l.Info(fmt.Sprintf("downloadPostMedia done, fileNameInServer: %s", fileNameInServer))
 	return fileNameInServer, nil
 }
 
