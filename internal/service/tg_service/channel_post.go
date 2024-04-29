@@ -405,7 +405,11 @@ func (srv *TgService) downloadPostMedia(m models.Update, postType string) (strin
 	}
 	
 	fileNameDir := strings.Split(GetFileResp.Result.File_path, ".")
-	fileNameInServer := fmt.Sprintf("./files/%s.%s", GetFileResp.Result.File_unique_id, fileNameDir[1])
+	fileType := "mp4"
+	if len(fileNameDir) > 1 {
+		fileType = fileNameDir[1]
+	}
+	fileNameInServer := fmt.Sprintf("./files/%s.%s", GetFileResp.Result.File_unique_id, fileType)
 	err = files.DownloadFile(
 		fileNameInServer,
 		fmt.Sprintf("https://api.telegram.org/file/bot%s/%s", srv.Cfg.Token, GetFileResp.Result.File_path),
