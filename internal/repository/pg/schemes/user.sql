@@ -11,4 +11,4 @@ CREATE TABLE IF NOT EXISTS users (
 -------------------------------------------
 
 ALTER TABLE users
-  ADD COLUMN is_user INT DEFAULT 0;
+  ADD COLUMN IF NOT EXISTS is_user INT DEFAULT 0;
