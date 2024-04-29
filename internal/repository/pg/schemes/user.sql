@@ -7,3 +7,8 @@ CREATE TABLE IF NOT EXISTS users (
     is_user INT DEFAULT 0,
     PRIMARY KEY (id)
 );
+
+-------------------------------------------
+
+ALTER TABLE table_name
+ADD COLUMN new_column_name TEXT SET DEFAULT '';
