@@ -339,21 +339,21 @@ func (srv *TgService) sendChPostAsVamp_Video_or_Photo(vampBot entity.Bot, m mode
 		fileId = m.ChannelPost.Animation.FileId
 	}
 
-	cAny, err := srv.GetFile(fileId)
+	getFileResp, err := srv.GetFile(fileId)
 	if err != nil {
 		return fmt.Errorf("sendChPostAsVamp_Video_or_Photo GetFile fileId-%s err: %v", fileId, err)
 	}
 	
-	fileNameDir := strings.Split(cAny.Result.File_path, ".")
-	fileNameInServer := fmt.Sprintf("./files/%s.%s", cAny.Result.File_unique_id, fileNameDir[1])
+	fileNameDir := strings.Split(getFileResp.Result.File_path, ".")
+	fileNameInServer := fmt.Sprintf("./files/%s.%s", getFileResp.Result.File_unique_id, fileNameDir[1])
 	srv.l.Info(fmt.Sprintf("sendChPostAsVamp_Video_or_Photo: fileNameInServer: %s", fileNameInServer))
 
 	_, err = os.Stat(fileNameInServer)
 	if errors.Is(err, os.ErrNotExist) {
-		s := cAny.Result.File_path
+		s := getFileResp.Result.File_path
 		sep := fmt.Sprintf("/var/lib/telegram-bot-api/%s", srv.Cfg.Token)
 		_, after, found := strings.Cut(s, sep)
-		filePath := cAny.Result.File_path
+		filePath := getFileResp.Result.File_path
 		if found {
 			filePath = after
 		}
