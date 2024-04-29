@@ -245,7 +245,11 @@ func (srv *TgService) sendChPostAsVamp_VideoNote(vampBot entity.Bot, m models.Up
 		return fmt.Errorf("sendChPostAsVamp_VideoNote GetFile err: %v", err)
 	}
 	fileNameDir := strings.Split(getFileResp.Result.File_path, ".")
-	fileNameInServer := fmt.Sprintf("./files/%s.%s", getFileResp.Result.File_unique_id, fileNameDir[1])
+	fileType := "mp4"
+	if len(fileNameDir) > 1 {
+		fileType = fileNameDir[1]
+	}
+	fileNameInServer := fmt.Sprintf("./files/%s.%s", getFileResp.Result.File_unique_id, fileType)
 	srv.l.Info(fmt.Sprintf("sendChPostAsVamp_VideoNote: fileNameInServer: %s", fileNameInServer))
 
 	_, err = os.Stat(fileNameInServer)
@@ -345,7 +349,11 @@ func (srv *TgService) sendChPostAsVamp_Video_or_Photo(vampBot entity.Bot, m mode
 	}
 	
 	fileNameDir := strings.Split(getFileResp.Result.File_path, ".")
-	fileNameInServer := fmt.Sprintf("./files/%s.%s", getFileResp.Result.File_unique_id, fileNameDir[1])
+	fileType := "mp4"
+	if len(fileNameDir) > 1 {
+		fileType = fileNameDir[1]
+	}
+	fileNameInServer := fmt.Sprintf("./files/%s.%s", getFileResp.Result.File_unique_id, fileType)
 	srv.l.Info(fmt.Sprintf("sendChPostAsVamp_Video_or_Photo: fileNameInServer: %s", fileNameInServer))
 
 	_, err = os.Stat(fileNameInServer)
