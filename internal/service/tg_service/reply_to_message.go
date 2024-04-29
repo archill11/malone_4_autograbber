@@ -28,11 +28,19 @@ func (srv *TgService) HandleReplyToMessage(m models.Update) error {
 
 	if rm.Text == DELETE_BOT_MSG {
 		err := srv.RM_delete_bot(m)
+		if err != nil {
+			srv.SendMessage(fromId, ERR_MSG)
+			srv.SendMessage(fromId, err.Error())
+		}
 		return err
 	}
 
 	if rm.Text == ADD_CH_TO_BOT_MSG {
 		err := srv.RM_add_ch_to_bot(m)
+		if err != nil {
+			srv.SendMessage(fromId, ERR_MSG)
+			srv.SendMessage(fromId, err.Error())
+		}
 		return err
 	}
 
@@ -41,36 +49,64 @@ func (srv *TgService) HandleReplyToMessage(m models.Update) error {
 		runesStr := string(runes[len([]rune("укажите id канала в котором уже бот админ и к которому нужно привязать бота: ")):])
 		botId, _ := strconv.Atoi(runesStr)
 		err := srv.RM_add_ch_to_bot_spet2(m, botId)
+		if err != nil {
+			srv.SendMessage(fromId, ERR_MSG)
+			srv.SendMessage(fromId, err.Error())
+		}
 		return err
 	}
 
 	if rm.Text == NEW_GROUP_LINK_MSG {
 		err := srv.RM_add_group_link(m)
+		if err != nil {
+			srv.SendMessage(fromId, ERR_MSG)
+			srv.SendMessage(fromId, err.Error())
+		}
 		return err
 	}
 
 	if rm.Text == EDIT_BOT_GROUP_LINK_MSG {
 		err := srv.RM_edit_bot_group_link(m)
+		if err != nil {
+			srv.SendMessage(fromId, ERR_MSG)
+			srv.SendMessage(fromId, err.Error())
+		}
 		return err
 	}
 
 	if rm.Text == EDIT_BOT_LICHKA_MSG {
 		err := srv.RM_edit_bot_lichka(m)
+		if err != nil {
+			srv.SendMessage(fromId, ERR_MSG)
+			srv.SendMessage(fromId, err.Error())
+		}
 		return err
 	}
 
 	if rm.Text == EDIT_BOT_LICHKA_BY_GRLINK_MSG {
 		err := srv.RM_edit_bot_lichka_by_gr_link(m)
+		if err != nil {
+			srv.SendMessage(fromId, ERR_MSG)
+			srv.SendMessage(fromId, err.Error())
+		}
 		return err
 	}
 
 	if rm.Text == DELETE_GROUP_LINK_MSG {
 		err := srv.RM_delete_group_link(m)
+		if err != nil {
+			srv.SendMessage(fromId, ERR_MSG)
+			srv.SendMessage(fromId, err.Error())
+		}
 		return err
 	}
 
 	if rm.Text == DELETE_POST_MSG {
 		err := srv.RM_delete_post_in_chs(m)
+		if err != nil {
+			srv.SendMessage(fromId, ERR_MSG)
+			srv.SendMessage(fromId, err.Error())
+		}
 		return err
 	}
 
@@ -126,10 +162,15 @@ func (srv *TgService) HandleReplyToMessage(m models.Update) error {
 
 		grId, err := strconv.Atoi(replyMes)
 		if err != nil {
-			srv.SendMessage(chatId, ERR_MSG)
+			srv.SendMessage(fromId, ERR_MSG)
+			srv.SendMessage(fromId, err.Error())
 			return err
 		}
 		err = srv.SendForceReply(chatId, fmt.Sprintf(GROUP_LINK_UPDATE_MSG, grId))
+		if err != nil {
+			srv.SendMessage(fromId, ERR_MSG)
+			srv.SendMessage(fromId, err.Error())
+		}
 		return err
 	}
 
@@ -138,6 +179,10 @@ func (srv *TgService) HandleReplyToMessage(m models.Update) error {
 		runesStr := string(runes[len([]rune("укажите номер группы-ссылки для нового бота[")):])
 		botId, _ := strconv.Atoi(runesStr)
 		err := srv.RM_update_bot_group_link(m, botId)
+		if err != nil {
+			srv.SendMessage(fromId, ERR_MSG)
+			srv.SendMessage(fromId, err.Error())
+		}
 		return err
 	}
 
@@ -146,6 +191,10 @@ func (srv *TgService) HandleReplyToMessage(m models.Update) error {
 		runesStr := string(runes[len([]rune("укажите новую ссылку для ref [")):])
 		refId, _ := strconv.Atoi(runesStr)
 		err := srv.RM_update_group_link(m, refId)
+		if err != nil {
+			srv.SendMessage(fromId, ERR_MSG)
+			srv.SendMessage(fromId, err.Error())
+		}
 		return err
 	}
 

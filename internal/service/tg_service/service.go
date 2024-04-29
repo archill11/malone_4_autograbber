@@ -139,45 +139,52 @@ func (srv *TgService) GetUpdatesChan(conf *UpdateConfig, token string) (chan mod
 func (srv *TgService) bot_Update(m models.Update) error {
 	srv.l.Info("	")
 	if m.ChannelPost != nil { // on Channel_Post
-		err := srv.Donor_HandleChannelPost(m)
-		if err != nil {
-			srv.l.Error("Donor_HandleChannelPost err", zap.Error(err))
-		}
+		go func() {
+			err := srv.Donor_HandleChannelPost(m)
+			if err != nil {
+				srv.l.Error("Donor_HandleChannelPost err", zap.Error(err))
+			}
+		}()
 		return nil
 	}
 
 	if m.EditedChannelPost != nil { // on Edited_Channel_Post
-		err := srv.Donor_HandleEditedChannelPost(m)
-		if err != nil {
-			srv.l.Error("Donor_HandleEditedChannelPost err", zap.Error(err))
-		}
+		go func() {
+			err := srv.Donor_HandleEditedChannelPost(m)
+			if err != nil {
+				srv.l.Error("Donor_HandleEditedChannelPost err", zap.Error(err))
+			}
+		}()
 		return nil
 	}
 
 	if m.CallbackQuery != nil { // on Callback_Query
-		err := srv.HandleCallbackQuery(m)
-		if err != nil {
-			srv.l.Error("HandleCallbackQuery err", zap.Error(err))
-		}
+		go func() {
+			err := srv.HandleCallbackQuery(m)
+			if err != nil {
+				srv.l.Error("HandleCallbackQuery err", zap.Error(err))
+			}
+		}()
 		return nil
 	}
 
 	if m.Message != nil && m.Message.ReplyToMessage != nil { // on Reply_To_Message
-		fromId := m.Message.From.Id
-		err := srv.HandleReplyToMessage(m)
-		if err != nil {
-			srv.l.Error("HandleReplyToMessage err", zap.Error(err))
-			srv.SendMessage(fromId, ERR_MSG)
-			srv.SendMessage(fromId, err.Error())
-		}
+		go func() {
+			err := srv.HandleReplyToMessage(m)
+			if err != nil {
+				srv.l.Error("HandleReplyToMessage err", zap.Error(err))
+			}
+		}()
 		return nil
 	}
 
 	if m.Message != nil && m.Message.Chat != nil { // on Message
-		err := srv.HandleMessage(m)
-		if err != nil {
-			srv.l.Error("HandleMessage err", zap.Error(err))
-		}
+		go func() {
+			err := srv.HandleMessage(m)
+			if err != nil {
+				srv.l.Error("HandleMessage err", zap.Error(err))
+			}
+		}()
 		return nil
 	}
 
