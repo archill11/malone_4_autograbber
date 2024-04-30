@@ -318,7 +318,7 @@ func (srv *TgService) sendChPostAsVamp_Video_or_Photo(vampBot entity.Bot, m mode
 		caption = *m.ChannelPost.Caption
 		futureVideoJson["caption"] = caption
 	}
-
+	
 	if len(m.ChannelPost.CaptionEntities) > 0 {
 		entities := make([]models.MessageEntity, 0)
 		mycopy.DeepCopy(m.ChannelPost.CaptionEntities, &entities)
@@ -339,6 +339,8 @@ func (srv *TgService) sendChPostAsVamp_Video_or_Photo(vampBot entity.Bot, m mode
 		fileId = m.ChannelPost.Photo[len(m.ChannelPost.Photo)-1].FileId
 	} else if m.ChannelPost.Video != nil {
 		fileId = m.ChannelPost.Video.FileId
+		futureVideoJson["width"] = strconv.Itoa(m.ChannelPost.Video.Width)
+		futureVideoJson["height"] = strconv.Itoa(m.ChannelPost.Video.Height)
 	} else if m.ChannelPost.Animation != nil {
 		fileId = m.ChannelPost.Animation.FileId
 	}
