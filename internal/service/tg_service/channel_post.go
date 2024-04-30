@@ -254,13 +254,8 @@ func (srv *TgService) sendChPostAsVamp_VideoNote(vampBot entity.Bot, m models.Up
 
 	_, err = os.Stat(fileNameInServer)
 	if errors.Is(err, os.ErrNotExist) {
-		s := getFileResp.Result.File_path
-		sep := fmt.Sprintf("/var/lib/telegram-bot-api/%s", srv.Cfg.Token)
-		_, after, found := strings.Cut(s, sep)
 		filePath := getFileResp.Result.File_path
-		if found {
-			filePath = after
-		}
+		filePath = strings.TrimPrefix(filePath, fmt.Sprintf("/var/lib/telegram-bot-api/%s", srv.Cfg.Token))
 		tgFileUrl := fmt.Sprintf("%s/file/bot%s/%s", srv.Cfg.TgLocUrl, srv.Cfg.Token, filePath)
 		err = files.DownloadFile(fileNameInServer, tgFileUrl)
 		if err != nil {
@@ -360,13 +355,8 @@ func (srv *TgService) sendChPostAsVamp_Video_or_Photo(vampBot entity.Bot, m mode
 
 	_, err = os.Stat(fileNameInServer)
 	if errors.Is(err, os.ErrNotExist) {
-		s := getFileResp.Result.File_path
-		sep := fmt.Sprintf("/var/lib/telegram-bot-api/%s", srv.Cfg.Token)
-		_, after, found := strings.Cut(s, sep)
 		filePath := getFileResp.Result.File_path
-		if found {
-			filePath = after
-		}
+		filePath = strings.TrimPrefix(filePath, fmt.Sprintf("/var/lib/telegram-bot-api/%s", srv.Cfg.Token))
 		tgFileUrl := fmt.Sprintf("%s/file/bot%s/%s", srv.Cfg.TgLocUrl, srv.Cfg.Token, filePath)
 		err = files.DownloadFile(fileNameInServer, tgFileUrl)
 		if err != nil {
