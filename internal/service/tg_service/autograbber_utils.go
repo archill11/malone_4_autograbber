@@ -91,7 +91,7 @@ func (srv *TgService) PrepareEntities(entities []models.MessageEntity, messText 
 			entities[i].Url = newUrl
 		}
 	}
-	lichka := vampBot.Lichka
+	lichka := srv.AddAt(vampBot.Lichka)
 	if lichka != "" {
 		messText = strings.Replace(messText, "@lichka", lichka, -1)
 	}

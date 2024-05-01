@@ -25,7 +25,7 @@ func (srv *TgService) Donor_HandleChannelPost(m models.Update) error {
 
 	err := srv.Donor_addChannelPost(m)
 	if err != nil {
-		srv.SendMessage(fromId, ERR_MSG + err.Error())
+		srv.SendMessage(fromId, ERR_MSG)
 		srv.SendMessage(fromId, err.Error())
 		return err
 	}
