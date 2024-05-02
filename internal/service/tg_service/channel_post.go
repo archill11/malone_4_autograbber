@@ -333,6 +333,10 @@ func (srv *TgService) sendChPostAsVamp_Video_or_Photo(vampBot entity.Bot, m mode
 		futureVideoJson["caption"] = newCaption
 	}
 
+	if m.ChannelPost.HasMediaSpoiler {
+		futureVideoJson["has_media_spoiler"] = "true"
+	}
+
 	fileId := ""
 	if postType == "photo" && len(m.ChannelPost.Photo) > 0 {
 		fileId = m.ChannelPost.Photo[len(m.ChannelPost.Photo)-1].FileId

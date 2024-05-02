@@ -67,6 +67,7 @@ type Message struct {
 	VideoNote            *VideoNote      `json:"video_note"`
 	IsTopicMessage       *bool           `json:"is_topic_message"`
 	ReplyMarkup          *InlineKeyboardMarkup `json:"reply_markup"`
+	HasMediaSpoiler      bool           `json:"has_media_spoiler"`
 }
 
 type ReplyToMessage struct {
