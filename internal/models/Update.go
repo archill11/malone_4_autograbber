@@ -54,6 +54,7 @@ type Message struct {
 	SenderChat           *Chat           `json:"sender_chat"`
 	Entities             []MessageEntity `json:"entities"`
 	Animation            *Animation      `json:"animation"`
+	Voice                *Voice          `json:"voice"`
 	ReplyToMessage       *ReplyToMessage `json:"reply_to_message"`
 	LeftChatMember       *User           `json:"left_chat_member"`
 	Caption              *string         `json:"caption"`
@@ -123,6 +124,14 @@ type Animation struct {
 	Height       int       `json:"height"`
 	Duration     int       `json:"duration"`
 	Thumbnail    PhotoSize `json:"thumbnail"`
+	FileSize     int       `json:"file_size"`
+}
+
+type Voice struct {
+	FileId       string    `json:"file_id"`
+	FileUniqueId string    `json:"file_unique_id"`
+	Duration     int       `json:"duration"`
+	MimeType     string    `json:"mime_type"`
 	FileSize     int       `json:"file_size"`
 }
 

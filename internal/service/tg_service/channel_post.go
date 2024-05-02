@@ -131,6 +131,10 @@ func (srv *TgService) sendChPostAsVamp(vampBot entity.Bot, m models.Update) erro
 	if m.ChannelPost.Animation != nil {
 		return srv.sendChPostAsVamp_Video_or_Photo(vampBot, m, "animation")
 	}
+	//////////////// если голосовое
+	if m.ChannelPost.Voice != nil {
+		return srv.sendChPostAsVamp_Video_or_Photo(vampBot, m, "voice")
+	}
 
 	//////////////// если просто текст
 	futureMesJson := map[string]any{
@@ -338,6 +342,8 @@ func (srv *TgService) sendChPostAsVamp_Video_or_Photo(vampBot entity.Bot, m mode
 		futureVideoJson["height"] = strconv.Itoa(m.ChannelPost.Video.Height)
 	} else if m.ChannelPost.Animation != nil {
 		fileId = m.ChannelPost.Animation.FileId
+	} else if m.ChannelPost.Voice != nil {
+		fileId = m.ChannelPost.Voice.FileId
 	}
 
 	getFileResp, err := srv.GetFile(fileId)
@@ -374,16 +380,14 @@ func (srv *TgService) sendChPostAsVamp_Video_or_Photo(vampBot entity.Bot, m mode
 		method = "sendPhoto"
 	} else if postType == "animation" {
 		method = "sendAnimation"
+	} else if postType == "voice" {
+		method = "sendVoice"
 	}
-	rrres, err := http.Post(
-		fmt.Sprintf(srv.Cfg.TgLocEndp, vampBot.Token, method),
-		cf,
-		body,
-	)
+	url := fmt.Sprintf(srv.Cfg.TgLocEndp, vampBot.Token, method)
+	rrres, err := http.Post(url, cf, body)
 	if err != nil {
 		return fmt.Errorf("sendChPostAsVamp_Video_or_Photo Post err: %v", err)
 	}
-
 	defer rrres.Body.Close()
 	var cAny2 models.SendMediaResp
 	if err := json.NewDecoder(rrres.Body).Decode(&cAny2); err != nil && err != io.EOF {
