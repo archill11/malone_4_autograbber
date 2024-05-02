@@ -61,6 +61,32 @@ func CreateForm(form map[string]string) (string, io.Reader, error) {
 	return mp.FormDataContentType(), body, nil
 }
 
+func CreateFormV2(formFiles map[string]string, formFields map[string]string) (string, io.Reader, error) {
+	fmt.Println("CreateFormV2::", formFields)
+	body := new(bytes.Buffer)
+	mp := multipart.NewWriter(body)
+	defer mp.Close()
+	for key, val := range formFiles {
+		if strings.HasPrefix(val, "@") {
+			val = val[1:]
+			file, err := os.Open(val)
+			if err != nil {
+				return "", nil, fmt.Errorf("CreateFormV2 Open err: %v", err)
+			}
+			defer file.Close()
+			part, err := mp.CreateFormFile(key, val)
+			if err != nil {
+				return "", nil, fmt.Errorf("CreateFormV2 CreateFormFile err: %v", err)
+			}
+			io.Copy(part, file)
+		}
+	}
+	for key, val := range formFields {
+		mp.WriteField(key, val)
+	}
+	return mp.FormDataContentType(), body, nil
+}
+
 // delete all files from dir
 func RemoveContentsFromDir(dir string) error {
 	d, err := os.Open(dir)
