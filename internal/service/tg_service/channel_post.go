@@ -524,7 +524,8 @@ func (s *TgService) sendChPostAsVamp_Media_Group(mediaGroupId string) error {
 	if len(allVampBots) == 0 {
 		return fmt.Errorf("sendChPostAsVamp_Media_Group GetAllVampBots err: len(allVampBots) == 0")
 	}
-
+	var okSend int
+	var notOkSend int
 	for _, vampBot := range allVampBots {
 		if vampBot.ChId == 0 || vampBot.IsDisable == 1 {
 			continue
@@ -592,15 +593,19 @@ func (s *TgService) sendChPostAsVamp_Media_Group(mediaGroupId string) error {
 		s.l.Info("sendChPostAsVamp_Media_Group: sending media-group", zap.Any("bot ch link", vampBot.ChLink), zap.Any("media_json", mediaJson))
 		cAny223, err := s.SendMediaGroup(media_json, vampBot.Token)
 		if err != nil {
+			notOkSend++
 			s.l.Error(fmt.Sprintf("sendChPostAsVamp_Media_Group: SendMediaGroup err: %v", err))
 		}
 		s.l.Info("sendChPostAsVamp_Media_Group SendMediaGroup response", zap.Any("bot ch link", vampBot.ChLink), zap.Any("response", cAny223))
-
+		
 		for _, v := range cAny223.Result {
 			if v.MessageId == 0 {
 				continue
 			}
-			for _, med := range mediaArr {
+			for i, med := range mediaArr {
+				if i == 0 {
+					okSend++
+				}
 				err = s.db.AddNewPost(vampBot.ChId, v.MessageId, med.Donor_message_id, v.Caption)
 				if err != nil {
 					s.l.Error(fmt.Sprintf("sendChPostAsVamp_Media_Group AddNewPost err: %v", err))
@@ -608,6 +613,16 @@ func (s *TgService) sendChPostAsVamp_Media_Group(mediaGroupId string) error {
 			}
 		}
 	}
+
+	var reportMess bytes.Buffer
+	reportMess.WriteString(fmt.Sprintf("Всего ботов: %d\n", len(allVampBots)))
+	reportMess.WriteString(fmt.Sprintf("Успешно отправлено: %d\n", okSend))
+	reportMess.WriteString(fmt.Sprintf("Неуспешно: %d\n", notOkSend))
+	donorBot, err := s.db.GetBotInfoByToken(s.Cfg.Token)
+	if err != nil {
+		s.l.Error(fmt.Errorf("sendChPostAsVamp_Media_Group GetBotInfoByToken err: %v", err).Error())
+	}
+	s.SendMessage(donorBot.ChId, reportMess.String())
 
 	delete(s.MediaStore.MediaGroups, mediaGroupId)
 	s.l.Info("sendChPostAsVamp_Media_Group end sending", zap.Any("len s.MediaStore.MediaGroups", len(s.MediaStore.MediaGroups)), zap.Any("s.MediaStore.MediaGroups", s.MediaStore.MediaGroups))
