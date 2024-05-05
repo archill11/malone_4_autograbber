@@ -614,6 +614,9 @@ func (s *TgService) sendChPostAsVamp_Media_Group(mediaGroupId string) error {
 		}
 	}
 
+	delete(s.MediaStore.MediaGroups, mediaGroupId)
+	s.l.Info("sendChPostAsVamp_Media_Group end sending", zap.Any("len s.MediaStore.MediaGroups", len(s.MediaStore.MediaGroups)), zap.Any("s.MediaStore.MediaGroups", s.MediaStore.MediaGroups))
+
 	var reportMess bytes.Buffer
 	reportMess.WriteString(fmt.Sprintf("Всего ботов: %d\n", len(allVampBots)))
 	reportMess.WriteString(fmt.Sprintf("Успешно отправлено: %d\n", okSend))
@@ -624,7 +627,5 @@ func (s *TgService) sendChPostAsVamp_Media_Group(mediaGroupId string) error {
 	}
 	s.SendMessage(donorBot.ChId, reportMess.String())
 
-	delete(s.MediaStore.MediaGroups, mediaGroupId)
-	s.l.Info("sendChPostAsVamp_Media_Group end sending", zap.Any("len s.MediaStore.MediaGroups", len(s.MediaStore.MediaGroups)), zap.Any("s.MediaStore.MediaGroups", s.MediaStore.MediaGroups))
 	return nil
 }
