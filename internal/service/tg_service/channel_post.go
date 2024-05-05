@@ -96,6 +96,10 @@ func (srv *TgService) Donor_addChannelPost(m models.Update) error {
 	if err != nil {
 		return fmt.Errorf("Donor_addChannelPost GetAllVampBots err: %v", err)
 	}
+	var reportMess bytes.Buffer
+	reportMess.WriteString(fmt.Sprintf("Всего ботов: %d", len(allVampBots)))
+	var okSend int
+	var notOkSend int
 	for i, vampBot := range allVampBots {
 		if vampBot.ChId == 0 || vampBot.IsDisable == 1 {
 			continue
@@ -103,6 +107,7 @@ func (srv *TgService) Donor_addChannelPost(m models.Update) error {
 		srv.l.Info("Donor_addChannelPost", zap.Any("bot index in arr", i), zap.Any("bot ch link", vampBot.ChLink))
 		err := srv.sendChPostAsVamp(vampBot, m)
 		if err != nil {
+			notOkSend++
 			if strings.Contains(err.Error(), "Bad Request: invalid file_id") {
 				srv.l.Error("Donor_addChannelPost: sendChPostAsVamp", zap.Error(err))
 				srv.SendMessage(channel_id, err.Error())
@@ -110,8 +115,12 @@ func (srv *TgService) Donor_addChannelPost(m models.Update) error {
 				return nil
 			}
 		}
+		okSend++
 		time.Sleep(time.Second)
 	}
+	reportMess.WriteString(fmt.Sprintf("Успешно отправлено: %d", okSend))
+	reportMess.WriteString(fmt.Sprintf("Неуспешно: %d", notOkSend))
+	srv.SendMessage(channel_id, reportMess.String())
 	srv.l.Info("Donor_addChannelPost: end")
 
 	return nil
