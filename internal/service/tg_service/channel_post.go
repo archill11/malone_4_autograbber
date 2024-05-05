@@ -104,6 +104,7 @@ func (srv *TgService) Donor_addChannelPost(m models.Update) error {
 		err := srv.sendChPostAsVamp(vampBot, m)
 		if err != nil {
 			srv.l.Error("Donor_addChannelPost: sendChPostAsVamp", zap.Error(err))
+			srv.SendMessage(channel_id, err.Error())
 		}
 		time.Sleep(time.Second)
 	}
@@ -308,6 +309,7 @@ func (srv *TgService) sendChPostAsVamp_Video_or_Photo(vampBot entity.Bot, m mode
 		json_data, err := json.Marshal(newInlineKeyboardMarkup)
 		if err != nil {
 			srv.l.Error("sendChPostAsVamp_Video_or_Photo Marshal err", zap.Error(err), zap.Any("newInlineKeyboardMarkup", newInlineKeyboardMarkup))
+			return fmt.Errorf("sendChPostAsVamp_Video_or_Photo Marshal err: %v", err)
 		}
 		futureVideoJson["reply_markup"] = string(json_data)
 	}
@@ -404,6 +406,7 @@ func (srv *TgService) sendChPostAsVamp_Video_or_Photo(vampBot entity.Bot, m mode
 		}
 	} else {
 		srv.l.Info(fmt.Sprintf("sendChPostAsVamp_Video_or_Photo: Post resp err: %+v", cAny2))
+		return fmt.Errorf("sendChPostAsVamp_Video_or_Photo: Post resp err: %+v", cAny2)
 	}
 	return nil
 }
