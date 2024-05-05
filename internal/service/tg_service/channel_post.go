@@ -113,8 +113,9 @@ func (srv *TgService) Donor_addChannelPost(m models.Update) error {
 				srv.l.Info("Donor_addChannelPost: end ERROR")
 				return nil
 			}
+		} else {
+			okSend++
 		}
-		okSend++
 		time.Sleep(time.Second)
 	}
 	srv.l.Info("Donor_addChannelPost: end")
