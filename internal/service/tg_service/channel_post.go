@@ -97,7 +97,7 @@ func (srv *TgService) Donor_addChannelPost(m models.Update) error {
 		return fmt.Errorf("Donor_addChannelPost GetAllVampBots err: %v", err)
 	}
 	var reportMess bytes.Buffer
-	reportMess.WriteString(fmt.Sprintf("Всего ботов: %d", len(allVampBots)))
+	reportMess.WriteString(fmt.Sprintf("Всего ботов: %d\n", len(allVampBots)))
 	var okSend int
 	var notOkSend int
 	for i, vampBot := range allVampBots {
@@ -118,8 +118,8 @@ func (srv *TgService) Donor_addChannelPost(m models.Update) error {
 		okSend++
 		time.Sleep(time.Second)
 	}
-	reportMess.WriteString(fmt.Sprintf("Успешно отправлено: %d", okSend))
-	reportMess.WriteString(fmt.Sprintf("Неуспешно: %d", notOkSend))
+	reportMess.WriteString(fmt.Sprintf("Успешно отправлено: %d\n", okSend))
+	reportMess.WriteString(fmt.Sprintf("Неуспешно: %d\n", notOkSend))
 	srv.SendMessage(channel_id, reportMess.String())
 	srv.l.Info("Donor_addChannelPost: end")
 
