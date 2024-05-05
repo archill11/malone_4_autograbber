@@ -105,6 +105,7 @@ func (srv *TgService) Donor_addChannelPost(m models.Update) error {
 		if err != nil {
 			srv.l.Error("Donor_addChannelPost: sendChPostAsVamp", zap.Error(err))
 			srv.SendMessage(channel_id, err.Error())
+			break
 		}
 		time.Sleep(time.Second)
 	}
