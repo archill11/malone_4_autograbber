@@ -19,7 +19,7 @@ func (srv *TgService) GetUpdates(offset, timeout int, token string) ([]models.Up
 		return []models.Update{}, fmt.Errorf("GetUpdates Marshal err: %v", err)
 	}
 	resp, err := http.Post(
-		fmt.Sprintf(srv.Cfg.TgEndp, token, "getUpdates"),
+		fmt.Sprintf(srv.Cfg.TgLocEndp, token, "getUpdates"),
 		"application/json",
 		bytes.NewBuffer(json_data),
 	)
@@ -139,7 +139,7 @@ func (srv *TgService) SendMessage(chat int, mess string) error {
 
 func (srv *TgService) SendMediaGroup(json_data []byte, token string) (models.SendMediaGroupResp, error) {
 	resp, err := http.Post(
-		fmt.Sprintf(srv.Cfg.TgEndp, token, "sendMediaGroup"),
+		fmt.Sprintf(srv.Cfg.TgLocEndp, token, "sendMediaGroup"),
 		"application/json",
 		bytes.NewBuffer(json_data),
 	)
