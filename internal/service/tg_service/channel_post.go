@@ -103,10 +103,12 @@ func (srv *TgService) Donor_addChannelPost(m models.Update) error {
 		srv.l.Info("Donor_addChannelPost", zap.Any("bot index in arr", i), zap.Any("bot ch link", vampBot.ChLink))
 		err := srv.sendChPostAsVamp(vampBot, m)
 		if err != nil {
-			srv.l.Error("Donor_addChannelPost: sendChPostAsVamp", zap.Error(err))
-			srv.SendMessage(channel_id, err.Error())
-			srv.l.Info("Donor_addChannelPost: end ERROR")
-			return nil
+			if strings.Contains(err.Error(), "Bad Request: invalid file_id") {
+				srv.l.Error("Donor_addChannelPost: sendChPostAsVamp", zap.Error(err))
+				srv.SendMessage(channel_id, err.Error())
+				srv.l.Info("Donor_addChannelPost: end ERROR")
+				return nil
+			}
 		}
 		time.Sleep(time.Second)
 	}
