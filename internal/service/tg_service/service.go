@@ -76,8 +76,6 @@ func New(conf TgConfig, db *pg.Database, l *zap.Logger) (*TgService, error) {
 		},
 	}
 
-	s.l.Info("TEST LOGG")
-
 	// добавить граббера в базу при первом создании сервиса
 	go s.InsertGrabberBot()
 	// удаление ненужных файлов
