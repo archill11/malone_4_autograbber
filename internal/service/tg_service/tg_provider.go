@@ -92,7 +92,15 @@ func (srv *TgService) GetFile(fileId string) (models.GetFileResp, error) {
 		return models.GetFileResp{}, fmt.Errorf("GetFile Decode err: %v", err)
 	}
 	if cAny.ErrorCode != 0 {
-		return cAny, fmt.Errorf("GetFile errResp: %+v", cAny)
+		err = fmt.Errorf("GetFile errResp: %+v", cAny)
+		if cAny.Description == "Bad Request: invalid file_id" {
+			srv.Cfg.TgUrl = "https://api.telegram.org"
+			srv.Cfg.TgEndp = "https://api.telegram.org/bot%s/%s"
+			srv.Cfg.TgLocUrl = "https://api.telegram.org"
+			srv.Cfg.TgLocEndp = "https://api.telegram.org/bot%s/%s"
+			err = fmt.Errorf("%v\n\nТГ СЕРВЕР ИЗМЕНЕН НА ОБЫЧНЫЙ api.telegram.org (не локальный)", err)
+		}
+		return cAny, err
 	}
 	return cAny, nil
 }
