@@ -99,8 +99,15 @@ func (srv *TgService) Donor_addChannelPost(m models.Update) error {
 	
 	var okSend int
 	var notOkSend int
+	var IsDisable int
+	var ChId0 int
 	for i, vampBot := range allVampBots {
-		if vampBot.ChId == 0 || vampBot.IsDisable == 1 {
+		if vampBot.ChId == 0 {
+			ChId0++
+			continue
+		}
+		if vampBot.IsDisable == 1 {
+			IsDisable++
 			continue
 		}
 		srv.l.Info("Donor_addChannelPost", zap.Any("bot index in arr", i), zap.Any("bot ch link", vampBot.ChLink))
@@ -124,6 +131,12 @@ func (srv *TgService) Donor_addChannelPost(m models.Update) error {
 	reportMess.WriteString(fmt.Sprintf("Всего ботов: %d\n", len(allVampBots)))
 	reportMess.WriteString(fmt.Sprintf("Успешно отправлено: %d\n", okSend))
 	reportMess.WriteString(fmt.Sprintf("Неуспешно: %d\n", notOkSend))
+	if ChId0 != 0 {
+		reportMess.WriteString(fmt.Sprintf("Без подвяз. канала: %d\n", ChId0))
+	}
+	if IsDisable != 0 {
+		reportMess.WriteString(fmt.Sprintf("Отключены от рассылки: %d\n", IsDisable))
+	}
 	srv.SendMessage(channel_id, reportMess.String())
 
 	return nil
@@ -527,8 +540,15 @@ func (s *TgService) sendChPostAsVamp_Media_Group(mediaGroupId string) error {
 	}
 	var okSend int
 	var notOkSend int
+	var IsDisable int
+	var ChId0 int
 	for _, vampBot := range allVampBots {
-		if vampBot.ChId == 0 || vampBot.IsDisable == 1 {
+		if vampBot.ChId == 0 {
+			ChId0++
+			continue
+		}
+		if vampBot.IsDisable == 1 {
+			IsDisable++
 			continue
 		}
 		for i, media := range mediaArr {
@@ -622,6 +642,12 @@ func (s *TgService) sendChPostAsVamp_Media_Group(mediaGroupId string) error {
 	reportMess.WriteString(fmt.Sprintf("Всего ботов: %d\n", len(allVampBots)))
 	reportMess.WriteString(fmt.Sprintf("Успешно отправлено: %d\n", okSend))
 	reportMess.WriteString(fmt.Sprintf("Неуспешно: %d\n", notOkSend))
+	if ChId0 != 0 {
+		reportMess.WriteString(fmt.Sprintf("Без подвяз. канала: %d\n", ChId0))
+	}
+	if IsDisable != 0 {
+		reportMess.WriteString(fmt.Sprintf("Отключены от рассылки: %d\n", IsDisable))
+	}
 	donorBot, err := s.db.GetBotInfoByToken(s.Cfg.Token)
 	if err != nil {
 		s.l.Error(fmt.Errorf("sendChPostAsVamp_Media_Group GetBotInfoByToken err: %v", err).Error())
