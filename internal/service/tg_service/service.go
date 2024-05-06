@@ -339,6 +339,13 @@ func (srv *TgService) AlertScamBots() {
 				errMess := fmt.Sprintf("AlertScamBots: GetChat token-%s err: %v", bot.Token, err)
 				srv.l.Error(errMess)
 				srv.SendMessage(donorBot.ChId, errMess)
+				var logBotMess bytes.Buffer
+				logBotMess.WriteString(fmt.Sprintf("%s\n", srv.AddAt(bot.Username)))
+				logBotMess.WriteString(fmt.Sprintf("%s\n", bot.Token))
+				logBotMess.WriteString(fmt.Sprintf("%s\n", bot.ChLink))
+				grLink, _ := srv.db.GetGroupLinkById(bot.GroupLinkId)
+				logBotMess.WriteString(fmt.Sprintf("group_link: %d, %s - %s\n", bot.GroupLinkId, grLink.Title, grLink.Link))
+				srv.SendMessage(donorBot.ChId, logBotMess.String())
 			}
 			if strings.Contains(resp.Result.Description, "this account as a scam or a fake") {
 				var mess bytes.Buffer
