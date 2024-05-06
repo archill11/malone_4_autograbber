@@ -130,7 +130,9 @@ func (srv *TgService) Donor_addChannelPost(m models.Update) error {
 	var reportMess bytes.Buffer
 	reportMess.WriteString(fmt.Sprintf("Всего ботов: %d\n", len(allVampBots)))
 	reportMess.WriteString(fmt.Sprintf("Успешно отправлено: %d\n", okSend))
-	reportMess.WriteString(fmt.Sprintf("Неуспешно: %d\n", notOkSend))
+	if notOkSend != 0 {
+		reportMess.WriteString(fmt.Sprintf("Неуспешно: %d\n", notOkSend))
+	}
 	if ChId0 != 0 {
 		reportMess.WriteString(fmt.Sprintf("Без подвяз. канала: %d\n", ChId0))
 	}
@@ -641,7 +643,9 @@ func (s *TgService) sendChPostAsVamp_Media_Group(mediaGroupId string) error {
 	var reportMess bytes.Buffer
 	reportMess.WriteString(fmt.Sprintf("Всего ботов: %d\n", len(allVampBots)))
 	reportMess.WriteString(fmt.Sprintf("Успешно отправлено: %d\n", okSend))
-	reportMess.WriteString(fmt.Sprintf("Неуспешно: %d\n", notOkSend))
+	if notOkSend != 0 {
+		reportMess.WriteString(fmt.Sprintf("Неуспешно: %d\n", notOkSend))
+	}
 	if ChId0 != 0 {
 		reportMess.WriteString(fmt.Sprintf("Без подвяз. канала: %d\n", ChId0))
 	}
