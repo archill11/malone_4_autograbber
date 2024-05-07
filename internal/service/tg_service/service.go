@@ -346,6 +346,7 @@ func (srv *TgService) AlertScamBots() {
 				grLink, _ := srv.db.GetGroupLinkById(bot.GroupLinkId)
 				logBotMess.WriteString(fmt.Sprintf("group_link: %d, %s - %s\n", bot.GroupLinkId, grLink.Title, grLink.Link))
 				srv.SendMessage(donorBot.ChId, logBotMess.String())
+				srv.db.DeleteBot(bot.Id)
 			}
 			if strings.Contains(resp.Result.Description, "this account as a scam or a fake") {
 				var mess bytes.Buffer
