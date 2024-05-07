@@ -340,6 +340,7 @@ func (srv *TgService) AlertScamBots() {
 				srv.l.Error(errMess)
 				srv.SendMessage(donorBot.ChId, errMess)
 				var logBotMess bytes.Buffer
+				logBotMess.WriteString("удален бот")
 				logBotMess.WriteString(fmt.Sprintf("%s\n", srv.AddAt(bot.Username)))
 				logBotMess.WriteString(fmt.Sprintf("%s\n", bot.Token))
 				logBotMess.WriteString(fmt.Sprintf("%s\n", bot.ChLink))
