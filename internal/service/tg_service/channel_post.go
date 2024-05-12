@@ -621,14 +621,14 @@ func (s *TgService) sendChPostAsVamp_Media_Group(mediaGroupId string) error {
 		}
 		s.l.Info("sendChPostAsVamp_Media_Group SendMediaGroup response", zap.Any("bot ch link", vampBot.ChLink), zap.Any("response", cAny223))
 		
-		for _, v := range cAny223.Result {
+		for i, v := range cAny223.Result {
+			if i == 0 {
+				okSend++
+			}
 			if v.MessageId == 0 {
 				continue
 			}
-			for i, med := range mediaArr {
-				if i == 0 {
-					okSend++
-				}
+			for _, med := range mediaArr {
 				err = s.db.AddNewPost(vampBot.ChId, v.MessageId, med.Donor_message_id, v.Caption)
 				if err != nil {
 					s.l.Error(fmt.Sprintf("sendChPostAsVamp_Media_Group AddNewPost err: %v", err))
