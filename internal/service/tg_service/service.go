@@ -19,10 +19,6 @@ var (
 	mskLoc, _ = time.LoadLocation("Europe/Moscow")
 )
 
-const (
-	StoreKey = "example"
-)
-
 type (
 	UpdateConfig struct {
 		Offset  int
