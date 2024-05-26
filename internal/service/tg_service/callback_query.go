@@ -234,12 +234,8 @@ func (srv *TgService) HandleCallbackQuery(m models.Update) error {
 	}
 
 	if strings.HasPrefix(cq.Data, "change_auto-acc-media-gr_to_") { // change_auto-acc-media-gr_to_0_btn
-		CfgVal := my_regex.GetStringInBetween(cq.Data, "change_auto-acc-media-gr_to_", "_btn")
-		newVal := "0"
-		if CfgVal == "0" {
-			newVal = "1"
-		}
-		err := srv.CQ_change_auto_acc_media_gr_to_(m, "auto-acc-media-gr", newVal)
+		newCfgVal := my_regex.GetStringInBetween(cq.Data, "change_auto-acc-media-gr_to_", "_btn")
+		err := srv.CQ_change_auto_acc_media_gr_to_(m, "auto-acc-media-gr", newCfgVal)
 		if err != nil {
 			srv.SendMessage(fromId, ERR_MSG)
 			srv.SendMessage(fromId, err.Error())
