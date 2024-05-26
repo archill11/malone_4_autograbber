@@ -243,8 +243,10 @@ func (srv *TgService) HandleCallbackQuery(m models.Update) error {
 		if err != nil {
 			srv.SendMessage(fromId, ERR_MSG)
 			srv.SendMessage(fromId, err.Error())
+			return err
 		}
-		return err
+		srv.showCfgPanel(fromId)
+		return nil
 	}
 
 	return nil
