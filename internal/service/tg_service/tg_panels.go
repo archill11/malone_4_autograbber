@@ -101,7 +101,7 @@ func (srv *TgService) showCfgPanel(chatId int) error {
 	rm.WriteString(`]}`)
 
 	var mess bytes.Buffer
-	mess.WriteString(fmt.Sprintf(`авто подтвержение: %s\n`, cfgVal.Val))
+	mess.WriteString(fmt.Sprintf("авто подтвержение: %s\n", cfgVal.Val))
 
 	json_data, err := json.Marshal(map[string]any{
 		"chat_id": strconv.Itoa(chatId),

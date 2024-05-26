@@ -233,6 +233,20 @@ func (srv *TgService) HandleCallbackQuery(m models.Update) error {
 		return err
 	}
 
+	if strings.HasPrefix(cq.Data, "change_auto-acc-media-gr_to_") { // change_auto-acc-media-gr_to_0_btn
+		CfgVal := my_regex.GetStringInBetween(cq.Data, "change_auto-acc-media-gr_to_", "_btn")
+		newVal := "0"
+		if CfgVal == "0" {
+			newVal = "1"
+		}
+		err := srv.CQ_change_auto_acc_media_gr_to_(m, "auto-acc-media-gr", newVal)
+		if err != nil {
+			srv.SendMessage(fromId, ERR_MSG)
+			srv.SendMessage(fromId, err.Error())
+		}
+		return err
+	}
+
 	return nil
 }
 
@@ -585,5 +599,19 @@ func (srv *TgService) CQ_change_domen_btn(m models.Update) error {
 	}
 
 	srv.SendForceReply(fromId, CHANGE_DOMEN_MSG)
+	return nil
+}
+
+func (srv *TgService) CQ_change_auto_acc_media_gr_to_(m models.Update, cfgId, CfgVal string) error {
+	cq := m.CallbackQuery
+	fromId := cq.From.Id
+	fromUsername := cq.From.UserName
+	srv.l.Info(fmt.Sprintf("CQ_change_auto_acc_media_gr_to_: fromId: %d fromUsername: %s", fromId, fromUsername))
+
+	err := srv.db.EditCfgVal(cfgId, CfgVal)
+	if err != nil {
+		srv.l.Error(fmt.Sprintf("CQ_change_auto_acc_media_gr_to_ GetUserById err: %v", err))
+		return err
+	}
 	return nil
 }
