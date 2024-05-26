@@ -608,7 +608,7 @@ func (srv *TgService) CQ_change_auto_acc_media_gr_to_(m models.Update, cfgId, Cf
 	cq := m.CallbackQuery
 	fromId := cq.From.Id
 	fromUsername := cq.From.UserName
-	srv.l.Info(fmt.Sprintf("CQ_change_auto_acc_media_gr_to_: fromId: %d fromUsername: %s", fromId, fromUsername))
+	srv.l.Info(fmt.Sprintf("CQ_change_auto_acc_media_gr_to_: fromId: %d fromUsername: %s, cfgId: %s, CfgVal: %s", fromId, fromUsername, cfgId, CfgVal))
 
 	err := srv.db.EditCfgVal(cfgId, CfgVal)
 	if err != nil {
