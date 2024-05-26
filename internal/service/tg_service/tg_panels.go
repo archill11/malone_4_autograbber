@@ -1,7 +1,9 @@
 package tg_service
 
 import (
+	"bytes"
 	"encoding/json"
+	"fmt"
 	"strconv"
 )
 
@@ -75,6 +77,36 @@ func (srv *TgService) showAdminPanelRoles(chatId int) error {
 			[{ "text": "➕ Добавить админа", "callback_data": "add_admin_btn" }],
 			[{ "text": "🗑 Удалить админа", "callback_data": "del_admin_btn" }]
 		]}`,
+	})
+	if err != nil {
+		return err
+	}
+	err = srv.sendData(json_data, "sendMessage")
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (srv *TgService) showCfgPanel(chatId int) error {
+	var rm bytes.Buffer
+	rm.WriteString(`{"inline_keyboard" : [`)
+	cfgVal, _ := srv.db.GetCfgValById("auto-acc-media-gr")
+	if cfgVal.Val == "1" {
+		rm.WriteString(`[{ "text": "выкл авто подтвержение", "callback_data": "change_auto-acc-media-gr_to_0_btn" }],`)
+	} else {
+		rm.WriteString(`[{ "text": "вкл авто подтвержение", "callback_data": "change_auto-acc-media-gr_to_1_btn" }],`)
+	}
+	rm.WriteString(`[{ "text": "________", "callback_data": "_____" }]`)
+	rm.WriteString(`]}`)
+
+	var mess bytes.Buffer
+	mess.WriteString(fmt.Sprintf(`авто подтвержение: %s\n`, cfgVal.Val))
+
+	json_data, err := json.Marshal(map[string]any{
+		"chat_id": strconv.Itoa(chatId),
+		"text":    mess.String(),
+		"reply_markup": rm.String(),
 	})
 	if err != nil {
 		return err

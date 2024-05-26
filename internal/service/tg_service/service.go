@@ -422,17 +422,27 @@ func (srv *TgService) AcceptChPostByAdmin() {
 				srv.l.Error(fmt.Sprintf("AcceptChPostByAdmin: sendData(sendMediaGroup) err: %v", err))
 			}
 
-			media_json, err = json.Marshal(map[string]any{
-				"chat_id":      strconv.Itoa(donorBot.ChId),
-				"text":         "подтвердите сообщение сверху",
-				"reply_markup": fmt.Sprintf(`{ "inline_keyboard" : [[{ "text": "разослать по каналам", "callback_data": "accept_ch_post_%s_by_admin" }]] }`, mediaGroupId),
-			})
-			if err != nil {
-				srv.l.Error(fmt.Sprintf("AcceptChPostByAdmin: Marshal media_json err: %v", err))
-			}
-			err = srv.sendData(media_json, "sendMessage")
-			if err != nil {
-				srv.l.Error(fmt.Sprintf("AcceptChPostByAdmin: sendData(sendMessage) err: %v", err))
+			cfgVal, _ := srv.db.GetCfgValById("auto-acc-media-gr")
+			if cfgVal.Val == "1" {
+				m := models.Update{
+					CallbackQuery: &models.CallbackQuery{
+						From: models.User{Id: 0, UserName: "auto"},
+					},
+				}
+				srv.CQ_accept_ch_post_by_admin(m, mediaGroupId)
+			} else {
+				media_json, err = json.Marshal(map[string]any{
+					"chat_id":      strconv.Itoa(donorBot.ChId),
+					"text":         "подтвердите сообщение сверху",
+					"reply_markup": fmt.Sprintf(`{ "inline_keyboard" : [[{ "text": "разослать по каналам", "callback_data": "accept_ch_post_%s_by_admin" }]] }`, mediaGroupId),
+				})
+				if err != nil {
+					srv.l.Error(fmt.Sprintf("AcceptChPostByAdmin: Marshal media_json err: %v", err))
+				}
+				err = srv.sendData(media_json, "sendMessage")
+				if err != nil {
+					srv.l.Error(fmt.Sprintf("AcceptChPostByAdmin: sendData(sendMessage) err: %v", err))
+				}
 			}
 
 			mediaArr = mediaArr[0:0]

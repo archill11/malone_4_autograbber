@@ -26,6 +26,11 @@ func (srv *TgService) HandleMessage(m models.Update) error {
 		return err
 	}
 
+	if msgText == "/cfg" {
+		err := srv.M_cfg(m)
+		return err
+	}
+
 	if msgText == "/start" {
 		err := srv.M_start(m)
 		return err
@@ -116,6 +121,29 @@ func (srv *TgService) M_sup_admin(m models.Update) error {
 		return nil
 	}
 	err = srv.showAdminPanelRoles(fromId)
+
+	return err
+}
+
+func (srv *TgService) M_cfg(m models.Update) error {
+	fromId := m.Message.Chat.Id
+	msgText := m.Message.Text
+	fromUsername := m.Message.From.UserName
+	srv.l.Info(fmt.Sprintf("M_cfg: fromId: %d fromUsername: %s, msgText: %s", fromId, fromUsername, msgText))
+
+	u, err := srv.db.GetUserById(fromId)
+	if err != nil {
+		return err
+	}
+	if u.Id == 0 {
+		srv.SendMessage(fromId, "Нажмите сначала /start")
+		return nil
+	}
+	if u.IsAdmin == 0 {
+		srv.SendMessage(fromId, "___")
+		return nil
+	}
+	err = srv.showCfgPanel(fromId)
 
 	return err
 }
