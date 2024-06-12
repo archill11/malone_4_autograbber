@@ -18,7 +18,7 @@ func (srv *TgService) Donor_HandleEditedChannelPost(m models.Update) error {
 	// msgText := m.Message.Text
 	// userFirstName := m.Message.From.FirstName
 	// userUserName := m.Message.From.UserName
-	srv.l.Info("Donor_HandleEditedChannelPost", zap.Any("models.Update", m))
+	srv.l.Info("Donor_HandleEditedChannelPost", zap.Any("m.EditedChannelPost", *m.EditedChannelPost), zap.Any("models.Update", m))
 
 	err := srv.Donor_EditEditedChannelPost(m)
 	if err != nil {
