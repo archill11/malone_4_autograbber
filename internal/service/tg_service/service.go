@@ -33,6 +33,7 @@ type (
 		TgLocUrl    string
 		Token       string
 		BotPrefix   string
+		BotTokenForStat   string
 	}
 
 	TgService struct {

@@ -35,6 +35,7 @@ func Get() *Config {
 	}
 	c.Tg.TgLocEndp = fmt.Sprintf("%s/bot%%s/%%s", c.Tg.TgLocUrl)
 	c.Tg.Token = os.Getenv("BOT_TOKEN")
+	c.Tg.BotTokenForStat = os.Getenv("BOT_TOKEN_FOR_STAT")
 	c.Tg.BotPrefix = os.Getenv("BOT_PREFIX")
 
 	c.Server.Port = os.Getenv("APP_PORT")
