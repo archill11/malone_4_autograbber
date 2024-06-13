@@ -128,7 +128,7 @@ func (srv *TgService) Donor_addChannelPost(m models.Update) error {
 	srv.l.Info("Donor_addChannelPost: end")
 
 	var reportMess bytes.Buffer
-	reportMess.WriteString(fmt.Sprintf("Граббер псевдоним: %s\n", srv.Cfg.BotPrefix))
+	reportMess.WriteString(fmt.Sprintf("Донор псевдоним: %s\n", srv.Cfg.BotPrefix))
 	reportMess.WriteString(fmt.Sprintf("Всего ботов: %d\n", len(allVampBots)))
 	reportMess.WriteString(fmt.Sprintf("Успешно отправлено: %d\n", okSend))
 	if notOkSend != 0 {
@@ -141,7 +141,9 @@ func (srv *TgService) Donor_addChannelPost(m models.Update) error {
 		reportMess.WriteString(fmt.Sprintf("Отключены от рассылки: %d\n", IsDisable))
 	}
 	srv.SendMessage(channel_id, reportMess.String())
-	srv.SendMessageByToken(-1002248409312, reportMess.String(), "7432920637:AAE-sj24PKaX8ZtKS5zBl3ZmtSJfdW14nSw")
+	if srv.Cfg.BotPrefix != "_test"  { // стата в общий канал
+		srv.SendMessageByToken(-1002248409312, reportMess.String(), "7432920637:AAE-sj24PKaX8ZtKS5zBl3ZmtSJfdW14nSw")
+	}
 
 	return nil
 }
