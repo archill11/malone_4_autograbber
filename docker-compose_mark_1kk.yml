@@ -8,6 +8,7 @@ services:
     ports:
       - 4013:4013
     environment:
+      BOT_PREFIX: _mark_1kk
       TG_ENDPOINT: https://api.telegram.org/bot%s/%s
       APP_PORT: 4013
       PG_USER: postgres

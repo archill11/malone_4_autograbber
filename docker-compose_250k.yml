@@ -8,6 +8,7 @@ services:
     ports:
       - 4007:4007
     environment:
+      BOT_PREFIX: _250k
       TG_ENDPOINT: https://api.telegram.org/bot%s/%s
       APP_PORT: 4007
       PG_USER: postgres

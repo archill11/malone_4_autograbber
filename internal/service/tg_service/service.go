@@ -32,6 +32,7 @@ type (
 		TgLocEndp   string
 		TgLocUrl    string
 		Token       string
+		BotPrefix   string
 	}
 
 	TgService struct {

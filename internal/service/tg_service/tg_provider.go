@@ -137,6 +137,22 @@ func (srv *TgService) SendMessage(chat int, mess string) error {
 	return nil
 }
 
+func (srv *TgService) SendMessageByToken(chat int, mess string, token string) error {
+	json_data, err := json.Marshal(map[string]any{
+		"chat_id": strconv.Itoa(chat),
+		"text":    mess,
+		"link_preview_options": `{"is_disabled": true}`,
+	})
+	if err != nil {
+		return err
+	}
+	err = srv.sendData_v2(json_data, token, "sendMessage")
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (srv *TgService) SendMediaGroup(json_data []byte, token string) (models.SendMediaGroupResp, error) {
 	resp, err := http.Post(
 		fmt.Sprintf(srv.Cfg.TgLocEndp, token, "sendMediaGroup"),

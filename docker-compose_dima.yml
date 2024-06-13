@@ -8,6 +8,7 @@ services:
     ports:
       - 4003:4003
     environment:
+      BOT_PREFIX: _dima
       TG_ENDPOINT: https://api.telegram.org/bot%s/%s
       APP_PORT: 4003
       PG_USER: postgres
