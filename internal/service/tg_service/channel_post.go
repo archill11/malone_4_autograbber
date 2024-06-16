@@ -127,9 +127,14 @@ func (srv *TgService) Donor_addChannelPost(m models.Update) error {
 	}
 	srv.l.Info("Donor_addChannelPost: end")
 
+	donorBot, _ := srv.db.GetBotInfoByToken(srv.Cfg.Token)
+
+
 	var reportMess bytes.Buffer
 	reportMess.WriteString(fmt.Sprintf("Донор псевдоним: %s\n", srv.Cfg.BotPrefix))
-	reportMess.WriteString(fmt.Sprintf("Всего ботов: %d\n", len(allVampBots)))
+	reportMess.WriteString(fmt.Sprintf("Бот: %s\n", srv.AddAt(donorBot.Username)))
+	reportMess.WriteString(fmt.Sprintf("Пост: https://t.me/c/%s/%d\n", strconv.Itoa(channel_id)[4:], message_id))
+	reportMess.WriteString(fmt.Sprintf("Всего каналов: %d\n", len(allVampBots)))
 	reportMess.WriteString(fmt.Sprintf("Успешно отправлено: %d\n", okSend))
 	if notOkSend != 0 {
 		reportMess.WriteString(fmt.Sprintf("Неуспешно: %d\n", notOkSend))
