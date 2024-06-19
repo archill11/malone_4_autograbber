@@ -171,9 +171,9 @@ func (srv *TgService) Donor_addChannelPost(m models.Update) error {
 	var reportMess2 bytes.Buffer
 	for key, val := range refkiMap {
 		grLinkName, _ := srv.db.GetGroupLinkById(key)
-		reportMess.WriteString(fmt.Sprintf("Ref: %s\n", grLinkName.Title))
+		reportMess2.WriteString(fmt.Sprintf("Ref: %s\n", grLinkName.Title))
 		for k, v := range val {
-			reportMess.WriteString(fmt.Sprintf("%s: %d\n\n", k, v))
+			reportMess2.WriteString(fmt.Sprintf("%s: %d\n\n", k, v))
 		}
 	}
 	srv.SendMessage(channel_id, reportMess2.String())
