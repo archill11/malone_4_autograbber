@@ -101,7 +101,17 @@ func (srv *TgService) Donor_addChannelPost(m models.Update) error {
 	var notOkSend int
 	var IsDisable int
 	var ChId0 int
+	refkiMap := map[int]map[string]int{}
+	for _, vampBot := range allVampBots {
+		botRefka := vampBot.GroupLinkId
+		refkiMap[botRefka] = map[string]int{
+			"Успешно": 0,
+			"Неуспешно": 0,
+		}
+	}
+
 	for i, vampBot := range allVampBots {
+		botRefka := vampBot.GroupLinkId
 		if vampBot.ChId == 0 {
 			ChId0++
 			continue
@@ -114,6 +124,10 @@ func (srv *TgService) Donor_addChannelPost(m models.Update) error {
 		err := srv.sendChPostAsVamp(vampBot, m)
 		if err != nil {
 			notOkSend++
+			_, ok := refkiMap[botRefka]
+			if ok {
+				refkiMap[botRefka]["Неуспешно"] = refkiMap[botRefka]["Неуспешно"]+1
+			}
 			srv.l.Error("Donor_addChannelPost: sendChPostAsVamp err", zap.Error(err))
 			if strings.Contains(err.Error(), "Bad Request: invalid file_id") {
 				srv.SendMessage(channel_id, err.Error())
@@ -122,6 +136,10 @@ func (srv *TgService) Donor_addChannelPost(m models.Update) error {
 			}
 		} else {
 			okSend++
+			_, ok := refkiMap[botRefka]
+			if ok {
+				refkiMap[botRefka]["Успешно"] = refkiMap[botRefka]["Успешно"]+1
+			}
 		}
 		time.Sleep(time.Second)
 	}
@@ -148,6 +166,19 @@ func (srv *TgService) Donor_addChannelPost(m models.Update) error {
 	srv.SendMessage(channel_id, reportMess.String())
 	if srv.Cfg.BotPrefix != "_test"  { // стата в общий канал
 		srv.SendMessageByToken(-1002248409312, reportMess.String(), srv.Cfg.BotTokenForStat)
+	}
+
+	var reportMess2 bytes.Buffer
+	for key, val := range refkiMap {
+		grLinkName, _ := srv.db.GetGroupLinkById(key)
+		reportMess.WriteString(fmt.Sprintf("Ref: %s\n", grLinkName.Title))
+		for k, v := range val {
+			reportMess.WriteString(fmt.Sprintf("%s: %d\n\n", k, v))
+		}
+	}
+	srv.SendMessage(channel_id, reportMess2.String())
+	if srv.Cfg.BotPrefix != "_test"  { // стата в общий канал
+		srv.SendMessageByToken(-1002248409312, reportMess2.String(), srv.Cfg.BotTokenForStat)
 	}
 
 	return nil
