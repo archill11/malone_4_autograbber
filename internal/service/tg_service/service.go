@@ -339,23 +339,31 @@ func (srv *TgService) AlertScamBots() {
 				srv.SendMessage(donorBot.ChId, errMess)
 				var logBotMess bytes.Buffer
 				logBotMess.WriteString("удален бот\n")
+				logBotMess.WriteString(fmt.Sprintf("Донор псевдоним: %s\n", srv.Cfg.BotPrefix))
 				logBotMess.WriteString(fmt.Sprintf("%s\n", srv.AddAt(bot.Username)))
 				logBotMess.WriteString(fmt.Sprintf("%s\n", bot.Token))
 				logBotMess.WriteString(fmt.Sprintf("%s\n", bot.ChLink))
 				grLink, _ := srv.db.GetGroupLinkById(bot.GroupLinkId)
 				logBotMess.WriteString(fmt.Sprintf("group_link: %d, %s - %s\n", bot.GroupLinkId, grLink.Title, grLink.Link))
 				srv.SendMessage(donorBot.ChId, logBotMess.String())
+				if srv.Cfg.BotPrefix != "_test"  { // стата в общий канал
+					srv.SendMessageByToken(-1002248409312, logBotMess.String(), srv.Cfg.BotTokenForStat)
+				}
 				// srv.db.DeleteBot(bot.Id)
 			}
 			if strings.Contains(resp.Result.Description, "this account as a scam or a fake") {
 				var mess bytes.Buffer
 				mess.WriteString("обнаружен скам на канале\n")
+				mess.WriteString(fmt.Sprintf("Донор псевдоним: %s\n", srv.Cfg.BotPrefix))
 				mess.WriteString(fmt.Sprintf("бот: @%s | %s\n", bot.Username, bot.Token))
 				mess.WriteString(fmt.Sprintf("канал: %s | %d\n", bot.ChLink, bot.ChId))
 				logMess := mess.String()
 
 				srv.SendMessage(donorBot.ChId, logMess)
 				srv.db.EditBotChIsSkam(bot.Id, 1)
+				if srv.Cfg.BotPrefix != "_test"  { // стата в общий канал
+					srv.SendMessageByToken(-1002248409312, mess.String(), srv.Cfg.BotTokenForStat)
+				}
 
 				time.Sleep(time.Second)
 			}
