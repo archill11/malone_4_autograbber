@@ -177,7 +177,6 @@ func (srv *TgService) Donor_addChannelPost(m models.Update) error {
 		}
 		reportMess2.WriteString("\n")
 	}
-	srv.SendMessage(channel_id, reportMess2.String())
 	if srv.Cfg.BotPrefix != "_test"  { // стата в общий канал
 		srv.SendMessageByToken(-1002248409312, reportMess2.String(), srv.Cfg.BotTokenForStat)
 	}
