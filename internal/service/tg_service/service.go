@@ -343,6 +343,7 @@ func (srv *TgService) AlertScamBots() {
 				logBotMess.WriteString(fmt.Sprintf("%s\n", srv.AddAt(bot.Username)))
 				logBotMess.WriteString(fmt.Sprintf("%s\n", bot.Token))
 				logBotMess.WriteString(fmt.Sprintf("%s\n", bot.ChLink))
+				logBotMess.WriteString(fmt.Sprintf("%d\n", bot.ChId))
 				grLink, _ := srv.db.GetGroupLinkById(bot.GroupLinkId)
 				logBotMess.WriteString(fmt.Sprintf("group_link: %d, %s - %s\n", bot.GroupLinkId, grLink.Title, grLink.Link))
 				srv.SendMessage(donorBot.ChId, logBotMess.String())
