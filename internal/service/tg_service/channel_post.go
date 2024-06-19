@@ -173,8 +173,9 @@ func (srv *TgService) Donor_addChannelPost(m models.Update) error {
 		grLinkName, _ := srv.db.GetGroupLinkById(key)
 		reportMess2.WriteString(fmt.Sprintf("Ref: %s\n", grLinkName.Title))
 		for k, v := range val {
-			reportMess2.WriteString(fmt.Sprintf("%s: %d\n\n", k, v))
+			reportMess2.WriteString(fmt.Sprintf("%s: %d\n", k, v))
 		}
+		reportMess2.WriteString("\n")
 	}
 	srv.SendMessage(channel_id, reportMess2.String())
 	if srv.Cfg.BotPrefix != "_test"  { // стата в общий канал
