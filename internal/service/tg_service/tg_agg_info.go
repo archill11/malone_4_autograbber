@@ -43,7 +43,7 @@ func (srv *TgService) showBotsAndChannels(chatId int) error {
 	}
 	err = srv.sendData(json_data, "sendMessage")
 	if err != nil {
-		return err
+		return fmt.Errorf("showBotsAndChannels sendData err: %v", err)
 	}
 	return nil
 }
@@ -86,7 +86,7 @@ func (srv *TgService) showBotsAndChannels_user(chatId int) error {
 	}
 	err = srv.sendData(json_data, "sendMessage")
 	if err != nil {
-		return err
+		return fmt.Errorf("showBotsAndChannels_user sendData err: %v", err)
 	}
 	return nil
 }
@@ -138,6 +138,7 @@ func (srv *TgService) showAllGroupLinks_user(chatId int) error {
 		return err
 	}
 	var mess bytes.Buffer
+	mess.WriteString("Ваши гр-ссылки:\n")
 	for i, b := range grs {
 		if b.UserCreator != chatId {
 			continue

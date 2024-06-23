@@ -419,11 +419,11 @@ func (srv *TgService) RM_edit_bot_group_link(m models.Update) error {
 		"reply_markup": mess.String(),
 	})
 	if err != nil {
-		return fmt.Errorf("RM__DEL_ADV_POST Marshal err %v", err)
+		return fmt.Errorf("RM_edit_bot_group_link Marshal err: %v", err)
 	}
 	err = srv.sendData(json_data, "sendMessage")
 	if err != nil {
-		return err
+		return fmt.Errorf("RM_edit_bot_group_link sendData err: %v", err)
 	}
 
 	// err = srv.SendMessage(chatId, fmt.Sprintf("для бота %d, ссылка успешно изменена %d -> %d", botId, oldGroupLink, groupLinkId))
