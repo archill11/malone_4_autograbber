@@ -17,6 +17,17 @@ func (s *Database) AddNewGroupLink(title, link string) error {
 	return nil
 }
 
+func (s *Database) AddNewGroupLinkV2(title, link string, user_creator int) error {
+	q := `INSERT INTO group_link (title, link, user_creator)
+			VALUES ($1, $2, $3)
+		ON CONFLICT DO NOTHING`
+	_, err := s.Exec(q, title, link, user_creator)
+	if err != nil {
+		return fmt.Errorf("AddNewGroupLinkV2 err: %w", err)
+	}
+	return nil
+}
+
 func (s *Database) DeleteGroupLink(id int) error {
 	q := `DELETE FROM group_link WHERE id = $1`
 	_, err := s.Exec(q, id)
@@ -75,14 +86,10 @@ func (s *Database) GetGroupLinkById(id int) (entity.GroupLink, error) {
 }
 
 func (s *Database) EditGroupLinkUserCreator(grlLink string, user_creator int) error {
-	q := `
-		UPDATE group_link SET
-			user_creator = $1
-		WHERE link = $2
-	`
+	q := `UPDATE group_link SET user_creator = $1 WHERE link = $2`
 	_, err := s.Exec(q, user_creator, grlLink)
 	if err != nil {
-		return fmt.Errorf("EditGroupLinkUserCreator: user_creator: %d Link: %d err: %w", user_creator, grlLink, err)
+		return fmt.Errorf("EditGroupLinkUserCreator: user_creator: %d Link: %s err: %w", user_creator, grlLink, err)
 
 	}
 	return nil
