@@ -126,6 +126,15 @@ func (srv *TgService) HandleCallbackQuery(m models.Update) error {
 		return err
 	}
 
+	if cq.Data == "show_all_group_links_user" {
+		err := srv.CQ_show_all_group_links_user(m)
+		if err != nil {
+			srv.SendMessage(fromId, ERR_MSG)
+			srv.SendMessage(fromId, err.Error())
+		}
+		return err
+	}
+
 	if cq.Data == "show_admin_panel" {
 		err := srv.CQ_show_admin_panel(m)
 		if err != nil {
@@ -335,6 +344,16 @@ func (srv *TgService) CQ_show_all_group_links(m models.Update) error {
 	srv.l.Info(fmt.Sprintf("CQ_show_all_group_links: fromId: %d fromUsername: %s", fromId, fromUsername))
 
 	err := srv.showAllGroupLinks(fromId)
+	return err
+}
+
+func (srv *TgService) CQ_show_all_group_links_user(m models.Update) error {
+	cq := m.CallbackQuery
+	fromId := cq.From.Id
+	fromUsername := cq.From.UserName
+	srv.l.Info(fmt.Sprintf("CQ_show_all_group_links_user: fromId: %d fromUsername: %s", fromId, fromUsername))
+
+	err := srv.showAllGroupLinks_user(fromId)
 	return err
 }
 

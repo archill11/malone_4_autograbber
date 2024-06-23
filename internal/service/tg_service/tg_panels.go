@@ -54,7 +54,7 @@ func (srv *TgService) showUserPanel(chatId int) error {
 			[{ "text": "🗑 Удалить группу-ссылку", "callback_data": "delete_group_link" }],
 			[{ "text": "🖌 Редактировать группу-ссылку", "callback_data": "update_group_link" }],
 			[{ "text": "🖌 Поменять группу-ссылку у бота", "callback_data": "edit_bot_group_link" }],
-			[{ "text": "Все группы-ссылки", "callback_data": "show_all_group_links" }],
+			[{ "text": "Все группы-ссылки", "callback_data": "show_all_group_links_user" }],
 			[{ "text": "🖌 Поменять личку у бота", "callback_data": "edit_bot_lichka" }]
 		]}`,
 	})

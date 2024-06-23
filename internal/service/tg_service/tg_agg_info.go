@@ -98,6 +98,47 @@ func (srv *TgService) showAllGroupLinks(chatId int) error {
 	}
 	var mess bytes.Buffer
 	for i, b := range grs {
+		mess.WriteString(fmt.Sprintf("%d) id: %d\n", i+1, b.Id))
+		mess.WriteString(fmt.Sprintf("Название: %s\n", b.Title))
+		mess.WriteString(fmt.Sprintf("Ссылка: %s\n", b.Link))
+		bots, err := srv.db.GetBotsByGrouLinkId(b.Id)
+		if err != nil {
+			return err
+		}
+		mess.WriteString(fmt.Sprintf("Количество Привязаных ботов: %d\n\n", len(bots)))
+
+		if i%30 == 0 && i > 0 {
+			err = srv.SendMessage(chatId, mess.String())
+			if err != nil {
+				return err
+			}
+			mess.Reset()
+		}
+	}
+	json_data, err := json.Marshal(map[string]any{
+		"chat_id": strconv.Itoa(chatId),
+		"text":    mess.String(),
+		"reply_markup": `{"inline_keyboard" : [ 
+			[{ "text": "Назад", "callback_data": "show_admin_panel" }]
+		]}`,
+	})
+	if err != nil {
+		return err
+	}
+	err = srv.sendData(json_data, "sendMessage")
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (srv *TgService) showAllGroupLinks_user(chatId int) error {
+	grs, err := srv.db.GetAllGroupLinks()
+	if err != nil {
+		return err
+	}
+	var mess bytes.Buffer
+	for i, b := range grs {
 		if b.UserCreator != chatId {
 			continue
 		}
