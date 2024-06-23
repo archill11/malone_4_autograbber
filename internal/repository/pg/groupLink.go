@@ -73,3 +73,17 @@ func (s *Database) GetGroupLinkById(id int) (entity.GroupLink, error) {
 	}
 	return u, nil
 }
+
+func (s *Database) EditGroupLinkUserCreator(grlLink string, user_creator int) error {
+	q := `
+		UPDATE group_link SET
+			user_creator = $1
+		WHERE link = $2
+	`
+	_, err := s.Exec(q, user_creator, grlLink)
+	if err != nil {
+		return fmt.Errorf("EditGroupLinkUserCreator: user_creator: %d Link: %d err: %w", user_creator, grlLink, err)
+
+	}
+	return nil
+}

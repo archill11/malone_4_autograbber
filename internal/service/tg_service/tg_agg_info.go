@@ -98,6 +98,9 @@ func (srv *TgService) showAllGroupLinks(chatId int) error {
 	}
 	var mess bytes.Buffer
 	for i, b := range grs {
+		if b.UserCreator != chatId {
+			continue
+		}
 		mess.WriteString(fmt.Sprintf("%d) id: %d\n", i+1, b.Id))
 		mess.WriteString(fmt.Sprintf("Название: %s\n", b.Title))
 		mess.WriteString(fmt.Sprintf("Ссылка: %s\n", b.Link))

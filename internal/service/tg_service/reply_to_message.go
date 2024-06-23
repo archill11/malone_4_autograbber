@@ -382,6 +382,7 @@ func (srv *TgService) RM_add_group_link(m models.Update) error {
 		srv.SendMessage(fromId, ERR_MSG)
 		return fmt.Errorf("RM_add_admin: srv.db.AddNewGroupLink(%s, %s) err: %v", groupLinkTitle, groupLinkLink, err)
 	}
+	srv.db.EditGroupLinkUserCreator(groupLinkLink, fromId)
 	srv.SendMessage(fromId, "группа-ссылка добавлен")
 	return nil
 }
