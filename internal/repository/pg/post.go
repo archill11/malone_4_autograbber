@@ -24,6 +24,7 @@ func (s *Database) GetPostByDonorIdAndChId(donorChPostId, channelId int) (entity
 			FROM posts as c
 			WHERE ch_id = $1 
 			AND donor_ch_post_id = $2
+			ORDER BY created_at DESC LIMIT 1
 		), '{}'::json)
 	`
 	var u entity.Post
