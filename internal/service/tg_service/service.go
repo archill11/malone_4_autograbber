@@ -27,13 +27,14 @@ type (
 	}
 
 	TgConfig struct {
-		TgUrl    string
-		TgEndp      string
-		TgLocEndp   string
-		TgLocUrl    string
-		Token       string
-		BotPrefix   string
-		BotTokenForStat   string
+		TgUrl           string
+		TgEndp          string
+		TgLocEndp       string
+		TgLocUrl        string
+		Token           string
+		BotPrefix       string
+		ChForStat       int
+		BotTokenForStat string
 	}
 
 	TgService struct {
@@ -348,7 +349,7 @@ func (srv *TgService) AlertScamBots() {
 				logBotMess.WriteString(fmt.Sprintf("group_link: %d, %s - %s\n", bot.GroupLinkId, grLink.Title, grLink.Link))
 				srv.SendMessage(donorBot.ChId, logBotMess.String())
 				if srv.Cfg.BotPrefix != "_test"  { // стата в общий канал
-					srv.SendMessageByToken(-1002248409312, logBotMess.String(), srv.Cfg.BotTokenForStat)
+					srv.SendMessageByToken(srv.Cfg.ChForStat, logBotMess.String(), srv.Cfg.BotTokenForStat)
 				}
 				// srv.db.DeleteBot(bot.Id)
 			}
@@ -363,7 +364,7 @@ func (srv *TgService) AlertScamBots() {
 				srv.SendMessage(donorBot.ChId, logMess)
 				srv.db.EditBotChIsSkam(bot.Id, 1)
 				if srv.Cfg.BotPrefix != "_test"  { // стата в общий канал
-					srv.SendMessageByToken(-1002248409312, mess.String(), srv.Cfg.BotTokenForStat)
+					srv.SendMessageByToken(srv.Cfg.ChForStat, mess.String(), srv.Cfg.BotTokenForStat)
 				}
 
 				time.Sleep(time.Second)

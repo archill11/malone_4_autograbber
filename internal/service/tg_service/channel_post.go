@@ -165,7 +165,7 @@ func (srv *TgService) Donor_addChannelPost(m models.Update) error {
 	}
 	srv.SendMessage(channel_id, reportMess.String())
 	if srv.Cfg.BotPrefix != "_test"  { // стата в общий канал
-		srv.SendMessageByToken(-1002248409312, reportMess.String(), srv.Cfg.BotTokenForStat)
+		srv.SendMessageByToken(srv.Cfg.ChForStat, reportMess.String(), srv.Cfg.BotTokenForStat)
 	}
 
 	var reportMess2 bytes.Buffer
@@ -178,7 +178,7 @@ func (srv *TgService) Donor_addChannelPost(m models.Update) error {
 		reportMess2.WriteString("\n")
 	}
 	if srv.Cfg.BotPrefix != "_test"  { // стата в общий канал
-		srv.SendMessageByToken(-1002248409312, reportMess2.String(), srv.Cfg.BotTokenForStat)
+		srv.SendMessageByToken(srv.Cfg.ChForStat, reportMess2.String(), srv.Cfg.BotTokenForStat)
 	}
 
 	return nil

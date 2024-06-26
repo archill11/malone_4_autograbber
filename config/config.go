@@ -7,6 +7,7 @@ import (
 	"myapp/internal/repository/pg"
 	"myapp/internal/service/tg_service"
 	"os"
+	"strconv"
 
 	"github.com/joho/godotenv"
 )
@@ -36,6 +37,7 @@ func Get() *Config {
 	c.Tg.TgLocEndp = fmt.Sprintf("%s/bot%%s/%%s", c.Tg.TgLocUrl)
 	c.Tg.Token = os.Getenv("BOT_TOKEN")
 	c.Tg.BotTokenForStat = os.Getenv("BOT_TOKEN_FOR_STAT")
+	c.Tg.ChForStat, _ = strconv.Atoi(os.Getenv("CH_FOR_STAT"))
 	c.Tg.BotPrefix = os.Getenv("BOT_PREFIX")
 
 	c.Server.Port = os.Getenv("APP_PORT")
