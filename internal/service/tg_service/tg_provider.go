@@ -125,6 +125,7 @@ func (srv *TgService) SendMessage(chat int, mess string) error {
 	json_data, err := json.Marshal(map[string]any{
 		"chat_id": strconv.Itoa(chat),
 		"text":    mess,
+		"parse_mode": "HTML",
 		"link_preview_options": `{"is_disabled": true}`,
 	})
 	if err != nil {
@@ -141,6 +142,7 @@ func (srv *TgService) SendMessageByToken(chat int, mess string, token string) er
 	json_data, err := json.Marshal(map[string]any{
 		"chat_id": strconv.Itoa(chat),
 		"text":    mess,
+		"parse_mode": "HTML",
 		"link_preview_options": `{"is_disabled": true}`,
 	})
 	if err != nil {

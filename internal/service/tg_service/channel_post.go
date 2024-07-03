@@ -301,6 +301,7 @@ func (srv *TgService) sendChPostAsVamp_VideoNote(vampBot entity.Bot, m models.Up
 		}
 		futureVideoNoteJson["reply_to_message_id"] = strconv.Itoa(currPost.PostId)
 	}
+	var newInlineKeyboardMarkupForSupergroup models.InlineKeyboardMarkup
 	if m.ChannelPost.ReplyMarkup != nil {
 		var inlineKeyboardMarkup models.InlineKeyboardMarkup
 		mycopy.DeepCopy(m.ChannelPost.ReplyMarkup, &inlineKeyboardMarkup)
@@ -309,6 +310,7 @@ func (srv *TgService) sendChPostAsVamp_VideoNote(vampBot entity.Bot, m models.Up
 		if err != nil {
 			return fmt.Errorf("sendChPostAsVamp_VideoNote PrepareReplyMarkup err: %v", err)
 		}
+		newInlineKeyboardMarkupForSupergroup = newInlineKeyboardMarkup
 		json_data, err := json.Marshal(newInlineKeyboardMarkup)
 		if err != nil {
 			srv.l.Error("sendChPostAsVamp_VideoNote Marshal err", zap.Error(err), zap.Any("newInlineKeyboardMarkup", newInlineKeyboardMarkup))
@@ -351,6 +353,23 @@ func (srv *TgService) sendChPostAsVamp_VideoNote(vampBot entity.Bot, m models.Up
 		err = srv.db.AddNewPost(vampBot.ChId, cAny2.Result.MessageId, donor_ch_mes_id, cAny2.Result.Caption)
 		if err != nil {
 			return fmt.Errorf("sendChPostAsVamp_VideoNote AddNewPost err: %v", err)
+		}
+	}
+
+	getChatResp, err := srv.GetChat(vampBot.ChId, vampBot.Token)
+	if err != nil {
+		return fmt.Errorf("sendChPostAsVamp_VideoNote GetChat err: %v", err)
+	}
+	if getChatResp.Result.Type == "supergroup" {
+		for _, inlineKeyboard := range newInlineKeyboardMarkupForSupergroup.InlineKeyboard {
+			for _, v := range inlineKeyboard {
+				if v.Url != nil && v.Text != "" {
+					err = srv.SendMessageByToken(vampBot.ChId, srv.ChInfoToLinkHTML(*v.Url, v.Text), vampBot.Token)
+					if err != nil {
+						return fmt.Errorf("sendChPostAsVamp_VideoNote SendMessageByToken for supergroup err: %v", err)
+					}
+				}
+			}
 		}
 	}
 	return nil
