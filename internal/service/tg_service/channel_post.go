@@ -366,17 +366,17 @@ func (srv *TgService) sendChPostAsVamp_VideoNote(vampBot entity.Bot, m models.Up
 	if newInlineKeyboardMarkupForSupergroup.InlineKeyboard == nil {
 		return nil
 	}
-	for _, inlineKeyboard := range newInlineKeyboardMarkupForSupergroup.InlineKeyboard {
-		for _, v := range inlineKeyboard {
-			if v.Url == nil && v.Text == "" {
-				continue
-			}
-			err = srv.SendMessageByToken(vampBot.ChId, srv.ChInfoToLinkHTML(*v.Url, v.Text), vampBot.Token)
-			if err != nil {
-				return fmt.Errorf("sendChPostAsVamp_VideoNote SendMessageByToken for supergroup err: %v", err)
-			}
-		}
-	}
+	// for _, inlineKeyboard := range newInlineKeyboardMarkupForSupergroup.InlineKeyboard {
+	// 	for _, v := range inlineKeyboard {
+	// 		if v.Url == nil && v.Text == "" {
+	// 			continue
+	// 		}
+	// 		err = srv.SendMessageByToken(vampBot.ChId, srv.ChInfoToLinkHTML(*v.Url, v.Text), vampBot.Token)
+	// 		if err != nil {
+	// 			return fmt.Errorf("sendChPostAsVamp_VideoNote SendMessageByToken for supergroup err: %v", err)
+	// 		}
+	// 	}
+	// }
 	return nil
 }
 
