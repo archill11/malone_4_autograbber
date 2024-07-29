@@ -39,6 +39,7 @@ func Get() *Config {
 	c.Tg.BotTokenForStat = os.Getenv("BOT_TOKEN_FOR_STAT")
 	c.Tg.ChForStat, _ = strconv.Atoi(os.Getenv("CH_FOR_STAT"))
 	c.Tg.BotPrefix = os.Getenv("BOT_PREFIX")
+	c.Tg.IsPersonalLinks, _ = strconv.Atoi(os.Getenv("IS_PERSONAL_LINKS"))
 
 	c.Server.Port = os.Getenv("APP_PORT")
 	c.Db.User = os.Getenv("PG_USER")

@@ -190,6 +190,18 @@ func (srv *TgService) HandleReplyToMessage(m models.Update) error {
 		return err
 	}
 
+	if strings.HasPrefix(rm.Text, "укажите персональную ссылку для нового бота[") {
+		runes := []rune(rm.Text)
+		runesStr := string(runes[len([]rune("укажите персональную ссылку для нового бота[")):])
+		botId, _ := strconv.Atoi(runesStr)
+		err := srv.RM_update_bot_personal_link(m, botId)
+		if err != nil {
+			srv.SendMessage(fromId, ERR_MSG)
+			srv.SendMessage(fromId, err.Error())
+		}
+		return err
+	}
+
 	if strings.HasPrefix(rm.Text, "укажите новую ссылку для ref [") {
 		runes := []rune(rm.Text)
 		runesStr := string(runes[len([]rune("укажите новую ссылку для ref [")):])
@@ -587,7 +599,6 @@ func (srv *TgService) RM_update_bot_group_link(m models.Update, botId int) error
 
 	grId, err := strconv.Atoi(replyMes)
 	if err != nil {
-		srv.SendMessage(fromId, ERR_MSG)
 		return err
 	}
 	groupLink, _ := srv.db.GetGroupLinkById(grId)
@@ -602,12 +613,33 @@ func (srv *TgService) RM_update_bot_group_link(m models.Update, botId int) error
 
 	err = srv.db.EditBotGroupLinkId(grId, botId)
 	if err != nil {
-		srv.SendMessage(fromId, ERR_MSG)
 		return err
 	}
 	srv.SendMessage(fromId, fmt.Sprintf("группа-ссылка %d привязанна к боту %d", grId, botId))
 
+	if srv.Cfg.IsPersonalLinks == 1 {
+		srv.SendForceReply(fromId, fmt.Sprintf(PERS_LINK_FOR_BOT_MSG, botId))
+	}
+
 	// srv.SendForceReply(fromId, EDIT_BOT_LICHKA_MSG)
+	return nil
+}
+
+func (srv *TgService) RM_update_bot_personal_link(m models.Update, botId int) error {
+	replyMes := m.Message.Text
+	fromId := m.Message.From.Id
+	fromUsername := m.Message.From.UserName
+	srv.l.Info(fmt.Sprintf("RM_update_bot_personal_link: fromId: %d fromUsername: %s, replyMes: %s", fromId, fromUsername, replyMes))
+	replyMes = strings.TrimSpace(replyMes)
+
+	persLink := replyMes
+
+	err := srv.db.EditBotPersonalLink(persLink, botId)
+	if err != nil {
+		return err
+	}
+	srv.SendMessage(fromId, fmt.Sprintf("персональная ссылка %s привязанна к боту %d", persLink, botId))
+
 	return nil
 }
 

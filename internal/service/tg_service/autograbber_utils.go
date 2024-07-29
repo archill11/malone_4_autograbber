@@ -79,7 +79,13 @@ func (srv *TgService) PrepareEntities(entities []models.MessageEntity, messText 
 				cutEntities = true
 				break
 			}
-			entities[i].Url = groupLink.Link
+			refLink := groupLink.Link
+			if srv.Cfg.IsPersonalLinks == 1 {
+				if vampBot.PersonalLink != "" {
+					refLink = vampBot.PersonalLink
+				}
+			}
+			entities[i].Url = refLink
 			continue
 		}
 		// если Tg ссылка

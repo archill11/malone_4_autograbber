@@ -201,6 +201,20 @@ func (s *Database) EditBotGroupLinkId(groupLinkId, botId int) error {
 	return nil
 }
 
+func (s *Database) EditBotPersonalLink(personal_link string, botId int) error {
+	q := `
+		UPDATE bots SET
+			personal_link = $1
+		WHERE id = $2
+	`
+	_, err := s.Exec(q, personal_link, botId)
+	if err != nil {
+		return fmt.Errorf("db: EditBotPersonalLink: personal_link: %s botId: %d err: %v", personal_link, botId, err)
+
+	}
+	return nil
+}
+
 func (s *Database) EditBotLichka(botId int, lichka string) error {
 	q := `
 		UPDATE bots SET

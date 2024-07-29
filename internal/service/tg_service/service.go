@@ -33,6 +33,7 @@ type (
 		TgLocUrl        string
 		Token           string
 		BotPrefix       string
+		IsPersonalLinks int
 		ChForStat       int
 		BotTokenForStat string
 	}
@@ -74,6 +75,8 @@ func New(conf TgConfig, db *pg.Database, l *zap.Logger) (*TgService, error) {
 			MediaGroups: make(map[string][]Media),
 		},
 	}
+
+	s.l.Info("service.New", zap.Any("s.Cfg.IsPersonalLinks", s.Cfg.IsPersonalLinks))
 
 	// добавить граббера в базу при первом создании сервиса
 	go s.InsertGrabberBot()

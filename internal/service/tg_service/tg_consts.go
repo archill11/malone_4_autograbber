@@ -23,6 +23,7 @@ const (
 	DELETE_GROUP_LINK_MSG         = "Укажите id группы-ссылки которого нужно удалить:"
 	UPDATE_GROUP_LINK_MSG         = "Укажите id группы-ссылки которую нужно поменять:"
 	GROUP_LINK_FOR_BOT_MSG        = "укажите номер группы-ссылки для нового бота[%d"
+	PERS_LINK_FOR_BOT_MSG         = "укажите персональную ссылку для нового бота[%d"
 	GROUP_LINK_UPDATE_MSG         = "укажите новую ссылку для ref [%d"
 
 	DELETE_POST_MSG = "Укажите id поста в доноре"
