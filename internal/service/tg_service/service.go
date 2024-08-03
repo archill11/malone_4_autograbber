@@ -33,6 +33,7 @@ type (
 		TgLocUrl        string
 		Token           string
 		BotPrefix       string
+		DefaultLichka   string
 		IsPersonalLinks int
 		ChForStat       int
 		BotTokenForStat string

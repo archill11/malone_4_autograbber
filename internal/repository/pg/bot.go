@@ -229,6 +229,20 @@ func (s *Database) EditBotLichka(botId int, lichka string) error {
 	return nil
 }
 
+func (s *Database) SetBotLichkaAllEmpty(lichka string) error {
+	q := `
+		UPDATE bots SET
+			lichka = $1
+		WHERE lichka = ''
+	`
+	_, err := s.Exec(q, lichka)
+	if err != nil {
+		return fmt.Errorf("db: SetBotLichkaAllEmpty: lichka: %s err: %w", lichka, err)
+
+	}
+	return nil
+}
+
 func (s *Database) EditBotUserCreator(botId, user_creator int) error {
 	q := `
 		UPDATE bots SET
