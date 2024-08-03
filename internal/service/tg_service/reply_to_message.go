@@ -242,6 +242,7 @@ func (srv *TgService) RM_obtain_vampire_bot_token(m models.Update) error {
 	srv.SendForceReply(fromId, fmt.Sprintf(GROUP_LINK_FOR_BOT_MSG, res.Id))
 
 	srv.db.SetBotLichkaAllEmpty(srv.AddAt(srv.Cfg.DefaultLichka))
+	srv.db.SetBotLichkaAllEmptyV2(srv.AddAt(srv.Cfg.DefaultLichka))
 
 	return nil
 }
