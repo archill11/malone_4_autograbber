@@ -59,6 +59,7 @@ func (srv *TgService) ChangeLinkReferredToPost(originalLink string, vampBot enti
 // метод заменяет fake-link на нужную группу-ссылку vampBota
 // и вырезает все ссылки и Entities если группа-ссылка - cut-link
 func (srv *TgService) PrepareEntities(entities []models.MessageEntity, messText string, vampBot entity.Bot) ([]models.MessageEntity, string, error) {
+	srv.l.Info("PrepareEntities", zap.Any("vampBot", vampBot))
 	cutEntities := false
 	for i, v := range entities {
 		// если fake-link
@@ -96,10 +97,12 @@ func (srv *TgService) PrepareEntities(entities []models.MessageEntity, messText 
 		if newUrl != "" {
 			entities[i].Url = newUrl
 		}
+		srv.l.Info("PrepareEntities", zap.Any("newUrl", newUrl), zap.Any("vampBot", vampBot))
 	}
 	lichka := srv.AddAt(vampBot.Lichka)
 	if lichka != "" {
 		messText = strings.Replace(messText, "@lichka", lichka, -1)
+		srv.l.Info("PrepareEntities Replace @lichka", zap.Any("lichka", lichka), zap.Any("vampBot", vampBot))
 	}
 	if !cutEntities {
 		return entities, messText, nil

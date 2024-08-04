@@ -677,7 +677,7 @@ func (s *TgService) sendChPostAsVamp_Media_Group(mediaGroupId string) error {
 			continue
 		}
 
-		s.l.Info("sendChPostAsVamp_Media_Group: sending media-group", zap.Any("bot ch link", vampBot.ChLink), zap.Any("media_json", mediaJson))
+		s.l.Info("sendChPostAsVamp_Media_Group: sending media-group", zap.Any("bot ch link", vampBot.ChLink), zap.Any("media_json", mediaJson), zap.Any("bot", vampBot))
 		cAny223, err := s.SendMediaGroup(media_json, vampBot.Token)
 		if err != nil {
 			notOkSend++
