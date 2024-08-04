@@ -241,9 +241,6 @@ func (srv *TgService) RM_obtain_vampire_bot_token(m models.Update) error {
 	}
 	srv.SendForceReply(fromId, fmt.Sprintf(GROUP_LINK_FOR_BOT_MSG, res.Id))
 
-	srv.db.SetBotLichkaAllEmpty(srv.AddAt(srv.Cfg.DefaultLichka))
-	srv.db.SetBotLichkaAllEmptyV2(srv.AddAt(srv.Cfg.DefaultLichka))
-
 	return nil
 }
 
@@ -619,12 +616,15 @@ func (srv *TgService) RM_update_bot_group_link(m models.Update, botId int) error
 		return err
 	}
 	srv.SendMessage(fromId, fmt.Sprintf("группа-ссылка %d привязанна к боту %d", grId, botId))
+	
+	
+	srv.SendForceReply(fromId, EDIT_BOT_LICHKA_MSG)
+	
+	srv.db.SetBotLichkaAllEmpty(srv.AddAt(srv.Cfg.DefaultLichka))
 
 	if srv.Cfg.IsPersonalLinks == 1 {
 		srv.SendForceReply(fromId, fmt.Sprintf(PERS_LINK_FOR_BOT_MSG, botId))
 	}
-
-	// srv.SendForceReply(fromId, EDIT_BOT_LICHKA_MSG)
 	return nil
 }
 
