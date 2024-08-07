@@ -141,7 +141,7 @@ func (srv *TgService) Donor_addChannelPost(m models.Update) error {
 				refkiMap[botRefka]["Успешно"] = refkiMap[botRefka]["Успешно"]+1
 			}
 		}
-		time.Sleep(time.Second)
+		time.Sleep(time.Second*2)
 	}
 	srv.l.Info("Donor_addChannelPost: end")
 
