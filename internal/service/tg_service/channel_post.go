@@ -699,6 +699,8 @@ func (s *TgService) sendChPostAsVamp_Media_Group(mediaGroupId string) error {
 				}
 			}
 		}
+
+		time.Sleep(time.Second)
 	}
 
 	delete(s.MediaStore.MediaGroups, mediaGroupId)
