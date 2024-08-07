@@ -117,6 +117,15 @@ func (srv *TgService) HandleCallbackQuery(m models.Update) error {
 		return err
 	}
 
+	if cq.Data == "edit_bot_lichka_all" {
+		err := srv.CQ_edit_bot_lichka_all(m)
+		if err != nil {
+			srv.SendMessage(fromId, ERR_MSG)
+			srv.SendMessage(fromId, err.Error())
+		}
+		return err
+	}
+
 	if cq.Data == "show_all_group_links" {
 		err := srv.CQ_show_all_group_links(m)
 		if err != nil {
@@ -335,6 +344,30 @@ func (srv *TgService) CQ_edit_bot_lichka_by_group_link(m models.Update) error {
 
 	err := srv.SendForceReply(fromId, EDIT_BOT_LICHKA_BY_GRLINK_MSG)
 	return err
+}
+
+func (srv *TgService) CQ_edit_bot_lichka_all(m models.Update) error {
+	cq := m.CallbackQuery
+	fromId := cq.From.Id
+	fromUsername := cq.From.UserName
+	srv.l.Info(fmt.Sprintf("CQ_edit_bot_lichka_all: fromId: %d fromUsername: %s", fromId, fromUsername))
+
+	u, err := srv.db.GetUserById(fromId)
+	if err != nil {
+		srv.l.Error(fmt.Sprintf("CQ_edit_bot_lichka_all GetUserById err: %v", err))
+		return err
+	}
+	if u.Id == 0 {
+		srv.l.Error("CQ_edit_bot_lichka_all GetUserById err: u.Id == 0")
+		return nil
+	}
+	if u.IsAdmin == 0 {
+		srv.l.Error("CQ_edit_bot_lichka_all GetUserById err: u.IsAdmin == 0")
+		return nil
+	}
+
+	srv.SendForceReply(fromId, CHANGE_BOT_LICHKA_MSG)
+	return nil
 }
 
 func (srv *TgService) CQ_show_all_group_links(m models.Update) error {

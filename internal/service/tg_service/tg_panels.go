@@ -23,6 +23,7 @@ func (srv *TgService) showAdminPanel(chatId int) error {
 			[{ "text": "Все группы-ссылки", "callback_data": "show_all_group_links" }],
 			[{ "text": "🖌 Поменять личку у бота", "callback_data": "edit_bot_lichka" }],
 			[{ "text": "🖌 Поменять личку по группе-ссылке", "callback_data": "edit_bot_lichka_by_group_link" }],
+			 [{ "text": "🖌 Поменять личку везде", "callback_data": "edit_bot_lichka_all" }],
 			[{ "text": "➕ Добавить Админа", "callback_data": "add_admin_btn" }],
 			[{ "text": "➕ Добавить Юзера", "callback_data": "add_user_btn" }],
 			[{ "text": "🗑 Удалить Юзера", "callback_data": "del_user_btn" }],

@@ -28,5 +28,6 @@ const (
 
 	DELETE_POST_MSG = "Укажите id поста в доноре"
 
-	CHANGE_DOMEN_MSG = "Укажите old_домен new_домен через пробел"
+	CHANGE_DOMEN_MSG      = "Укажите old_домен new_домен через пробел"
+	CHANGE_BOT_LICHKA_MSG = "Укажите @old @new через пробел"
 )

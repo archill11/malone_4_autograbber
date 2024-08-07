@@ -777,3 +777,40 @@ func (srv *TgService) RM__CHANGE_DOMEN_MSG(m models.Update) error {
 
 	return nil
 }
+
+func (srv *TgService) RM__CHANGE_BOT_LICHKA_MSG(m models.Update) error {
+	replyMes := m.Message.Text
+	fromId := m.Message.From.Id
+	fromUsername := m.Message.From.UserName
+	srv.l.Info(fmt.Sprintf("RM__CHANGE_BOT_LICHKA_MSG: fromId: %d fromUsername: %s, replyMes: %s", fromId, fromUsername, replyMes))
+
+	words := strings.Fields(replyMes)
+	if len(words) < 2 {
+		return fmt.Errorf("неверный формат ввода")
+	}
+	old_lichka := words[0]
+	new_lichka := words[1]
+
+	allBots, err := srv.db.GetAllBots()
+	if err != nil {
+		return fmt.Errorf("RM__CHANGE_BOT_LICHKA_MSG GetAllBots err: %v", err)
+	}
+	var cnt int
+	for _, v := range allBots {
+		if srv.DelAt(v.Lichka) != srv.DelAt(old_lichka) {
+			continue
+		}
+		err = srv.db.EditBotLichka(v.Id, new_lichka)
+		if err != nil {
+			err = fmt.Errorf("RM__CHANGE_BOT_LICHKA_MSG EditBotLichka err: %v", err)
+			srv.SendMessage(fromId, err.Error())
+		} else {
+			cnt++
+		}
+	}
+
+	logMess := fmt.Sprintf("все лички изменены. %d шт", cnt)
+	srv.SendMessage(fromId, logMess)
+
+	return nil
+}
