@@ -700,7 +700,7 @@ func (s *TgService) sendChPostAsVamp_Media_Group(mediaGroupId string) error {
 			}
 		}
 
-		time.Sleep(time.Second)
+		time.Sleep(time.Second*2)
 	}
 
 	delete(s.MediaStore.MediaGroups, mediaGroupId)
