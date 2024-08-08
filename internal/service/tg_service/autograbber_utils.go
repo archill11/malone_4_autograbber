@@ -100,10 +100,11 @@ func (srv *TgService) PrepareEntities(entities []models.MessageEntity, messText 
 		srv.l.Info("PrepareEntities", zap.Any("newUrl", newUrl), zap.Any("vampBot", vampBot))
 	}
 	lichka := srv.AddAt(vampBot.Lichka)
+	srv.l.Info("PrepareEntities Replace 1 @lichka", zap.Any("lichka", lichka), zap.Any("old messText", messText), zap.Any("vampBot", vampBot))
 	if lichka != "" {
 		messText = strings.Replace(messText, "@lichka", lichka, -1)
-		srv.l.Info("PrepareEntities Replace @lichka", zap.Any("lichka", lichka), zap.Any("vampBot", vampBot))
 	}
+	srv.l.Info("PrepareEntities Replace 2 @lichka", zap.Any("lichka", lichka), zap.Any("new messText", messText), zap.Any("vampBot", vampBot))
 	if !cutEntities {
 		return entities, messText, nil
 	}
