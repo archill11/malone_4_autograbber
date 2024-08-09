@@ -617,12 +617,16 @@ func (s *TgService) sendChPostAsVamp_Media_Group(mediaGroupId string) error {
 			IsDisable++
 			continue
 		}
-		for i, media := range mediaArr {
+
+		var mediaArrCoppy []Media
+		mycopy.DeepCopy(mediaArr, &mediaArrCoppy)
+
+		for i, media := range mediaArrCoppy {
 			fileId, err := s.sendAndDeleteMedia(vampBot, media.File_name_in_server, media.Type_media)
 			if err != nil {
 				s.l.Error(fmt.Sprintf("sendChPostAsVamp_Media_Group sendAndDeleteMedia ChLink-%s err", vampBot.ChLink), zap.Error(err))
 			}
-			mediaArr[i].File_id = fileId
+			mediaArrCoppy[i].File_id = fileId
 
 			if media.Reply_to_donor_message_id != 0 {
 				replToDonorChPostId := media.Reply_to_donor_message_id
@@ -630,7 +634,7 @@ func (s *TgService) sendChPostAsVamp_Media_Group(mediaGroupId string) error {
 				if err != nil {
 					s.l.Error(fmt.Sprintf("sendChPostAsVamp_Media_Group: GetPostByDonorIdAndChId err: %v", err))
 				}
-				mediaArr[i].Reply_to_message_id = currPost.PostId
+				mediaArrCoppy[i].Reply_to_message_id = currPost.PostId
 			}
 
 			if len(media.Caption_entities) > 0 {
@@ -642,16 +646,16 @@ func (s *TgService) sendChPostAsVamp_Media_Group(mediaGroupId string) error {
 					return fmt.Errorf("sendChPostAsVamp PrepareEntities err: %v", err)
 				}
 				if newEntities != nil {
-					mediaArr[i].Caption_entities = newEntities
+					mediaArrCoppy[i].Caption_entities = newEntities
 				}
 				if media.Caption != "" {
-					mediaArr[i].Caption = newText
+					mediaArrCoppy[i].Caption = newText
 				}
 			}
 		}
 
 		arrsik := make([]models.InputMedia, 0)
-		for _, med := range mediaArr {
+		for _, med := range mediaArrCoppy {
 			nwmd := models.InputMedia{
 				Type:            med.Type_media,
 				Media:           med.File_id,
@@ -668,8 +672,8 @@ func (s *TgService) sendChPostAsVamp_Media_Group(mediaGroupId string) error {
 			"chat_id": strconv.Itoa(vampBot.ChId),
 			"media":   arrsik,
 		}
-		if mediaArr[0].Reply_to_message_id != 0 {
-			mediaJson["reply_to_message_id"] = mediaArr[0].Reply_to_message_id
+		if mediaArrCoppy[0].Reply_to_message_id != 0 {
+			mediaJson["reply_to_message_id"] = mediaArrCoppy[0].Reply_to_message_id
 		}
 		media_json, err := json.Marshal(mediaJson)
 		if err != nil {
@@ -692,7 +696,7 @@ func (s *TgService) sendChPostAsVamp_Media_Group(mediaGroupId string) error {
 			if v.MessageId == 0 {
 				continue
 			}
-			for _, med := range mediaArr {
+			for _, med := range mediaArrCoppy {
 				err = s.db.AddNewPost(vampBot.ChId, v.MessageId, med.Donor_message_id, v.Caption)
 				if err != nil {
 					s.l.Error(fmt.Sprintf("sendChPostAsVamp_Media_Group AddNewPost err: %v", err))
