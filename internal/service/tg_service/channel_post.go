@@ -720,7 +720,7 @@ func (s *TgService) sendChPostAsVamp_Media_Group(mediaGroupId string) error {
 		reportMess.WriteString(fmt.Sprintf("Без подвяз. канала: %d\n", ChId0))
 	}
 	if IsDisable != 0 {
-		reportMess.WriteString(fmt.Sprintf("Отключены от рассылки: %d\n", IsDisable))
+		reportMess.WriteString(fmt.Sprintf("Отключены от рассылки: %d\n", IsDisable)) 
 	}
 	donorBot, err := s.db.GetBotInfoByToken(s.Cfg.Token)
 	if err != nil {
